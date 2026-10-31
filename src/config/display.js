@@ -73,10 +73,11 @@ export const PARALLAX_LAYERS = [
  * Areas the line passes through, in order (it loops back to the first). Each lists the
  * parallax layers it swaps in: a layer's art and drawn height; its bottom edge stays where
  * PARALLAX_LAYERS puts it (or at `bottom` if given). Layers not listed keep the default art.
+ * buildings: stop buildings per POI type (else POI_TYPES' own); platform: platform image for towns.
  */
 const areaLayer = (key) => ({ key, height: AREA_ART[key].height });
 export const AREAS = [
-  { id: 'meadow', name: 'The Meadows', layers: {} },
+  { id: 'meadow', name: 'The Meadows', layers: {}, platform: 'platform' },
   {
     id: 'desert',
     name: 'The Red Desert',
@@ -90,6 +91,15 @@ export const AREAS = [
       'foreground-back': areaLayer('desert-foreground-back'),
       foreground: areaLayer('desert-foreground'),
     },
+    // Stops here use desert buildings (one look picked at random) and the desert platform.
+    buildings: {
+      coalDepot: ['desert-coal-depot', 'desert-coal-depot-b'],
+      town: ['desert-town', 'desert-town-b'],
+      mine: ['desert-mine', 'desert-mine-b'],
+      workshop: ['desert-workshop', 'desert-workshop-b', 'desert-workshop-c'],
+      waterTower: ['desert-water-tower', 'desert-water-tower-b'],
+    },
+    platform: 'desert-platform',
   },
 ];
 
@@ -105,6 +115,9 @@ export const TUNNEL = {
   foothillHeight: 250,
   foothillOverlap: 0.45, // how much of each foothill tucks behind the peak
   baseHeight: 96,
+  rockBandHeight: 150, // long low ridge behind the foothills
+  rocksHeight: 120, // rock pile that sweeps past in front of everything
+  rocksFactor: 1.35, // ...at the foreground's parallax speed
   portalHeight: 190,
   opening: { left: 0.216, right: 0.595, top: 0.33 },
 };

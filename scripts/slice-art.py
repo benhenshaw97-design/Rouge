@@ -486,6 +486,37 @@ portal = scale(crop(S('tunnel-portal.png'), (0, 0, 1312, 1199)), 0.4)
 save(portal, 'sprites/tunnel-portal.png')
 save(portal.transpose(Image.FLIP_LEFT_RIGHT), 'sprites/tunnel-portal-exit.png')  # mirrored, for the far end
 
+# Desert stops: buildings from desert-stops.png (transparent) and desert-stops-variants.png
+# (checkerboard painted in, so it's removed first), plus the desert platform.
+ds = S('desert-stops.png')
+for name, box in {
+    'desert-coal-depot': (11, 14, 474, 387), 'desert-town': (491, 47, 1027, 386),
+    'desert-mine': (1042, 49, 1484, 386), 'desert-workshop': (1496, 14, 1904, 386),
+    'desert-water-tower': (1920, 15, 2160, 386),
+}.items():
+    save(crop(ds, box), f'pois/{name}.png')
+save(crop(ds, (1210, 426, 2086, 688)), 'sprites/desert-platform.png')
+dsv = remove_painted_background(S('desert-stops-variants.png'))
+dsv_pieces = find_pieces(dsv, (0, 0, dsv.width, dsv.height), alpha=128, grow=2, min_size=60)
+report['desert-stops-variants'] = dsv_pieces
+DSV = {  # (row, column) on the variants sheet
+    'desert-mine-b': (0, 0), 'desert-town-b': (0, 2), 'desert-workshop-b': (0, 3),
+    'desert-water-tower-b': (1, 0), 'desert-coal-depot-b': (1, 2), 'desert-workshop-c': (1, 3),
+}
+rows = {}
+for p in sorted(dsv_pieces, key=lambda b: (b[1] + b[3]) / 2):
+    cy = (p[1] + p[3]) / 2
+    key = next((k for k in rows if abs(k - cy) < 120), cy)
+    rows.setdefault(key, []).append(p)
+row_list = [sorted(v) for _, v in sorted(rows.items())]
+for name, (r, c) in DSV.items():
+    save(crop(dsv, row_list[r][c]), f'pois/{name}.png')
+
+# Transition: rock pile that passes in front of everything as the train goes through the tunnel.
+fg_rocks = remove_painted_background(S('transition-foreground-rocks.png'))
+save(scale(crop(fg_rocks, (0, 0, fg_rocks.width, fg_rocks.height)), 0.6), 'sprites/transition-rocks.png')
+save(scale(crop(S('mountain-rock-band.png'), (0, 0, 2172, 724)), 0.5), 'sprites/mountain-rock-band.png')
+
 (ROOT / 'src' / 'config' / 'area-art.json').write_text(json.dumps(area_art, indent=2) + '\n')
 
 (ROOT / 'src' / 'config' / 'train-art.json').write_text(json.dumps(train_layout, indent=2) + '\n')

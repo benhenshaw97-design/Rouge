@@ -17,8 +17,8 @@ export class RouteManager {
     this.junctionsSinceCoal = 0;
   }
 
-  /** Plans the next junction after leaving a stop at `fromDistance`. */
-  planJunction(fromDistance) {
+  /** Plans the next junction after leaving a stop at `fromDistance`; `area` is where its stops will be. */
+  planJunction(fromDistance, area) {
     const r = this.b.route;
     this.poi = null;
     this.junction = {
@@ -29,7 +29,8 @@ export class RouteManager {
       resolved: false,
     };
     // Pick which look each destination has now, so the signpost can show the real building.
-    this.junction.buildings = this.junction.options.map((type) => this.pick(this.poiTypes[type].buildings));
+    // (Using the area the stops will be in, which may differ from the current one after a tunnel.)
+    this.junction.buildings = this.junction.options.map((type) => this.pick(area?.buildings?.[type] ?? this.poiTypes[type].buildings));
     return this.junction;
   }
 

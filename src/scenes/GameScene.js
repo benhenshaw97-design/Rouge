@@ -1,9 +1,9 @@
 import Phaser from 'phaser';
 import { BALANCE, POI_TYPES, START_STATION } from '../config/balance.js';
 import { DEBUG } from '../config/debug.js';
-import { AREAS, COLORS, PARALLAX_LAYERS, PX_PER_METRE, TRAIN_LAYOUT, WORLD_HEIGHT } from '../config/display.js';
+import { AREAS, COLORS, PARALLAX_LAYERS, TUNNEL, PX_PER_METRE, TRAIN_LAYOUT, WORLD_HEIGHT } from '../config/display.js';
 import { Train } from '../objects/Train.js';
-import { createJunction, createStop, createTunnel } from '../objects/worldObjects.js';
+import { createJunction, createStop, createTransitionRocks, createTunnel } from '../objects/worldObjects.js';
 import { createVisit } from '../poi/poiActions.js';
 import { TrainState } from '../state/TrainState.js';
 import { AudioManager } from '../systems/AudioManager.js';
@@ -145,9 +145,11 @@ export class GameScene extends Phaser.Scene {
     this.ui.closePanel();
     this.phase = 'running';
     this.motion.resetThrottle();
-    const junction = this.route.planJunction(this.state.distance);
-    this.world.add(junction.at, createJunction(this));
     this.planScenery();
+    // Stops past a tunnel are in the next area.
+    const areaAhead = this.tunnel && !this.tunnel.swapped ? AREAS[(this.areaIndex + 1) % AREAS.length] : this.area;
+    const junction = this.route.planJunction(this.state.distance, areaAhead);
+    this.world.add(junction.at, createJunction(this));
     this.audio.play('whistle');
   }
 
@@ -165,6 +167,12 @@ export class GameScene extends Phaser.Scene {
     const parts = createTunnel(this);
     this.world.add(at, parts.back, { cullMargin: 2400 });
     this.world.add(at, parts.front, { cullMargin: 2400 });
+    // Rocks in the foreground pass the middle of the screen as the peak does.
+    const peakMid = at + (parts.enterX + parts.exitX) / 2 / PX_PER_METRE;
+    const screenMid = 640;
+    const when = peakMid + (this.train.frontX - screenMid) / PX_PER_METRE;
+    const rocksAt = when + (screenMid - this.train.frontX) / (PX_PER_METRE * TUNNEL.rocksFactor);
+    this.world.add(rocksAt, createTransitionRocks(this), { factor: TUNNEL.rocksFactor, cullMargin: 1200 });
     this.tunnel = { at, parts, swapped: false };
   }
 
@@ -215,7 +223,7 @@ export class GameScene extends Phaser.Scene {
         poi.at,
         createStop(this, {
           buildingKey: poi.building,
-          platform: def.platform,
+          platform: def.platform && this.area.platform,
           title: def.name,
           subtitle: poi.name,
         }),

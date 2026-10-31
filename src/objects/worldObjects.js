@@ -13,7 +13,7 @@ export function createStop(scene, { buildingKey, title, subtitle, platform }) {
   c.add(img);
 
   if (platform) {
-    const p = scene.add.image(0, RAIL_Y + 6, 'platform').setOrigin(0.5, 1);
+    const p = scene.add.image(0, RAIL_Y + 6, typeof platform === 'string' ? platform : 'platform').setOrigin(0.5, 1);
     p.setScale(Math.max(1.4, (img.displayWidth + 140) / p.width));
     c.add(p);
   }
@@ -94,7 +94,10 @@ export function createTunnel(scene) {
   left.x = peakLeft + left.displayWidth * T.foothillOverlap - left.displayWidth;
   const right = img(peakLeft + peakW - 0, T.bottom, 'mountain-foothill', T.foothillHeight).setFlipX(true);
   right.x = peakLeft + peakW - right.displayWidth * T.foothillOverlap;
-  back.add([left, right]);
+  // A long low ridge behind both foothills, so the range runs on beyond them.
+  const band = img(0, T.bottom - 4, 'mountain-rock-band', T.rockBandHeight);
+  band.x = peakLeft + peakW / 2 - band.displayWidth / 2;
+  back.add([band, left, right]);
 
   // Grassy rocks along the peak's foot (two copies, the second mirrored).
   const bases = [];
@@ -120,4 +123,10 @@ export function createTunnel(scene) {
 
   front.add([interior, peak, ...bases, enterFront, exitFront]);
   return { back, front, enterX, exitX };
+}
+
+/** The rock pile that sweeps past in front of everything during a tunnel (see TUNNEL.rocksFactor). */
+export function createTransitionRocks(scene) {
+  const r = scene.add.image(0, 742, 'transition-rocks').setOrigin(0.5, 1).setDepth(DEPTH.foreground + 1);
+  return r.setScale(TUNNEL.rocksHeight / r.height);
 }
