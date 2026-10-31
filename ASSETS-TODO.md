@@ -21,10 +21,10 @@ and a gentle station ambience (your 37 s steam recording might do for that).
 - [x] `warning.wav`: low-fuel / overheating alert (under 0.5 s)
 
 ### Stand-ins I made myself (would look better in your style)
-- [ ] **Water icon**, **wrench (condition) icon**, **distance icon**: same framed style as the
+- [x] **Water icon**, **wrench (condition) icon**, **distance icon**: same framed style as the
       coal / fire / coins / people / crate icons
-- [ ] **Ground / dirt** below the track: a strip that tiles left to right (currently generated noise)
-- [ ] **Sky** backdrop: tall gradient, can include a sun (currently generated from your colours)
+- [x] **Ground / dirt** below the track: a strip that tiles left to right (currently generated noise)
+- [x] **Sky** backdrop: tall gradient, can include a sun (currently generated from your colours)
 - [x] **Ore load** for the cargo wagon: done with your modular wagon loads (gold, rubies, sapphires)
 - [ ] **Branch line**: track continuing off from the end of the points piece, so junctions don't stop short
 

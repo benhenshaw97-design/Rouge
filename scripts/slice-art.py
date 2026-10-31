@@ -265,87 +265,32 @@ icons = {
 for rel, box in icons.items():
     save(crop(master, box), rel)
 
-# The sheets have no water / wrench / distance icons, so paint pixel-art ones into the same frame.
-PIXEL_ICONS = {
-    'ui/icon-water.png': (
-        {'b': (58, 132, 224), 'd': (28, 78, 160), 'w': (200, 232, 255)},
-        [
-            '.......dd.......',
-            '......dbbd......',
-            '......dbbd......',
-            '.....dbbbbd.....',
-            '.....dbbbbd.....',
-            '....dbbbbbbd....',
-            '...dbbbbbbbbd...',
-            '...dbwbbbbbbd...',
-            '..dbbwbbbbbbbd..',
-            '..dbbwbbbbbbbd..',
-            '..dbbbwbbbbbbd..',
-            '..dbbbbbbbbbbd..',
-            '...dbbbbbbbbd...',
-            '....dbbbbbbd....',
-            '.....dddddd.....',
-            '................',
-        ],
-    ),
-    'ui/icon-condition.png': (
-        {'g': (196, 202, 208), 'd': (96, 102, 110), 'r': (176, 60, 52)},
-        [
-            '..........ggg...',
-            '.........gg.....',
-            '........gg....g.',
-            '........gg...gg.',
-            '........ggggggg.',
-            '.......ggggggd..',
-            '......gggddd....',
-            '.....gggd.......',
-            '....gggd........',
-            '...gggd.........',
-            '..rrrd..........',
-            '.rrrd...........',
-            '.rrd............',
-            '..d.............',
-            '................',
-            '................',
-        ],
-    ),
-    'ui/icon-distance.png': (
-        {'p': (120, 82, 50), 'r': (200, 50, 44), 'R': (150, 30, 30), 'w': (240, 230, 210)},
-        [
-            '................',
-            '..prrrrrrr......',
-            '..prrwwrrrrr....',
-            '..prrwwrrrrrr...',
-            '..prrrrrrrrRR...',
-            '..prrrrrrRR.....',
-            '..pRRRRR........',
-            '..p.............',
-            '..p.............',
-            '..p.............',
-            '..p.............',
-            '..p.............',
-            '..p.............',
-            '.ppp............',
-            'ppppp...........',
-            '................',
-        ],
-    ),
-}
-frame = crop(master, icons['ui/icon-fuel.png']).copy()
-inner = (14, 14, frame.width - 14, frame.height - 14)
-bg = frame.getpixel((frame.width // 2, 18))
-for rel, (palette, rows) in PIXEL_ICONS.items():
-    icon = frame.copy()
-    ImageDraw.Draw(icon).rectangle(inner, fill=bg)
-    px = Image.new('RGBA', (16, 16), (0, 0, 0, 0))
-    for y, row in enumerate(rows):
-        for x, ch in enumerate(row):
-            if ch in palette:
-                px.putpixel((x, y), palette[ch] + (255,))
-    size = (inner[2] - inner[0]) - 6
-    px = px.resize((size, size), Image.NEAREST)
-    icon.alpha_composite(px, ((icon.width - size) // 2, (icon.height - size) // 2))
-    save(icon, rel)
+# Water / wrench / distance icons, from icons-ground-sky.png. That sheet has its checkerboard
+# painted in rather than real transparency, so the background is removed first.
+def remove_painted_background(img):
+    """Make the light, grey/white checkerboard connected to the image edges transparent."""
+    a = np.asarray(img.convert('RGBA')).astype(int)
+    rgb = a[..., :3]
+    cand = (rgb.mean(axis=2) > 200) & ((rgb.max(axis=2) - rgb.min(axis=2)) < 25)
+    bg = np.zeros_like(cand)
+    bg[0, :], bg[-1, :], bg[:, 0], bg[:, -1] = cand[0, :], cand[-1, :], cand[:, 0], cand[:, -1]
+    while True:
+        g = bg.copy()
+        g[1:] |= bg[:-1]
+        g[:-1] |= bg[1:]
+        g[:, 1:] |= bg[:, :-1]
+        g[:, :-1] |= bg[:, 1:]
+        g &= cand
+        if (g == bg).all():
+            break
+        bg = g
+    a[..., 3] = np.where(bg, 0, a[..., 3])
+    return Image.fromarray(a.astype(np.uint8))
+
+
+extra = remove_painted_background(S('icons-ground-sky.png'))
+for rel, x0, x1 in (('ui/icon-water.png', 440, 720), ('ui/icon-condition.png', 740, 1030), ('ui/icon-distance.png', 1050, 1335)):
+    save(crop(extra, (x0, 35, x1, 325)).resize((88, 88), Image.LANCZOS), rel)
 
 buttons = {'blue': 167, 'gold': 217, 'green': 267, 'red': 319}
 for colour, y in buttons.items():
@@ -403,20 +348,28 @@ def crossfade_tile(strip, blend):
     return Image.fromarray(np.clip(out, 0, 255).astype(np.uint8))
 
 
-# Sky: vertical gradient using the colours of the sky band in the flattened preview sheet.
-flat = np.asarray(S('parallax-preview-flat.png').convert('RGB')).astype(float)
-top = np.median(flat[2:6, :, :].reshape(-1, 3), axis=0)
-mid = np.median(flat[80:90, :, :].reshape(-1, 3), axis=0)
+# Sky: the cloud strip from icons-ground-sky.png becomes the scrolling clouds layer; the sky
+# image behind it is a gradient built from the strip's own top and bottom rows so they meet
+# without an edge. Design layout: sky image spans y -1200..720; strip drawn at y 20..290.
+strip = extra.crop((40, 637, 1733, 820)).convert('RGBA')
+cloud_tile = crossfade_tile(strip, 160)
+save(cloud_tile, 'backgrounds/clouds.png')
+srows = np.asarray(strip.convert('RGB')).astype(float)
+# Use the median of each row so clouds don't skew the colour.
+row_col = np.median(srows, axis=1)
+STRIP_TOP, STRIP_H = 20 + 1200, 270  # in sky-image rows
 horizon = np.array([236, 226, 205], dtype=float)
-sky = np.zeros((720, 16, 3))
-for yy in range(720):
-    t = yy / 719
-    c = top + (mid - top) * min(1, t / 0.55) if t < 0.55 else mid + (horizon - mid) * ((t - 0.55) / 0.45) ** 1.4
+sky = np.zeros((1920, 16, 3))
+for yy in range(1920):
+    if yy < STRIP_TOP:
+        c = row_col[0]
+    elif yy < STRIP_TOP + STRIP_H:
+        c = row_col[min(len(row_col) - 1, int((yy - STRIP_TOP) / STRIP_H * len(row_col)))]
+    else:
+        t = min(1, (yy - STRIP_TOP - STRIP_H) / (1920 - STRIP_TOP - STRIP_H))
+        c = row_col[-1] + (horizon - row_col[-1]) * t ** 1.3
     sky[yy, :, :] = c
 save(Image.fromarray(sky.astype(np.uint8)).convert('RGBA'), 'backgrounds/sky.png')
-
-clouds = [p for p in pieces_in(kit_b, (0, 0, 1536, 212)) if p.height < 110]
-save(compose(clouds, 2048, 240, spacing=(10, 120), seed=4, align='random'), 'backgrounds/clouds.png')
 
 mountain_strip = kit_b.crop(tight(kit_b, (0, 205, 1536, 320), alpha=100))
 save(crossfade_tile(mountain_strip, 120), 'backgrounds/mountains.png')
@@ -473,23 +426,12 @@ train_layout['points'] = {
     'railTop': round(points_rail_top * K_RAIL, 2),
 }
 
-# Ground: speckled pixel-art dirt using colours sampled from the ground chunks.
-chunk = np.asarray(kit_b.crop((252, 932, 428, 976)).convert('RGB')).reshape(-1, 3).astype(float)
-lum = chunk.mean(axis=1)
-dirt_mid = np.median(chunk[(lum > np.percentile(lum, 35)) & (lum < np.percentile(lum, 65))], axis=0)
-dirt_dark = np.median(chunk[lum < np.percentile(lum, 15)], axis=0)
-dirt_light = np.median(chunk[lum > np.percentile(lum, 85)], axis=0)
-GW, GH, PX = 384, 160, 4  # tile size and art-pixel size
-rng = np.random.default_rng(8)
-cells = rng.random((GH // PX, GW // PX))
-grid = np.where(cells < 0.12, 0, np.where(cells > 0.9, 2, 1))
-palette = np.stack([dirt_dark, dirt_mid, dirt_light]).astype(np.uint8)
-ground_rgb = palette[grid].repeat(PX, axis=0).repeat(PX, axis=1)
-# Darken towards the top, where the ballast casts a shadow.
-fade = np.clip(1 - np.linspace(0.35, 0, 24), 0, 1)[:, None, None]
-ground_rgb = ground_rgb.astype(float)
-ground_rgb[:24] *= fade
-ground = Image.fromarray(ground_rgb.astype(np.uint8)).convert('RGBA')
+# Ground: the dirt from the ground strip in icons-ground-sky.png (below its grass), made to
+# tile both ways (crossfaded left-right, mirrored top-bottom).
+dirt = crossfade_tile(extra.crop((70, 450, 1705, 540)).convert('RGBA'), 120)
+ground = Image.new('RGBA', (dirt.width, dirt.height * 2))
+ground.paste(dirt, (0, 0))
+ground.paste(dirt.transpose(Image.FLIP_TOP_BOTTOM), (0, dirt.height))
 save(ground, 'backgrounds/ground.png')
 
 (ROOT / 'src' / 'config' / 'train-art.json').write_text(json.dumps(train_layout, indent=2) + '\n')
