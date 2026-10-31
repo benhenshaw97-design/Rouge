@@ -310,6 +310,48 @@ def pieces_in(img, box, min_w=30):
     return [img.crop(p) for p in find_pieces(img, box, alpha=100, grow=1, min_size=16) if p[2] - p[0] >= min_w]
 
 
+def objects_in(img, box, min_w=30, grow=6, grounded=None):
+    """Like pieces_in, but each piece is cut out by its own outline (not a rectangle), so parts
+    of neighbouring objects never come with it. Bits within `grow` px (leaf tips, pebbles)
+    stay attached to their object."""
+    from collections import deque
+    region = img.crop(box)
+    alpha = np.asarray(region.getchannel('A')) > 20
+    m = alpha.copy()
+    for _ in range(grow):
+        d = m.copy()
+        d[1:] |= m[:-1]; d[:-1] |= m[1:]; d[:, 1:] |= m[:, :-1]; d[:, :-1] |= m[:, 1:]
+        m = d
+    h, w = m.shape
+    label = np.zeros((h, w), dtype=np.int32)
+    out, n = [], 0
+    for sy, sx in zip(*np.nonzero(m)):
+        if label[sy, sx]:
+            continue
+        n += 1
+        q = deque([(sy, sx)])
+        label[sy, sx] = n
+        while q:
+            y, x = q.popleft()
+            for ny, nx in ((y + 1, x), (y - 1, x), (y, x + 1), (y, x - 1)):
+                if 0 <= ny < h and 0 <= nx < w and m[ny, nx] and not label[ny, nx]:
+                    label[ny, nx] = n
+                    q.append((ny, nx))
+    arr = np.asarray(region).copy()
+    for i in range(1, n + 1):
+        own = (label == i) & alpha
+        ys, xs = np.nonzero(own)
+        if len(xs) == 0 or xs.max() - xs.min() + 1 < min_w:
+            continue
+        # Only things standing on the band's ground line (drops clouds, stray strips).
+        if grounded is not None and (ys.max() < h - grounded or ys.max() - ys.min() < 20):
+            continue
+        piece = arr.copy()
+        piece[..., 3] = np.where(label == i, piece[..., 3], 0)
+        out.append((xs.min(), Image.fromarray(piece).crop((xs.min(), ys.min(), xs.max() + 1, ys.max() + 1))))
+    return [p for _, p in sorted(out, key=lambda t: t[0])]
+
+
 def paste_wrap(tile, piece, x, y):
     w = tile.width
     for dx in (-w, 0, w):
@@ -447,7 +489,7 @@ def desert_layer(name, img, scale_):
     area_art[name] = {'height': round(img.height * scale_, 1)}
 
 
-mesas = pieces_in(dkit, (0, 157, 1774, 250), min_w=60)
+mesas = objects_in(dkit, (0, 160, 1774, 250), min_w=60, grow=2, grounded=12)
 desert_layer('desert-mesas', compose(mesas, 2048, max(p.height for p in mesas), overlap=30, seed=7), 1.9)
 dunes = dkit.crop(tight(dkit, (0, 268, 1774, 341), alpha=100))
 dunes = crossfade_tile(dunes, 140)
@@ -457,9 +499,9 @@ dunes_full = Image.new('RGBA', (dunes.width, dunes.height + 60), tuple(int(c) fo
 dunes_full.paste(Image.new('RGBA', (dunes.width, dunes.height), (0, 0, 0, 0)), (0, 0))
 dunes_full.alpha_composite(dunes, (0, 0))
 desert_layer('desert-dunes', dunes_full, 1.9)
-rocks = pieces_in(dkit, (0, 360, 1774, 469), min_w=80)
+rocks = objects_in(dkit, (0, 360, 1774, 469), min_w=80)
 desert_layer('desert-rocks', compose(rocks, 2048, max(p.height for p in rocks), spacing=(20, 160), seed=8), 1.5)
-village_d = pieces_in(dkit, (0, 484, 1774, 614), min_w=60)
+village_d = objects_in(dkit, (0, 484, 1774, 614), min_w=60)
 desert_layer('desert-village', compose(village_d, 2048, max(p.height for p in village_d), spacing=(10, 120), seed=9), 1.5)
 
 # Sand bank under the rails (cut below its sleeper tops), like the grass one.
