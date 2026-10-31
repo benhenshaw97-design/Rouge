@@ -126,11 +126,18 @@ export function createTunnel(scene) {
   const bankFrom = left.x - T.bankMargin;
   const bankTo = right.x + right.displayWidth + T.bankMargin;
   const bankSrc = scene.textures.get('tunnel-rock-bank').getSourceImage();
-  const bankH = 760 - T.bankTop;
-  const bankW = bankSrc.width * (bankH / bankSrc.height);
-  for (let x = bankFrom, i = 0; x < bankTo; i++) {
-    bank.add(scene.add.image(x, 762, 'tunnel-rock-bank').setOrigin(0, 1).setDisplaySize(bankW, bankH).setFlipX(i % 2 === 1));
-    x += bankW * 0.82;
+  // Two staggered rows: a back row standing a little higher fills the dips between the front
+  // row's humps, so no track, wheels or grass show through anywhere.
+  for (const row of [
+    { top: T.bankTop - 28, shift: 0.41, flip: 1 },
+    { top: T.bankTop, shift: 0, flip: 0 },
+  ]) {
+    const h = 762 - row.top;
+    const w = bankSrc.width * (h / bankSrc.height);
+    for (let x = bankFrom - w * row.shift, i = 0; x < bankTo; i++) {
+      bank.add(scene.add.image(x, 762, 'tunnel-rock-bank').setOrigin(0, 1).setDisplaySize(w, h).setFlipX((i + row.flip) % 2 === 1));
+      x += w * 0.82;
+    }
   }
 
   front.add([interior, peak, ...bases, enterFront, exitFront]);
