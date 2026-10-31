@@ -11,8 +11,8 @@ export class RouteManager {
     this.b = balance;
     this.poiTypes = poiTypes;
     this.random = random;
-    this.junction = null; // { id, at, options: [typeId, typeId], selected: 0|1, resolved }
-    this.poi = null; // { id, type, name, at, visited }
+    this.junction = null; // { id, at, options: [typeId, typeId], buildings, selected: 0|1, resolved }
+    this.poi = null; // { id, type, name, building, at, visited }
     this.nextId = 1;
     this.junctionsSinceCoal = 0;
   }
@@ -28,6 +28,8 @@ export class RouteManager {
       selected: this.random() < 0.5 ? 0 : 1, // points start set one way at random
       resolved: false,
     };
+    // Pick which look each destination has now, so the signpost can show the real building.
+    this.junction.buildings = this.junction.options.map((type) => this.pick(this.poiTypes[type].buildings));
     return this.junction;
   }
 
@@ -44,7 +46,8 @@ export class RouteManager {
     this.poi = {
       id: this.nextId++,
       type,
-      name: def.names[Math.floor(this.random() * def.names.length)],
+      name: this.pick(def.names),
+      building: j.buildings[j.selected],
       at: j.at + this.range(this.b.route.branchDistance),
       visited: false,
     };
@@ -78,6 +81,10 @@ export class RouteManager {
       if (roll <= 0) return id;
     }
     return ids[ids.length - 1];
+  }
+
+  pick(list) {
+    return list[Math.floor(this.random() * list.length)];
   }
 
   range([min, max]) {

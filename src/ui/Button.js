@@ -1,94 +1,90 @@
 import Phaser from 'phaser';
-import { FONT } from '../config/display.js';
+import { COLORS } from '../config/display.js';
+import { frame, text } from './kit.js';
+
+/** Text colour that reads well on each button skin. */
+const INK = {
+  gold: { main: COLORS.textDark, sub: '#5a3b1c', right: COLORS.textDark },
+  brown: { main: COLORS.text, sub: COLORS.textDim, right: COLORS.text },
+  green: { main: COLORS.text, sub: '#cfe8c8', right: COLORS.text },
+  red: { main: COLORS.text, sub: '#f2c9c4', right: COLORS.text },
+  blue: { main: COLORS.text, sub: '#c9d6ee', right: COLORS.text },
+};
 
 /**
- * A rounded, clickable button. Positioned by its centre.
+ * A button drawn with the art's 9-slice frames, positioned by its centre. Sizes in CSS px.
  *
  * options: width, height, label, sublabel (small second line), rightLabel, rightColor,
- *          onClick, fill / hoverFill (colours), fontSize, align ('left' | 'center')
+ *          skin ('gold' | 'green' | 'red' | 'blue' | 'brown'), fontSize, align, onClick
+ * A disabled button switches to the brown skin.
  */
 export class Button extends Phaser.GameObjects.Container {
   constructor(scene, x, y, options) {
     super(scene, x, y);
-    const o = {
-      width: 200,
-      height: 44,
-      fill: 0x3b2f25,
-      hoverFill: 0x5a4532,
-      stroke: 0xd6a84a,
-      fontSize: 17,
-      align: 'left',
-      textColor: '#f5e9d0',
-      ...options,
-    };
+    const o = { width: 200, height: 44, skin: 'gold', fontSize: 16, align: 'left', enabled: true, ...options };
     this.o = o;
-    this.enabled = true;
-    this.hovered = false;
+    this.enabled = o.enabled;
+    const skin = this.enabled ? o.skin : 'brown';
+    const ink = INK[skin];
+    const { width: w, height: h } = o;
 
-    const left = -o.width / 2 + 14;
+    this.frames = {
+      normal: frame(scene, `button-${skin}`, 0, 0, w, h),
+      hover: frame(scene, `button-${skin}-hover`, 0, 0, w, h).setVisible(false),
+      pressed: frame(scene, `button-${skin}-pressed`, 0, 0, w, h).setVisible(false),
+    };
+    this.add(Object.values(this.frames));
+
+    const left = -w / 2 + 14;
     const labelX = o.align === 'left' ? left : 0;
     const originX = o.align === 'left' ? 0 : 0.5;
-    const labelY = o.sublabel ? -9 : 0;
+    const rightRoom = o.rightLabel ? 70 : 0;
+    const wrapW = w - 28 - rightRoom;
 
-    this.bg = scene.add.graphics();
-    this.label = scene.add
-      .text(labelX, labelY, o.label, { fontFamily: FONT, fontSize: `${o.fontSize}px`, color: o.textColor, fontStyle: 'bold' })
-      .setOrigin(originX, 0.5);
-    this.add([this.bg, this.label]);
+    this.label = text(scene, labelX, o.sublabel ? -8 : 0, o.label, o.fontSize, ink.main, { fontStyle: 'bold' })
+      .setOrigin(originX, 0.5)
+      .setAlpha(this.enabled ? 1 : 0.7);
+    fitText(this.label, wrapW);
+    this.add(this.label);
 
     if (o.sublabel) {
-      this.sub = scene.add
-        .text(labelX, 12, o.sublabel, { fontFamily: FONT, fontSize: '13px', color: '#c9b48e' })
-        .setOrigin(originX, 0.5);
-      this.add(this.sub);
+      const sub = text(scene, labelX, 11, o.sublabel, Math.max(11, o.fontSize - 4), ink.sub).setOrigin(originX, 0.5);
+      fitText(sub, wrapW);
+      this.add(sub);
     }
     if (o.rightLabel) {
-      this.right = scene.add
-        .text(o.width / 2 - 14, 0, o.rightLabel, {
-          fontFamily: FONT,
-          fontSize: `${o.fontSize}px`,
-          color: o.rightColor ?? o.textColor,
-          fontStyle: 'bold',
-        })
-        .setOrigin(1, 0.5);
-      this.add(this.right);
+      const right = text(scene, w / 2 - 14, 0, o.rightLabel, o.fontSize, this.enabled ? (o.rightColor ?? ink.right) : COLORS.textDim, {
+        fontStyle: 'bold',
+      }).setOrigin(1, 0.5);
+      this.add(right);
     }
 
-    this.setSize(o.width, o.height);
-    this.setInteractive({ useHandCursor: true });
-    this.on('pointerover', () => {
-      this.hovered = true;
-      this.draw();
-    });
-    this.on('pointerout', () => {
-      this.hovered = false;
-      this.draw();
-    });
+    this.setSize(w, h);
+    this.setInteractive({ useHandCursor: this.enabled });
+    this.on('pointerover', () => this.show('hover'));
+    this.on('pointerout', () => this.show('normal'));
+    this.on('pointerdown', () => this.show('pressed'));
     this.on('pointerup', () => {
-      // Run on the next tick so the handler can safely destroy this button (e.g. panel rebuilds).
-      if (this.enabled && o.onClick) this.scene.time.delayedCall(0, o.onClick);
+      this.show('hover');
+      // Run on the next tick so the handler can safely destroy this button (menus rebuild).
+      if (this.enabled && o.onClick) scene.time.delayedCall(0, o.onClick);
     });
-
     scene.add.existing(this);
-    this.draw();
   }
 
-  setEnabled(enabled) {
-    this.enabled = enabled;
-    if (this.input) this.input.cursor = enabled ? 'pointer' : 'default';
-    this.draw();
-    return this;
+  show(state) {
+    if (!this.enabled) state = 'normal';
+    for (const [k, f] of Object.entries(this.frames)) f.setVisible(k === state);
+    this.label.y = (this.o.sublabel ? -8 : 0) + (state === 'pressed' ? 1 : 0);
   }
+}
 
-  draw() {
-    const { width: w, height: h } = this.o;
-    const fill = !this.enabled ? 0x2a2420 : this.hovered ? this.o.hoverFill : this.o.fill;
-    this.bg.clear();
-    this.bg.fillStyle(fill, 1).fillRoundedRect(-w / 2, -h / 2, w, h, 9);
-    this.bg.lineStyle(2, this.o.stroke, this.enabled ? (this.hovered ? 1 : 0.55) : 0.15).strokeRoundedRect(-w / 2, -h / 2, w, h, 9);
-    const alpha = this.enabled ? 1 : 0.45;
-    this.label.setAlpha(alpha);
-    this.right?.setAlpha(this.enabled ? 1 : 0.6);
-    this.sub?.setAlpha(this.enabled ? 1 : 0.9);
+/** Shrinks a text's font until it fits `maxWidth` (long labels on narrow phones). */
+export function fitText(t, maxWidth) {
+  let size = parseFloat(t.style.fontSize);
+  while (t.width > maxWidth && size > 10) {
+    size -= 1;
+    t.setFontSize(size);
   }
+  return t;
 }

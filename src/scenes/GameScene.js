@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { BALANCE, POI_TYPES, START_STATION } from '../config/balance.js';
 import { DEBUG } from '../config/debug.js';
-import { PARALLAX_LAYERS, PX_PER_METRE } from '../config/display.js';
+import { COLORS, PARALLAX_LAYERS, PX_PER_METRE, WORLD_HEIGHT } from '../config/display.js';
 import { Train } from '../objects/Train.js';
 import { createJunction, createStop } from '../objects/worldObjects.js';
 import { createVisit } from '../poi/poiActions.js';
@@ -10,17 +10,16 @@ import { AudioManager } from '../systems/AudioManager.js';
 import { ParallaxBackground } from '../systems/ParallaxBackground.js';
 import { RouteManager } from '../systems/RouteManager.js';
 import { TrainMotion } from '../systems/TrainMotion.js';
+import { computeLayout, cssSize, uiScale } from '../systems/Viewport.js';
 import { WorldLayer } from '../systems/WorldLayer.js';
-import { Hud } from '../ui/Hud.js';
-import { PoiPanel } from '../ui/PoiPanel.js';
-import { SignpostPicker } from '../ui/SignpostPicker.js';
-import { toast } from '../ui/Toast.js';
 
 /**
- * The run. Phases:
+ * The run: the world, the train, and the rules. UI lives in UIScene (this.ui).
+ *
+ * Phases:
  *   'waiting'  sitting at the start station before the first departure
  *   'running'  moving along the line (includes braking into a POI and coasting without fuel)
- *   'stopped'  halted at a POI with its panel open
+ *   'stopped'  halted at a POI with its menu open
  *   'over'     run finished; handing off to GameOver
  */
 export class GameScene extends Phaser.Scene {
@@ -29,8 +28,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   create() {
-    this.toasts = [];
     this.phase = 'waiting';
+    this.signpostsShown = false;
     this.chuffDistancePx = 0;
     this.wasBraking = false;
 
@@ -42,20 +41,29 @@ export class GameScene extends Phaser.Scene {
     this.parallax = new ParallaxBackground(this, PARALLAX_LAYERS);
     this.world = new WorldLayer();
     this.train = new Train(this);
-    this.hud = new Hud(this, this.state, this.audio);
-    this.signposts = new SignpostPicker(this, (i) => this.selectBranch(i));
-    this.panel = new PoiPanel(this, {
-      audio: this.audio,
-      onDepart: () => this.depart(),
-      onAbandon: () => this.endRun('Stranded without fuel'),
-    });
 
     // The station we start from, centred behind the train.
-    this.world.add(0, createStop(this, { buildingKey: START_STATION.building, title: START_STATION.name, subtitle: 'Departures' }), {
-      offsetX: -this.train.length / 2,
-    });
+    this.world.add(
+      0,
+      createStop(this, {
+        buildingKey: START_STATION.building,
+        platform: START_STATION.platform,
+        title: START_STATION.name,
+        subtitle: 'Departures',
+      }),
+      { offsetX: -this.train.length / 2 },
+    );
 
-    // Controls
+    // UI runs as its own scene on top of this one.
+    this.scene.launch('UI', { main: this });
+    this.ui = this.scene.get('UI');
+    this.events.once('shutdown', () => this.scene.stop('UI'));
+
+    this.fitCamera();
+    const onResize = () => this.fitCamera();
+    this.scale.on('resize', onResize);
+    this.events.once('shutdown', () => this.scale.off('resize', onResize));
+
     const kb = this.input.keyboard;
     kb?.on('keydown-ONE', () => this.selectBranch(0));
     kb?.on('keydown-TWO', () => this.selectBranch(1));
@@ -65,6 +73,28 @@ export class GameScene extends Phaser.Scene {
     this.audio.startMusic();
     this.cameras.main.fadeIn(500, 21, 17, 13);
     this.time.delayedCall(START_STATION.departDelayMs, () => this.depart());
+  }
+
+  /** Zooms and positions the camera so the train fits the area the layout gives the world. */
+  fitCamera() {
+    const u = uiScale(this);
+    const { w, h } = cssSize(this);
+    const L = computeLayout(w, h).world;
+    const cam = this.cameras.main;
+    cam.setViewport(L.x * u, L.y * u, L.w * u, L.h * u);
+    cam.setBackgroundColor(COLORS.panel);
+
+    // Zoom (in CSS px per design px): show the full stage height when there's room, but
+    // always fit the whole train in the space it's allowed.
+    let zoom = L.trainMaxW / this.train.length;
+    if (L.fitHeight) zoom = Math.min(L.h / WORLD_HEIGHT, zoom);
+    cam.setZoom(zoom * u);
+
+    // Bottom of the view sits on the bottom of the stage; the train sits at L.trainX.
+    const viewW = L.w / zoom;
+    const viewH = L.h / zoom;
+    const left = this.train.centerX - L.trainX / zoom;
+    cam.centerOn(left + viewW / 2, WORLD_HEIGHT - viewH / 2);
   }
 
   update(time, deltaMs) {
@@ -87,7 +117,7 @@ export class GameScene extends Phaser.Scene {
     const px = metres * PX_PER_METRE;
     this.parallax.scroll(px, dt);
     this.world.update(state.distance);
-    this.train.update(dt, motion.speed, px, time, state, BALANCE.train.maxSpeed);
+    this.train.update(motion.speed, px, time, state, BALANCE.train.maxSpeed);
     this.playMotionSounds(px);
 
     if (this.phase === 'running') {
@@ -95,8 +125,6 @@ export class GameScene extends Phaser.Scene {
       this.checkArrival();
       this.checkStranded();
     }
-
-    this.hud.update(motion.speed, time);
   }
 
   // --- Departing -----------------------------------------------------------------------------
@@ -107,7 +135,7 @@ export class GameScene extends Phaser.Scene {
 
   depart() {
     if (this.phase === 'over' || this.state.isOutOfFuel) return;
-    this.panel.close();
+    this.ui.closePanel();
     this.phase = 'running';
     this.motion.resetThrottle();
     const junction = this.route.planJunction(this.state.distance);
@@ -122,30 +150,33 @@ export class GameScene extends Phaser.Scene {
     if (!j || j.resolved) return;
     const ahead = j.at - this.state.distance;
 
-    if (!this.signposts.visible && ahead <= BALANCE.route.signpostRevealDistance) {
-      this.signposts.show(j);
+    if (!this.signpostsShown && ahead <= BALANCE.route.signpostRevealDistance) {
+      this.signpostsShown = true;
+      this.ui.showJunction(j);
       this.audio.play('click');
     }
-    if (this.signposts.visible) this.signposts.setDistance(ahead);
 
     if (ahead <= 0) {
       const poi = this.route.resolveJunction();
-      this.signposts.hide();
-      this.audio.play('click');
-      toast(this, `Points set for ${POI_TYPES[poi.type].name}`);
       const def = POI_TYPES[poi.type];
-      this.world.add(poi.at, createStop(this, { buildingKey: def.building, title: def.name, subtitle: poi.name }), {
-        offsetX: -this.train.length / 2,
-      });
+      this.signpostsShown = false;
+      this.ui.hideJunction();
+      this.audio.play('click');
+      this.ui.toast(`Points set for ${def.name}`);
+      this.world.add(
+        poi.at,
+        createStop(this, { buildingKey: poi.building, platform: def.platform, title: def.name, subtitle: poi.name }),
+        { offsetX: -this.train.length / 2 },
+      );
     }
   }
 
   selectBranch(index) {
     const j = this.route.junction;
-    if (this.phase !== 'running' || !j || j.resolved || !this.signposts.visible) return;
+    if (this.phase !== 'running' || !j || j.resolved || !this.signpostsShown) return;
     if (j.selected !== index) this.audio.play('click');
     this.route.select(index);
-    this.signposts.setSelected(index);
+    this.ui.setJunctionSelected(index);
   }
 
   // --- Stopping at POIs ----------------------------------------------------------------------
@@ -157,14 +188,14 @@ export class GameScene extends Phaser.Scene {
       poi.visited = true;
       this.phase = 'stopped';
       this.state.stats.stops++;
-      this.panel.open(this.state, createVisit(poi));
+      this.ui.openPanel({ state: this.state, visit: createVisit(poi) });
     }
   }
 
   // --- Running out of fuel -------------------------------------------------------------------
 
   checkStranded() {
-    // (checkArrival runs first, so coasting to a halt exactly at a POI still opens its panel.)
+    // (checkArrival runs first, so coasting to a halt exactly at a POI still opens its menu.)
     if (this.phase === 'running' && this.state.isOutOfFuel && this.motion.speed === 0) {
       this.endRun('Ran out of fuel between stops');
     }
@@ -173,8 +204,8 @@ export class GameScene extends Phaser.Scene {
   endRun(reason) {
     if (this.phase === 'over') return;
     this.phase = 'over';
-    this.panel.close();
-    this.signposts.hide();
+    this.ui.closePanel();
+    this.ui.hideJunction();
     const result = { distance: this.state.distance, reason, stats: { ...this.state.stats } };
     this.time.delayedCall(900, () => {
       this.cameras.main.fadeOut(600, 21, 17, 13);
@@ -188,18 +219,18 @@ export class GameScene extends Phaser.Scene {
     switch (event) {
       case 'lowFuel':
         this.audio.play('warning');
-        toast(this, 'Fuel running low: find a Coal Depot!', '#ffb3a8');
+        this.ui.toast('Fuel running low: find a Coal Depot!', COLORS.bad);
         break;
       case 'outOfFuel':
         this.audio.play('warning');
-        toast(this, 'The fire’s gone out… coasting', '#ffb3a8');
+        this.ui.toast('The fire’s gone out… coasting', COLORS.bad);
         break;
       case 'overheated':
         this.audio.play('brake');
-        toast(this, 'Boiler overheated! Easing off', '#ffb3a8');
+        this.ui.toast('Boiler overheated! Easing off', COLORS.bad);
         break;
       case 'cooledDown':
-        toast(this, 'Boiler back to safe pressure', '#a8f0a0');
+        this.ui.toast('Boiler back to safe pressure', COLORS.good);
         break;
     }
   }
@@ -208,7 +239,7 @@ export class GameScene extends Phaser.Scene {
     // A chuff every quarter-turn of the driving wheels, but only under steam.
     if (!this.state.isOutOfFuel && this.phase === 'running') {
       this.chuffDistancePx += px;
-      const quarterTurn = (Math.PI * 2 * 22) / 4;
+      const quarterTurn = (Math.PI * 2 * 20) / 4;
       if (this.chuffDistancePx >= quarterTurn) {
         this.chuffDistancePx %= quarterTurn;
         this.audio.play('chuff', { rate: Phaser.Math.FloatBetween(0.9, 1.1) });

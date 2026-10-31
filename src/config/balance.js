@@ -91,7 +91,8 @@ export const BALANCE = {
 /**
  * Points of interest.
  *  weight:   how often this type shows up on signposts (relative to the others)
- *  building: image key (see config/assets.js)
+ *  buildings: image keys (see config/assets.js); one is picked at random for each stop
+ *  platform: draw a station platform in front of the building
  *  icon:     image key shown on signposts
  *  blurb:    short line shown on the signpost
  *  names:    random place names shown when you arrive
@@ -103,7 +104,7 @@ export const POI_TYPES = {
     blurb: 'Buy fuel',
     description: 'Coal by the shovelful. Top up the tender before the long haul.',
     weight: 3,
-    building: 'poi-coal-depot',
+    buildings: ['poi-coal-depot', 'poi-coal-depot-a', 'poi-coal-depot-b'],
     icon: 'icon-fuel',
     names: ['Blackheap Sidings', 'Cinder Yard', 'Ashpit Lane', 'Collier’s Halt'],
     prices: { fuelPerUnit: 1 },
@@ -115,7 +116,8 @@ export const POI_TYPES = {
     blurb: 'Passengers & trade',
     description: 'Drop off passengers for their fares, sell cargo, and pick up new travellers.',
     weight: 3,
-    building: 'poi-town',
+    buildings: ['poi-town', 'poi-town-a', 'poi-town-b'],
+    platform: true,
     icon: 'icon-passengers',
     names: ['Millbrook', 'Hartwell', 'Kingsferry', 'Little Rouge', 'Oakham Cross', 'Stourby'],
     prices: { cargoSellPerUnit: 7 },
@@ -127,7 +129,7 @@ export const POI_TYPES = {
     blurb: 'Load cargo',
     description: 'Cheap ore to sell at the next Town. Heavy loads burn more fuel.',
     weight: 2,
-    building: 'poi-mine',
+    buildings: ['poi-mine', 'poi-mine-a', 'poi-mine-b'],
     icon: 'icon-cargo',
     names: ['Deepvein Colliery', 'Redrock Pit', 'Gallows Hill Mine', 'Tinner’s Shaft'],
     prices: { cargoBuyPerUnit: 2 },
@@ -139,7 +141,7 @@ export const POI_TYPES = {
     blurb: 'Repairs & upgrades',
     description: 'Patch up wear and tear, or fit better parts.',
     weight: 1.5,
-    building: 'poi-workshop',
+    buildings: ['poi-workshop', 'poi-workshop-a', 'poi-workshop-b'],
     icon: 'icon-condition',
     names: ['Rivet & Sons', 'Crankshaft Works', 'Boilerplate Sheds'],
     prices: { repairPerPoint: 0.6 },
@@ -150,7 +152,7 @@ export const POI_TYPES = {
     blurb: 'Water & cool down',
     description: 'Fill the boiler and let it breathe. Cheap, and keeps the heat down.',
     weight: 2,
-    building: 'poi-water-tower',
+    buildings: ['poi-water-tower', 'poi-water-tower-a', 'poi-water-tower-b'],
     icon: 'icon-water',
     names: ['Spring Tank', 'Wellmere Halt', 'Fernside Tower'],
     prices: { refill: 5 },
@@ -162,5 +164,6 @@ export const POI_TYPES = {
 export const START_STATION = {
   name: 'Rouge Central',
   building: 'poi-town',
+  platform: true,
   departDelayMs: 1200,
 };

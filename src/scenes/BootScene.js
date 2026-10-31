@@ -1,20 +1,23 @@
 import Phaser from 'phaser';
-import { AUDIO, IMAGES } from '../config/assets.js';
-import { FONT, GAME_HEIGHT, GAME_WIDTH } from '../config/display.js';
+import { AUDIO, IMAGES, PIXEL_PERFECT } from '../config/assets.js';
+import { COLORS, PARALLAX_LAYERS, RAIL_Y, TRAIN_LAYOUT } from '../config/display.js';
+import { cssSize, isTouch, uiScale } from '../systems/Viewport.js';
+import { text } from '../ui/kit.js';
 
-/** Loads every asset listed in config/assets.js, then shows a title card. */
+/** Loads every asset listed in config/assets.js, then shows the title screen. */
 export class BootScene extends Phaser.Scene {
   constructor() {
     super('Boot');
   }
 
   preload() {
-    const cx = GAME_WIDTH / 2;
-    const cy = GAME_HEIGHT / 2;
-    this.add.text(cx, cy - 40, 'Loading…', { fontFamily: FONT, fontSize: '22px', color: '#f5e9d0' }).setOrigin(0.5);
-    this.add.rectangle(cx, cy, 404, 20).setStrokeStyle(2, 0xd6a84a);
-    const bar = this.add.rectangle(cx - 200, cy, 0, 14, 0xa8323a).setOrigin(0, 0.5);
-    this.load.on('progress', (p) => (bar.width = 400 * p));
+    const W = this.scale.width;
+    const H = this.scale.height;
+    const u = uiScale(this);
+    const barW = Math.min(W * 0.6, 400 * u);
+    this.add.rectangle(W / 2, H / 2, barW + 4 * u, 18 * u).setStrokeStyle(2 * u, COLORS.brass);
+    const bar = this.add.rectangle(W / 2 - barW / 2, H / 2, 0, 12 * u, 0xa8323a).setOrigin(0, 0.5);
+    this.load.on('progress', (p) => (bar.width = barW * p));
     this.load.on('loaderror', (file) => console.warn(`[assets] Could not load "${file.key}" from ${file.url}`));
 
     for (const [key, path] of Object.entries(IMAGES)) {
@@ -25,34 +28,104 @@ export class BootScene extends Phaser.Scene {
   }
 
   create() {
-    this.children.removeAll(true);
-    const cx = GAME_WIDTH / 2;
-    if (this.textures.exists('sky')) this.add.image(0, 0, 'sky').setOrigin(0).setDisplaySize(GAME_WIDTH, GAME_HEIGHT);
-    this.add.rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, 0x15110d, 0.55).setOrigin(0);
+    for (const key of PIXEL_PERFECT) {
+      if (this.textures.exists(key)) this.textures.get(key).setFilter(Phaser.Textures.FilterMode.NEAREST);
+    }
 
-    this.add
-      .text(cx, 230, 'ROUGE', { fontFamily: FONT, fontSize: '96px', fontStyle: 'bold', color: '#ffd98a' })
+    this.started = false;
+    const start = () => {
+      if (this.started) return;
+      this.started = true;
+      this.scene.start('Game');
+    };
+    this.input.on('pointerup', start);
+    this.input.keyboard?.on('keydown', start);
+
+    const onResize = () => this.buildTitle();
+    this.scale.on('resize', onResize);
+    this.events.once('shutdown', () => this.scale.off('resize', onResize));
+
+    // Wait (briefly) for the pixel font so the title isn't drawn in a fallback face.
+    waitForFont().then(() => {
+      if (!this.started) this.buildTitle();
+    });
+  }
+
+  buildTitle() {
+    this.tweens.killAll();
+    this.children.removeAll(true);
+    const u = uiScale(this);
+    this.cameras.main.setOrigin(0, 0).setZoom(u).setScroll(0, 0);
+    const { w, h } = cssSize(this);
+
+    // Scenery: the game's own layers, scaled to fit the bottom of the screen.
+    this.add.image(0, 0, 'sky').setOrigin(0).setDisplaySize(w, h);
+    const s = Math.min(h / 720, w / 900) * 1.05;
+    const scenery = this.add.container(w / 2, h * 0.86 - RAIL_Y * s).setScale(s);
+    for (const cfg of PARALLAX_LAYERS) {
+      if (cfg.tile === false || cfg.key === 'foreground') continue;
+      const tex = this.textures.get(cfg.key).getSourceImage();
+      const ts = (cfg.tileHeight ?? cfg.height) / tex.height;
+      const span = (w / s) * 1.2 + 400;
+      const t = this.add.tileSprite(-span / 2, cfg.y, span, cfg.height, cfg.key).setOrigin(0, 0).setTileScale(ts, ts);
+      t.tilePositionX = 300;
+      scenery.add(t);
+      if (cfg.key === 'clouds') this.clouds = t;
+    }
+    // The train standing at the line.
+    let x = -330;
+    for (const car of TRAIN_LAYOUT.cars) {
+      scenery.add(this.add.image(x, RAIL_Y - car.bodyLift, car.key).setOrigin(0, 1).setDisplaySize(car.width, car.height));
+      if (car.heap) {
+        scenery.add(
+          this.add
+            .image(x + car.heap.x, RAIL_Y - car.bodyLift - car.height + car.heap.y, car.heap.key)
+            .setOrigin(0, 1)
+            .setDisplaySize(car.heap.width, car.heap.height)
+            .setDepth(-1),
+        );
+      }
+      for (const wl of car.wheels) scenery.add(this.add.image(x + wl.x, RAIL_Y - wl.r, 'wheel').setDisplaySize(wl.r * 2, wl.r * 2));
+      x += car.width + TRAIN_LAYOUT.gap;
+    }
+    scenery.sort('depth');
+    this.add.rectangle(0, 0, w, h, 0x15110d, 0.25).setOrigin(0);
+
+    // Title
+    const titleSize = Math.round(Math.min(w / 5, h / 5, 120));
+    text(this, w / 2, h * 0.17, 'ROUGE', titleSize, COLORS.gold, { fontStyle: 'bold' })
       .setOrigin(0.5)
       .setShadow(4, 4, '#5a1d22', 0, false, true);
-    this.add
-      .text(cx, 310, 'Keep the fire burning. Choose your stops wisely.', { fontFamily: FONT, fontSize: '24px', color: '#f5e9d0' })
-      .setOrigin(0.5);
+    text(this, w / 2, h * 0.17 + titleSize * 0.62, 'Keep the fire burning. Choose your stops wisely.', Math.min(20, w / 22), COLORS.text, {
+      align: 'center',
+      wordWrap: { width: w - 32 },
+    })
+      .setOrigin(0.5, 0)
+      .setShadow(2, 2, '#000000', 2, false, true);
 
-    const help = [
-      'Click a signpost (or press 1 / 2) to set the points at each junction',
-      'Space / Enter: depart from a stop      M: mute',
-    ];
-    this.add
-      .text(cx, 400, help.join('\n'), { fontFamily: FONT, fontSize: '18px', color: '#c9b48e', align: 'center', lineSpacing: 8 })
-      .setOrigin(0.5);
+    const touch = isTouch(this);
+    const prompt = text(this, w / 2, h * 0.44, touch ? 'Tap to start' : 'Click or press any key to start', Math.min(28, w / 14), '#ffffff', {
+      fontStyle: 'bold',
+      backgroundColor: '#1d1612cc',
+      padding: { x: 16, y: 8 },
+    }).setOrigin(0.5);
+    this.tweens.add({ targets: prompt, alpha: 0.45, duration: 700, yoyo: true, repeat: -1 });
 
-    const prompt = this.add
-      .text(cx, 520, 'Click or press any key to start', { fontFamily: FONT, fontSize: '28px', fontStyle: 'bold', color: '#ffffff' })
-      .setOrigin(0.5);
-    this.tweens.add({ targets: prompt, alpha: 0.35, duration: 700, yoyo: true, repeat: -1 });
-
-    const start = () => this.scene.start('Game');
-    this.input.once('pointerup', start);
-    this.input.keyboard?.once('keydown', start);
+    if (!touch && h > 520) {
+      text(this, w / 2, h * 0.44 + 46, 'At junctions, click a signpost or press 1 / 2.   Space: depart.   M: mute', 14, COLORS.text, {
+        backgroundColor: '#1d1612aa',
+        padding: { x: 10, y: 4 },
+      }).setOrigin(0.5);
+    }
   }
+
+  update(time, delta) {
+    if (this.clouds?.active) this.clouds.tilePositionX += delta * 0.01;
+  }
+}
+
+function waitForFont() {
+  if (!document.fonts?.load) return Promise.resolve();
+  const timeout = new Promise((resolve) => setTimeout(resolve, 1500));
+  return Promise.race([document.fonts.load('bold 20px "Pixelify Sans"').catch(() => {}), timeout]);
 }

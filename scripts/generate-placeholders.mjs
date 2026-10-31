@@ -1,21 +1,25 @@
-// Generates the placeholder art (SVG) and sound (WAV) files in /assets.
+// Generates placeholder art (SVG) and sound (WAV) files in /assets, but only for paths that
+// src/config/assets.js still points at. Anything you've replaced with real art is skipped.
 //
 //   npm run placeholders            -> only creates files that are missing
-//   npm run placeholders -- --force -> overwrites everything (careful: replaces your own art!)
+//   npm run placeholders -- --force -> overwrites placeholders (never touches PNG art)
 //
 // The game never runs this script; the generated files are committed like any other asset.
-// It exists so you can see how the placeholders were made, and to restore one you deleted.
 
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { AUDIO, IMAGES } from '../src/config/assets.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', 'assets');
 const FORCE = process.argv.includes('--force');
 let written = 0;
 let skipped = 0;
 
+const USED = new Set([...Object.values(IMAGES), ...Object.values(AUDIO)]);
+
 function out(relPath, data) {
+  if (!USED.has(relPath)) return; // replaced by real art (or no longer used)
   const file = join(ROOT, relPath);
   if (existsSync(file) && !FORCE) {
     skipped++;

@@ -22,7 +22,7 @@ export class WorldLayer {
    * @param {number} [opts.offsetX] screen-pixel offset from the anchor
    * @param {number} [opts.cullMargin] how far past the left edge before it is destroyed
    */
-  add(worldX, obj, { offsetX = 0, cullMargin = 700 } = {}) {
+  add(worldX, obj, { offsetX = 0, cullMargin = 1600 } = {}) {
     this.items.push({ worldX, obj, offsetX, cullMargin });
     return obj;
   }

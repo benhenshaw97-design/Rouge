@@ -1,153 +1,154 @@
-import { DEPTH, FONT } from '../config/display.js';
+import { COLORS } from '../config/display.js';
 import { buildOptions } from '../poi/poiActions.js';
+import { isTouch } from '../systems/Viewport.js';
 import { Button } from './Button.js';
-
-const PANEL_X = 770;
-const PANEL_Y = 20;
-const PANEL_W = 494;
-const INNER_W = PANEL_W - 32;
-const CX = PANEL_X + PANEL_W / 2;
+import { frame, text } from './kit.js';
 
 /**
- * The panel that opens when the train halts at a POI. Lists that POI's options (from
- * poiActions.js) and a Depart button. The whole panel is rebuilt after each action so it
- * always reflects the current state.
+ * The menu that opens when the train halts at a POI: that stop's options (from poiActions.js)
+ * and a Depart button. It rebuilds itself after every action so it always shows current state,
+ * and squeezes into whatever rectangle the layout gives it (CSS px).
  */
 export class PoiPanel {
-  constructor(scene, { audio, onDepart, onAbandon }) {
+  constructor(scene, rect, { state, visit, message, audio, onDepart, onAbandon, onMessage }) {
     this.scene = scene;
+    this.rect = rect;
+    this.state = state;
+    this.visit = visit;
+    this.message = message ?? visit.def.description;
     this.audio = audio;
     this.onDepart = onDepart;
     this.onAbandon = onAbandon;
+    this.onMessage = onMessage;
     this.objects = [];
-    this.isOpen = false;
-  }
-
-  open(state, visit) {
-    this.state = state;
-    this.visit = visit;
-    this.message = visit.def.description;
-    this.isOpen = true;
     this.build();
   }
 
-  close() {
-    this.isOpen = false;
-    this.destroyObjects();
-  }
-
-  destroyObjects() {
+  destroy() {
     this.objects.forEach((o) => o.destroy());
     this.objects = [];
   }
 
   build() {
-    this.destroyObjects();
-    const { scene, state, visit } = this;
-    const add = (o) => {
-      o.setDepth(DEPTH.panel);
-      this.objects.push(o);
-      return o;
-    };
+    this.destroy();
+    const options = buildOptions(this.state, this.visit);
+    const outOfFuel = this.state.isOutOfFuel;
+    // Try roomy sizes first, then tighter ones until everything fits.
+    for (const size of [
+      { btn: 50, gap: 8, font: 16, msg: 14, head: 56 },
+      { btn: 44, gap: 6, font: 15, msg: 13, head: 50 },
+      { btn: 38, gap: 5, font: 14, msg: 12, head: 44 },
+    ]) {
+      const h = this.layout(options, outOfFuel, size, true);
+      if (h <= this.rect.h) return void this.layout(options, outOfFuel, size, false);
+    }
+    this.layout(options, outOfFuel, { btn: 36, gap: 4, font: 13, msg: 12, head: 42 }, false);
+  }
 
-    const options = buildOptions(state, visit);
-    let y = PANEL_Y + 18;
+  /** Lays the panel out; with `measureOnly` it just returns the height it would need. */
+  layout(options, outOfFuel, size, measureOnly) {
+    const { scene, rect, visit } = this;
+    const pad = 12;
+    const innerW = rect.w - pad * 2;
+    const cx = rect.x + rect.w / 2;
+    const add = (o) => (measureOnly ? o : (this.objects.push(o), o));
+    let y = rect.y + pad;
 
-    const bg = add(scene.add.graphics());
+    // Message text (measure it for real so wrapping is accounted for).
+    const msg = text(scene, rect.x + pad, 0, this.message, size.msg, COLORS.text, { wordWrap: { width: innerW }, lineSpacing: 2 });
+    const msgH = msg.height;
+    if (measureOnly) msg.destroy();
 
-    add(scene.add.image(PANEL_X + 34, y + 18, visit.def.icon).setDisplaySize(36, 36));
-    add(
-      scene.add.text(PANEL_X + 62, y, visit.def.name.toUpperCase(), {
-        fontFamily: FONT,
-        fontSize: '24px',
-        fontStyle: 'bold',
-        color: '#ffd98a',
-      }),
-    );
-    add(scene.add.text(PANEL_X + 62, y + 28, visit.poi.name, { fontFamily: FONT, fontSize: '15px', color: '#c9b48e' }));
-    y += 62;
+    const total =
+      pad +
+      size.head +
+      msgH +
+      10 +
+      options.length * (size.btn + size.gap) +
+      6 +
+      (size.btn + 6) +
+      (outOfFuel ? size.btn + size.gap : 0) +
+      pad;
+    if (measureOnly) return total;
 
-    const msg = add(
-      scene.add.text(PANEL_X + 16, y, this.message, {
-        fontFamily: FONT,
-        fontSize: '15px',
-        color: '#f5e9d0',
-        wordWrap: { width: INNER_W },
-        lineSpacing: 3,
-      }),
-    );
-    y += Math.max(40, msg.height + 14);
+    const bg = add(frame(scene, 'button-brown', cx, rect.y + total / 2, rect.w, total));
+    // The message text was created before the frame, so push the frame behind it.
+    bg.setAlpha(0.96).setDepth(-1);
+
+    const iconSize = size.head - 16;
+    add(scene.add.image(rect.x + pad + iconSize / 2, y + iconSize / 2, visit.def.icon).setDisplaySize(iconSize, iconSize));
+    add(text(scene, rect.x + pad + iconSize + 10, y + 1, visit.def.name.toUpperCase(), size.font + 4, COLORS.gold, { fontStyle: 'bold' }));
+    add(text(scene, rect.x + pad + iconSize + 10, y + size.font + 8, visit.poi.name, size.msg, COLORS.textDim));
+    y += size.head;
+
+    msg.setPosition(rect.x + pad, y);
+    add(msg);
+    y += msgH + 10;
 
     for (const opt of options) {
       const enabled = !opt.disabledReason;
       let right;
       let rightColor;
-      if (opt.cost != null && opt.cost > 0) {
+      if (opt.cost > 0) {
         right = `-£${Math.round(opt.cost)}`;
-        rightColor = '#ffb3a8';
-      } else if (opt.gain != null && opt.gain > 0) {
+        rightColor = '#7a1d12';
+      } else if (opt.gain > 0) {
         right = `+£${Math.round(opt.gain)}`;
-        rightColor = '#a8f0a0';
+        rightColor = '#1f5a17';
       }
-      const btn = add(
-        new Button(scene, CX, y + 26, {
-          width: INNER_W,
-          height: 50,
-          fontSize: 16,
+      add(
+        new Button(scene, cx, y + size.btn / 2, {
+          width: innerW,
+          height: size.btn,
+          fontSize: size.font,
           label: opt.label,
           sublabel: opt.disabledReason ?? undefined,
           rightLabel: right,
           rightColor,
+          skin: 'gold',
+          enabled,
           onClick: () => this.choose(opt),
         }),
       );
-      btn.setEnabled(enabled);
-      y += 58;
+      y += size.btn + size.gap;
     }
 
     y += 6;
-    const outOfFuel = state.isOutOfFuel;
-    const depart = add(
-      new Button(scene, CX, y + 28, {
-        width: INNER_W,
-        height: 54,
-        fontSize: 20,
+    const keyHint = isTouch(scene) ? '' : '   (Space)';
+    add(
+      new Button(scene, cx, y + (size.btn + 6) / 2, {
+        width: innerW,
+        height: size.btn + 6,
+        fontSize: size.font + 3,
         align: 'center',
-        label: outOfFuel ? 'No fuel: can’t depart' : 'Depart  ▶   (Space)',
-        fill: 0x2f5a2a,
-        hoverFill: 0x3f7a38,
-        stroke: 0x9be08f,
+        label: outOfFuel ? 'No fuel: can’t depart' : `Depart  ▶${keyHint}`,
+        skin: 'green',
+        enabled: !outOfFuel,
         onClick: () => this.onDepart(),
       }),
     );
-    depart.setEnabled(!outOfFuel);
-    y += 62;
+    y += size.btn + 6;
 
     if (outOfFuel) {
+      y += size.gap;
       add(
-        new Button(scene, CX, y + 22, {
-          width: INNER_W,
-          height: 42,
-          fontSize: 16,
+        new Button(scene, cx, y + size.btn / 2, {
+          width: innerW,
+          height: size.btn,
+          fontSize: size.font,
           align: 'center',
           label: 'Abandon run',
-          fill: 0x5a2a2a,
-          hoverFill: 0x7a3838,
-          stroke: 0xe08f8f,
+          skin: 'red',
           onClick: () => this.onAbandon(),
         }),
       );
-      y += 50;
     }
-
-    const h = y - PANEL_Y + 10;
-    bg.fillStyle(0x1d1814, 0.94).fillRoundedRect(PANEL_X, PANEL_Y, PANEL_W, h, 14);
-    bg.lineStyle(3, 0xd6a84a, 0.8).strokeRoundedRect(PANEL_X, PANEL_Y, PANEL_W, h, 14);
+    return total;
   }
 
   choose(opt) {
-    if (!this.isOpen) return;
     this.message = opt.run();
+    this.onMessage?.(this.message);
     this.audio.play(opt.sound ?? 'click');
     this.build();
   }

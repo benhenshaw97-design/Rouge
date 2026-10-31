@@ -1,43 +1,51 @@
-import { DEPTH, FONT, POI_BUILDING_MAX, RAIL_Y } from '../config/display.js';
+import { DEPTH, FONT, POI_BUILDING_HEIGHT, RAIL_Y } from '../config/display.js';
 
 /**
- * A building beside the line with a name board above it (used for POIs and the start station).
+ * A stop beside the line: building, optional station platform, and a name board.
  * Returns a Container whose x is the building's centre; WorldLayer moves it.
  */
-export function createStop(scene, { buildingKey, title, subtitle }) {
+export function createStop(scene, { buildingKey, title, subtitle, platform }) {
   const c = scene.add.container(0, 0).setDepth(DEPTH.buildings);
-  const groundY = RAIL_Y + 6;
+  const groundY = RAIL_Y + 14;
 
   const img = scene.add.image(0, groundY, buildingKey).setOrigin(0.5, 1);
-  const fit = Math.min(POI_BUILDING_MAX.width / img.width, POI_BUILDING_MAX.height / img.height, 1);
-  img.setScale(fit);
+  img.setScale(POI_BUILDING_HEIGHT / img.height);
   c.add(img);
 
-  const boardY = groundY - img.displayHeight - 30;
+  if (platform) {
+    const p = scene.add.image(0, RAIL_Y + 6, 'platform').setOrigin(0.5, 1);
+    p.setScale(Math.max(1.4, (img.displayWidth + 140) / p.width));
+    c.add(p);
+  }
+
+  const boardY = groundY - img.displayHeight - 28;
+  const res = 2;
   const titleText = scene.add
-    .text(0, boardY - (subtitle ? 8 : 0), title, { fontFamily: FONT, fontSize: '20px', fontStyle: 'bold', color: '#2b1d12' })
+    .text(0, boardY - (subtitle ? 8 : 0), title, { fontFamily: FONT, fontSize: '20px', fontStyle: 'bold', color: '#2b1d12', resolution: res })
     .setOrigin(0.5);
   const parts = [titleText];
-  let height = 34;
+  let height = 32;
   if (subtitle) {
     parts.push(
-      scene.add.text(0, boardY + 12, subtitle, { fontFamily: FONT, fontSize: '13px', color: '#5a3b24' }).setOrigin(0.5),
+      scene.add.text(0, boardY + 11, subtitle, { fontFamily: FONT, fontSize: '13px', color: '#5a3b24', resolution: res }).setOrigin(0.5),
     );
-    height = 50;
+    height = 48;
   }
   const width = Math.max(...parts.map((t) => t.width)) + 28;
   const board = scene.add.graphics();
-  board.fillStyle(0x5a3b24, 1).fillRect(-3, boardY + height / 2, 6, 24);
-  board.fillStyle(0xe9d6a8, 1).fillRoundedRect(-width / 2, boardY - height / 2, width, height, 8);
-  board.lineStyle(3, 0x5a3b24, 1).strokeRoundedRect(-width / 2, boardY - height / 2, width, height, 8);
+  board.fillStyle(0x4a3220, 1).fillRect(-4, boardY + height / 2, 8, 22);
+  board.fillStyle(0xe9d6a8, 1).fillRoundedRect(-width / 2, boardY - height / 2, width, height, 6);
+  board.lineStyle(3, 0x4a3220, 1).strokeRoundedRect(-width / 2, boardY - height / 2, width, height, 6);
   c.add([board, ...parts]);
   return c;
 }
 
-/** The junction: a branch line peeling off towards the horizon, plus the points lever. */
+/** The junction: a branch line peeling off towards the horizon, and a fingerpost. */
 export function createJunction(scene) {
   const c = scene.add.container(0, 0).setDepth(DEPTH.branchLine);
   c.add(scene.add.image(0, RAIL_Y + 10, 'branch-line').setOrigin(0, 1));
-  c.add(scene.add.image(-26, RAIL_Y + 2, 'points-lever').setOrigin(0.5, 1));
+  const post = scene.add.image(-60, RAIL_Y + 4, 'junction-signpost').setOrigin(0.5, 1);
+  post.setScale(150 / post.height);
+  c.add(post);
   return c;
 }

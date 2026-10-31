@@ -1,49 +1,91 @@
 // Every file the game loads, by key. Paths are relative to the /assets folder.
 //
-// To use your own art or music: replace the file with one of the same name, or point the
-// path at your new file (e.g. change 'sprites/locomotive.svg' to 'sprites/locomotive.png').
-// SVG, PNG, JPG and WebP all work for images; WAV, MP3 and OGG for audio.
+// Most images are cut from the sheets in /art/sheets by scripts/slice-art.py.
+// To use different art: replace the file with one of the same name, or point the path at a
+// new file here. SVG, PNG, JPG and WebP all work for images; WAV, MP3 and OGG for audio.
 
 export const IMAGES = {
   // Parallax background layers (see PARALLAX_LAYERS in display.js)
-  sky: 'backgrounds/sky.svg',
-  clouds: 'backgrounds/clouds.svg',
-  'hills-far': 'backgrounds/hills-far.svg',
-  'hills-mid': 'backgrounds/hills-mid.svg',
-  ground: 'backgrounds/ground.svg',
-  track: 'backgrounds/track.svg',
-  foreground: 'backgrounds/foreground.svg',
+  sky: 'backgrounds/sky.png',
+  clouds: 'backgrounds/clouds.png',
+  mountains: 'backgrounds/mountains.png',
+  hills: 'backgrounds/hills.png',
+  trees: 'backgrounds/trees.png',
+  village: 'backgrounds/village.png',
+  ground: 'backgrounds/ground.png',
+  track: 'backgrounds/track.png',
+  foreground: 'backgrounds/foreground.png',
 
   // Train (see TRAIN_LAYOUT in display.js)
-  locomotive: 'sprites/locomotive.svg',
-  tender: 'sprites/tender.svg',
-  carriage: 'sprites/carriage.svg',
-  wagon: 'sprites/wagon.svg',
-  wheel: 'sprites/wheel.svg',
-  smoke: 'sprites/smoke.svg',
-  'cargo-load': 'sprites/cargo-load.svg',
+  locomotive: 'sprites/locomotive.png',
+  tender: 'sprites/tender.png',
+  wagon: 'sprites/wagon.png',
+  'coal-heap': 'sprites/coal-heap.png',
+  'cargo-load': 'sprites/cargo-load.png',
+  wheel: 'sprites/wheel.png',
+  'coupling-rod': 'sprites/coupling-rod.png',
+  smoke: 'sprites/smoke.png',
 
-  // Junctions
+  // Line-side
   'branch-line': 'sprites/branch-line.svg',
-  'points-lever': 'sprites/points-lever.svg',
+  'junction-signpost': 'sprites/junction-signpost.png',
+  platform: 'sprites/platform.png',
 
-  // Points of interest (keys are referenced from POI_TYPES in balance.js)
-  'poi-coal-depot': 'pois/coal-depot.svg',
-  'poi-town': 'pois/town.svg',
-  'poi-mine': 'pois/mine.svg',
-  'poi-workshop': 'pois/workshop.svg',
-  'poi-water-tower': 'pois/water-tower.svg',
+  // Points of interest. Each type has several looks; see `buildings` in POI_TYPES (balance.js).
+  'poi-coal-depot': 'pois/coal-depot.png',
+  'poi-coal-depot-a': 'pois/coal-depot-a.png',
+  'poi-coal-depot-b': 'pois/coal-depot-b.png',
+  'poi-town': 'pois/town.png',
+  'poi-town-a': 'pois/town-a.png',
+  'poi-town-b': 'pois/town-b.png',
+  'poi-mine': 'pois/mine.png',
+  'poi-mine-a': 'pois/mine-a.png',
+  'poi-mine-b': 'pois/mine-b.png',
+  'poi-workshop': 'pois/workshop.png',
+  'poi-workshop-a': 'pois/workshop-a.png',
+  'poi-workshop-b': 'pois/workshop-b.png',
+  'poi-water-tower': 'pois/water-tower.png',
+  'poi-water-tower-a': 'pois/water-tower-a.png',
+  'poi-water-tower-b': 'pois/water-tower-b.png',
 
-  // UI
-  signpost: 'ui/signpost.svg',
-  'icon-fuel': 'ui/icon-fuel.svg',
-  'icon-water': 'ui/icon-water.svg',
-  'icon-heat': 'ui/icon-heat.svg',
-  'icon-money': 'ui/icon-money.svg',
-  'icon-passengers': 'ui/icon-passengers.svg',
-  'icon-cargo': 'ui/icon-cargo.svg',
-  'icon-condition': 'ui/icon-condition.svg',
-  'icon-distance': 'ui/icon-distance.svg',
+  // UI icons
+  'icon-fuel': 'ui/icon-fuel.png',
+  'icon-water': 'ui/icon-water.png',
+  'icon-heat': 'ui/icon-heat.png',
+  'icon-money': 'ui/icon-money.png',
+  'icon-passengers': 'ui/icon-passengers.png',
+  'icon-cargo': 'ui/icon-cargo.png',
+  'icon-condition': 'ui/icon-condition.png',
+  'icon-distance': 'ui/icon-distance.png',
+
+  // UI buttons and frames (drawn as 9-slices, so they stretch to any size)
+  'button-brown': 'ui/button-brown.png',
+  'button-brown-hover': 'ui/button-brown-hover.png',
+  'button-brown-pressed': 'ui/button-brown-pressed.png',
+  'button-gold': 'ui/button-gold.png',
+  'button-gold-hover': 'ui/button-gold-hover.png',
+  'button-gold-pressed': 'ui/button-gold-pressed.png',
+  'button-green': 'ui/button-green.png',
+  'button-green-hover': 'ui/button-green-hover.png',
+  'button-green-pressed': 'ui/button-green-pressed.png',
+  'button-red': 'ui/button-red.png',
+  'button-red-hover': 'ui/button-red-hover.png',
+  'button-red-pressed': 'ui/button-red-pressed.png',
+  'button-blue': 'ui/button-blue.png',
+  'button-blue-hover': 'ui/button-blue-hover.png',
+  'button-blue-pressed': 'ui/button-blue-pressed.png',
+};
+
+/** Images drawn with hard pixel edges when enlarged (the 9-slice frames). */
+export const PIXEL_PERFECT = Object.keys(IMAGES).filter((k) => k.startsWith('button-'));
+
+/**
+ * 9-slice frames: how many pixels from each edge of the image are border (kept unstretched).
+ * Keyed by the start of the image key.
+ */
+export const NINE_SLICE = {
+  'button-brown': { left: 16, right: 16, top: 14, bottom: 14 },
+  default: { left: 12, right: 12, top: 11, bottom: 11 },
 };
 
 export const AUDIO = {

@@ -1,6 +1,8 @@
 import Phaser from 'phaser';
-import { DEPTH, FONT, GAME_HEIGHT, GAME_WIDTH } from '../config/display.js';
+import { COLORS } from '../config/display.js';
+import { cssSize, isTouch, uiScale } from '../systems/Viewport.js';
 import { Button } from '../ui/Button.js';
+import { frame, text } from '../ui/kit.js';
 
 const BEST_KEY = 'rouge.bestDistance';
 
@@ -12,54 +14,67 @@ export class GameOverScene extends Phaser.Scene {
 
   init(data) {
     this.result = { distance: 0, reason: 'Out of fuel', stats: { earned: 0, stops: 0, passengersDelivered: 0 }, ...data };
+    const best = readBest();
+    this.isRecord = this.result.distance > best && this.result.distance > 0;
+    this.best = Math.max(best, this.result.distance);
+    writeBest(this.best);
   }
 
   create() {
-    const { distance, reason, stats } = this.result;
-    const cx = GAME_WIDTH / 2;
-    const best = Math.max(readBest(), distance);
-    const isRecord = distance >= best && distance > 0;
-    writeBest(best);
-
-    if (this.textures.exists('sky')) this.add.image(0, 0, 'sky').setOrigin(0).setDisplaySize(GAME_WIDTH, GAME_HEIGHT);
-    this.add.rectangle(0, 0, GAME_WIDTH, GAME_HEIGHT, 0x15110d, 0.7).setOrigin(0);
-
-    this.add.text(cx, 150, 'END OF THE LINE', { fontFamily: FONT, fontSize: '64px', fontStyle: 'bold', color: '#ffd98a' }).setOrigin(0.5);
-    this.add.text(cx, 210, reason, { fontFamily: FONT, fontSize: '22px', color: '#c9b48e' }).setOrigin(0.5);
-
-    this.add.text(cx, 270, 'DISTANCE TRAVELLED', { fontFamily: FONT, fontSize: '18px', color: '#c9b48e' }).setOrigin(0.5);
-    this.add
-      .text(cx, 320, `${(distance / 1000).toFixed(2)} km`, { fontFamily: FONT, fontSize: '72px', fontStyle: 'bold', color: '#ffffff' })
-      .setOrigin(0.5);
-    this.add
-      .text(cx, 380, isRecord ? 'New best!' : `Best: ${(best / 1000).toFixed(2)} km`, {
-        fontFamily: FONT,
-        fontSize: '20px',
-        fontStyle: 'bold',
-        color: isRecord ? '#a8f0a0' : '#c9b48e',
-      })
-      .setOrigin(0.5);
-
-    const line = `Stops made: ${stats.stops}     Passengers delivered: ${stats.passengersDelivered}     Money earned: £${Math.round(stats.earned)}`;
-    this.add.text(cx, 430, line, { fontFamily: FONT, fontSize: '18px', color: '#f5e9d0' }).setOrigin(0.5);
-
     const restart = () => this.scene.start('Game');
-    new Button(this, cx, 520, {
-      width: 260,
-      height: 60,
-      fontSize: 24,
-      align: 'center',
-      label: 'Restart  ↻',
-      fill: 0x2f5a2a,
-      hoverFill: 0x3f7a38,
-      stroke: 0x9be08f,
-      onClick: restart,
-    }).setDepth(DEPTH.panel);
-    this.add.text(cx, 572, 'or press Space / Enter', { fontFamily: FONT, fontSize: '15px', color: '#c9b48e' }).setOrigin(0.5);
-
     this.input.keyboard?.once('keydown-SPACE', restart);
     this.input.keyboard?.once('keydown-ENTER', restart);
+    this.build();
+    const onResize = () => this.build();
+    this.scale.on('resize', onResize);
+    this.events.once('shutdown', () => this.scale.off('resize', onResize));
     this.cameras.main.fadeIn(400, 21, 17, 13);
+  }
+
+  build() {
+    this.children.removeAll(true);
+    const u = uiScale(this);
+    this.cameras.main.setOrigin(0, 0).setZoom(u).setScroll(0, 0);
+    const { w, h } = cssSize(this);
+    const { distance, reason, stats } = this.result;
+
+    this.add.image(0, 0, 'sky').setOrigin(0).setDisplaySize(w, h);
+    this.add.rectangle(0, 0, w, h, 0x15110d, 0.72).setOrigin(0);
+
+    const cardW = Math.min(w - 32, 520);
+    const cardH = Math.min(h - 32, 440);
+    const cx = w / 2;
+    const top = (h - cardH) / 2;
+    frame(this, 'button-brown', cx, h / 2, cardW, cardH).setAlpha(0.95);
+
+    const big = Math.min(56, cardW / 9);
+    let y = top + cardH * 0.1;
+    text(this, cx, y, 'END OF THE LINE', big * 0.75, COLORS.gold, { fontStyle: 'bold' }).setOrigin(0.5, 0);
+    y += big * 0.75 + 10;
+    text(this, cx, y, reason, 16, COLORS.textDim, { align: 'center', wordWrap: { width: cardW - 32 } }).setOrigin(0.5, 0);
+    y += 40;
+    text(this, cx, y, 'DISTANCE TRAVELLED', 13, COLORS.textDim).setOrigin(0.5, 0);
+    y += 20;
+    text(this, cx, y, `${(distance / 1000).toFixed(2)} km`, big, '#ffffff', { fontStyle: 'bold' }).setOrigin(0.5, 0);
+    y += big + 8;
+    text(this, cx, y, this.isRecord ? 'New best!' : `Best: ${(this.best / 1000).toFixed(2)} km`, 16, this.isRecord ? COLORS.good : COLORS.textDim, {
+      fontStyle: 'bold',
+    }).setOrigin(0.5, 0);
+    y += 32;
+    const lines = [`Stops made: ${stats.stops}`, `Passengers delivered: ${stats.passengersDelivered}`, `Money earned: £${Math.round(stats.earned)}`];
+    text(this, cx, y, cardW > 460 ? lines.join('     ') : lines.join('\n'), 14, COLORS.text, { align: 'center', lineSpacing: 4 }).setOrigin(0.5, 0);
+
+    const btnY = top + cardH - 52;
+    new Button(this, cx, btnY, {
+      width: Math.min(260, cardW - 40),
+      height: 54,
+      fontSize: 22,
+      align: 'center',
+      label: 'Restart  ↻',
+      skin: 'green',
+      onClick: () => this.scene.start('Game'),
+    });
+    if (!isTouch(this)) text(this, cx, btnY + 36, 'or press Space / Enter', 12, COLORS.textDim).setOrigin(0.5, 0);
   }
 }
 

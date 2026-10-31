@@ -1,39 +1,39 @@
 # Art & Audio Assets
 
-Everything the game draws or plays lives here. The files are served exactly as they are, so
-to use your own art just **replace a file with one of the same name**.
+Everything the game draws or plays lives here, and is served exactly as it is.
 
-If your replacement is a different format (say `locomotive.png` instead of `locomotive.svg`),
-also update its path in [`src/config/assets.js`](../src/config/assets.js). SVG, PNG, JPG and
-WebP work for images; WAV, MP3 and OGG for audio.
+## Where the art comes from
 
-Art is scaled to fit its slot, so sizes don't need to match exactly. The sizes below are what
-the placeholders use; matching the proportions will look best.
+The PNGs here are cut from your sprite sheets in [`art/sheets/`](../art/sheets) by
+[`scripts/slice-art.py`](../scripts/slice-art.py). That script crops the train, wheel, rods,
+buildings, icons and buttons, and builds seamless scrolling layers from the loose cloud,
+mountain, hill, tree, village, hedge, track and ground pieces.
 
-| Folder         | File                                                   | Size (px)  | Notes                                                    |
-|----------------|--------------------------------------------------------|------------|----------------------------------------------------------|
-| `backgrounds/` | `sky.svg`                                              | 1280 × 720 | Static, doesn't scroll                                   |
-|                | `clouds.svg`                                           | 1024 × 240 | Tiles horizontally, transparent background               |
-|                | `hills-far.svg`                                        | 1024 × 260 | Tiles horizontally, slowest layer                        |
-|                | `hills-mid.svg`                                        | 1024 × 240 | Tiles horizontally, trees/buildings                      |
-|                | `ground.svg`                                           | 512 × 152  | Tiles horizontally, the embankment under the track       |
-|                | `track.svg`                                            | 256 × 40   | Tiles horizontally, **rail top at y = 8**                |
-|                | `foreground.svg`                                       | 1024 × 90  | Tiles horizontally, drawn in front of the train          |
-| `sprites/`     | `locomotive.svg`                                       | 220 × 140  | Facing right, no wheels (wheels are separate)            |
-|                | `tender.svg`, `carriage.svg`, `wagon.svg`              | see file   | Facing right, no wheels                                  |
-|                | `wheel.svg`                                            | 64 × 64    | Spins; spokes make the rotation visible                  |
-|                | `smoke.svg`                                            | 64 × 64    | One puff, soft edges                                     |
-|                | `cargo-load.svg`                                       | 104 × 26   | Heap shown in the wagon when carrying cargo              |
-|                | `branch-line.svg`, `points-lever.svg`                  | see file   | Junction graphics                                        |
-| `pois/`        | `coal-depot.svg`, `town.svg`, `mine.svg`, `workshop.svg`, `water-tower.svg` | 320 × 280 | Buildings; bottom edge sits on the ground |
-| `ui/`          | `signpost.svg`                                         | 240 × 250  | Text is drawn over the board (top 110 px)                |
-|                | `icon-*.svg`                                           | 48 × 48    | HUD and signpost icons                                   |
-| `audio/`       | `music-loop.wav`                                       |            | Loops forever                                            |
-|                | `chuff.wav`, `whistle.wav`, `brake.wav`, `coins.wav`, `click.wav`, `warning.wav` | | Sound effects |
+To re-cut everything after changing a sheet: `python3 scripts/slice-art.py` (needs Pillow and numpy).
 
-Wheel positions and car sizes are set in `TRAIN_LAYOUT` in `src/config/display.js`. Update
-them if your train art has its wheels in different places. Volumes are in `AUDIO_VOLUME` in
-`src/config/assets.js`.
+## Replacing a single image
+
+Upload a file with the **same name** over the one you want to change. If it's a different
+format, also update its path in [`src/config/assets.js`](../src/config/assets.js). Art is
+scaled to fit its slot, so sizes don't need to match exactly. Matching the proportions looks best.
+
+Don't re-run the slicing script after hand-replacing a file, or it will be overwritten.
+
+| Folder         | Files                                                         | Notes                                                                   |
+|----------------|---------------------------------------------------------------|-------------------------------------------------------------------------|
+| `backgrounds/` | `sky`, `clouds`, `mountains`, `hills`, `trees`, `village`, `ground`, `track`, `foreground` | Scrolling layers. Each must tile left-to-right. The rail's top edge is 2 px from the top of `track.png` |
+| `sprites/`     | `locomotive`, `tender`, `wagon`                               | Train bodies, facing right, **without wheels**                           |
+|                | `coal-heap`, `cargo-load`                                     | Loads on the tender and wagon (they grow and shrink with fuel and cargo) |
+|                | `wheel`, `coupling-rod`                                       | The wheel spins; the rod rides the crank pins                           |
+|                | `smoke`, `junction-signpost`, `platform`, `branch-line.svg`   | Smoke puff and line-side scenery                                         |
+| `pois/`        | `coal-depot`, `town`, `mine`, `workshop`, `water-tower`, each with `-a` and `-b` versions | One of the three looks is picked at random for each stop |
+| `ui/`          | `icon-*`                                                      | HUD and menu icons                                                       |
+|                | `button-<colour>`, `-hover`, `-pressed`                       | Stretched as 9-slices for every button and panel                         |
+| `audio/`       | `music-loop.wav`, `chuff`, `whistle`, `brake`, `coins`, `click`, `warning` | Placeholder sounds: upload your own with the same names     |
+
+Wheel positions, car sizes and where the loads sit are set in `TRAIN_LAYOUT` in
+`src/config/display.js`. Update them if replacement train art has its wheels in different places.
+Volumes are in `AUDIO_VOLUME` in `src/config/assets.js`.
 
 ## Uploading on GitHub
 
@@ -41,5 +41,5 @@ them if your train art has its wheels in different places. Volumes are in `AUDIO
 2. Click **Add file → Upload files**.
 3. Drag in a file with the **same name** as the one you're replacing and click **Commit changes**.
 
-Deleted a placeholder by mistake? Run `npm run placeholders` to recreate any missing files.
-It never overwrites existing ones.
+New sprite sheets go in `art/sheets/`. Ask for them to be sliced in, since sheets need cutting
+up before the game can use them.
