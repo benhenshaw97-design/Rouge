@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="280" viewBox="0 0 320 280">
+<rect x="16" y="200" width="70" height="80" fill="#9a7b5a"/>
+<polygon points="10,202 51,176 92,202" fill="#5f4a37"/>
+<g stroke="#4a3b2e" stroke-width="8">
+  <line x1="110" y1="140" x2="100" y2="280"/>
+  <line x1="230" y1="140" x2="240" y2="280"/>
+  <line x1="150" y1="140" x2="148" y2="280"/>
+  <line x1="190" y1="140" x2="192" y2="280"/>
+</g>
+<g stroke="#4a3b2e" stroke-width="4"><line x1="104" y1="210" x2="236" y2="210"/><line x1="102" y1="250" x2="238" y2="250"/></g>
+<rect x="90" y="40" width="160" height="104" rx="10" fill="#3d6f9e"/>
+<rect x="90" y="62" width="160" height="5" fill="#2c5378"/>
+<rect x="90" y="96" width="160" height="5" fill="#2c5378"/>
+<rect x="90" y="128" width="160" height="5" fill="#2c5378"/>
+<rect x="84" y="32" width="172" height="12" rx="4" fill="#2c5378"/>
+<rect x="250" y="110" width="56" height="10" fill="#4a3b2e"/>
+<rect x="298" y="118" width="10" height="70" fill="#2a2a2e"/>
+</svg>

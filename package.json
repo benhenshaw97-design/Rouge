@@ -1,0 +1,19 @@
+{
+  "name": "rouge",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Side-scrolling steam train management game built with Phaser 3 and Vite.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "placeholders": "node scripts/generate-placeholders.mjs"
+  },
+  "dependencies": {
+    "phaser": "^3.90.0"
+  },
+  "devDependencies": {
+    "vite": "^8.3.5"
+  }
+}
