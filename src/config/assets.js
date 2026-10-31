@@ -26,9 +26,10 @@ export const IMAGES = {
   'desert-foreground-back': 'backgrounds/desert-foreground-back.png',
   'desert-foreground': 'backgrounds/desert-foreground.png',
 
-  // Tunnel between areas, and landmarks
+  // Tunnels between areas: the mountains the line runs through, and the tunnel mouth
   'rock-hill': 'sprites/rock-hill.png',
   'tunnel-portal': 'sprites/tunnel-portal.png',
+  'tunnel-portal-exit': 'sprites/tunnel-portal-exit.png',
   'waterfall-mountain': 'sprites/waterfall-mountain.png',
 
   // Train: each car is its body drawn over its underframe, without wheels.

@@ -479,7 +479,9 @@ for name, box, k in (('desert-foreground', (40, 28, 2130, 198), 0.42), ('desert-
 # Landmarks and the tunnel.
 save(scale(S('rock-hill.png'), 0.5), 'sprites/rock-hill.png')
 save(scale(crop(S('waterfall-mountain.png'), (0, 0, 2172, 724)), 0.5), 'sprites/waterfall-mountain.png')
-save(scale(crop(S('tunnel-portal.png'), (0, 0, 1312, 1199)), 0.4), 'sprites/tunnel-portal.png')
+portal = scale(crop(S('tunnel-portal.png'), (0, 0, 1312, 1199)), 0.4)
+save(portal, 'sprites/tunnel-portal.png')
+save(portal.transpose(Image.FLIP_LEFT_RIGHT), 'sprites/tunnel-portal-exit.png')  # mirrored, for the far end
 
 (ROOT / 'src' / 'config' / 'area-art.json').write_text(json.dumps(area_art, indent=2) + '\n')
 

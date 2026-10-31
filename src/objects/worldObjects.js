@@ -1,4 +1,4 @@
-import { DEPTH, FONT, LANDMARK, POI_BUILDING_HEIGHT, POINTS, RAIL_Y, TUNNEL } from '../config/display.js';
+import { DEPTH, FONT, POI_BUILDING_HEIGHT, POINTS, RAIL_Y, TUNNEL } from '../config/display.js';
 
 /**
  * A stop beside the line: building, optional station platform and a name board.
@@ -57,23 +57,46 @@ export function createJunction(scene) {
 }
 
 /**
- * A tunnel into the next area: a rock hill with the tunnel mouth at its left end. It's drawn in
- * front of the train, so the train disappears into it. The container's x is the tunnel mouth.
+ * A mountain the line tunnels through, with a mouth at each end. Returns { back, front, enterX, exitX }:
+ *  back:  the full tunnel mouths, behind the train (it passes in front of the dark openings)
+ *  front: the mountain, a dark tunnel interior and the far half of each mouth, in front of the
+ *         train, so it disappears into the entrance and reappears from the exit
+ *  enterX / exitX: where the train vanishes / reappears, in design px from the entrance's left edge
+ * Both containers are positioned by WorldLayer at the same spot (the entrance's left edge).
  */
-export function createTunnel(scene) {
-  const c = scene.add.container(0, 0).setDepth(DEPTH.tunnel);
-  const portal = scene.add.image(0, RAIL_Y + 14, 'tunnel-portal').setOrigin(0, 1);
-  portal.setScale(TUNNEL.portalHeight / portal.height);
-  const hill = scene.add.image(portal.displayWidth * 0.45, RAIL_Y + 40, 'rock-hill').setOrigin(0, 1);
-  hill.setScale(TUNNEL.hillHeight / hill.height);
-  c.add([hill, portal]);
-  return c;
-}
+export function createTunnel(scene, mountainKey) {
+  const back = scene.add.container(0, 0).setDepth(DEPTH.trainBack - 0.5);
+  const front = scene.add.container(0, 0).setDepth(DEPTH.tunnel);
+  const T = TUNNEL;
+  const src = scene.textures.get('tunnel-portal').getSourceImage();
+  const k = T.portalHeight / src.height;
+  const pw = src.width * k;
+  const openMid = (T.opening.left + T.opening.right) / 2;
+  const portalY = RAIL_Y + 12;
 
-/** A big set piece in the distance (e.g. the waterfall mountain). */
-export function createLandmark(scene, key) {
-  const img = scene.add.image(0, LANDMARK.bottom, key).setOrigin(0.5, 1).setDepth(DEPTH.landmarks);
-  img.setScale(LANDMARK.height / img.height);
-  img.isLandmark = true;
-  return img;
+  // Mountain, overlapping both mouths.
+  const mountainX = pw * 0.5;
+  const mountain = scene.add.image(mountainX, T.bottom, mountainKey).setOrigin(0, 1);
+  mountain.setScale(T.width / mountain.width);
+  const exitLeft = mountainX + T.width - pw * 0.5;
+
+  const enterX = pw * openMid;
+  const exitX = exitLeft + pw * (1 - openMid);
+
+  // Dark tunnel interior between the mouths, so the train is hidden all the way through.
+  const top = portalY - T.portalHeight * (1 - T.opening.top);
+  const interior = scene.add.rectangle(enterX, top, exitX - enterX, portalY - top + 4, 0x120d0a).setOrigin(0, 0);
+
+  // Entrance: whole mouth behind the train; its right half (from the middle of the opening) in front.
+  back.add(scene.add.image(0, portalY, 'tunnel-portal').setOrigin(0, 1).setScale(k));
+  const enterFront = scene.add.image(0, portalY, 'tunnel-portal').setOrigin(0, 1).setScale(k);
+  enterFront.setCrop(src.width * openMid, 0, src.width * (1 - openMid), src.height);
+
+  // Exit: the mouth mirrored; its left half (up to the middle of the opening) in front.
+  back.add(scene.add.image(exitLeft, portalY, 'tunnel-portal-exit').setOrigin(0, 1).setScale(k));
+  const exitFront = scene.add.image(exitLeft, portalY, 'tunnel-portal-exit').setOrigin(0, 1).setScale(k);
+  exitFront.setCrop(0, 0, src.width * (1 - openMid), src.height);
+
+  front.add([interior, mountain, enterFront, exitFront]);
+  return { back, front, enterX, exitX };
 }

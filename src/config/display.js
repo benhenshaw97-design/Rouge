@@ -28,7 +28,6 @@ export const DEPTH = {
   hills: 3,
   trees: 3.5,
   village: 3.8,
-  landmarks: 2.5,
   buildings: 4,
   tunnel: 30,
   platform: 4.5,
@@ -73,12 +72,12 @@ export const PARALLAX_LAYERS = [
 /**
  * Areas the line passes through, in order (it loops back to the first). Each lists the
  * parallax layers it swaps in: a layer's art and drawn height; its bottom edge stays where
- * PARALLAX_LAYERS puts it (or at `bottom` if given). Layers not listed keep the default art. Landmarks are big set pieces
- * that sometimes appear in the distance there.
+ * PARALLAX_LAYERS puts it (or at `bottom` if given). Layers not listed keep the default art.
+ * exitMountain: the mountain the line tunnels through to reach the next area.
  */
 const areaLayer = (key) => ({ key, height: AREA_ART[key].height });
 export const AREAS = [
-  { id: 'meadow', name: 'The Meadows', layers: {}, landmarks: ['waterfall-mountain'] },
+  { id: 'meadow', name: 'The Meadows', layers: {}, exitMountain: 'waterfall-mountain' },
   {
     id: 'desert',
     name: 'The Red Desert',
@@ -92,15 +91,22 @@ export const AREAS = [
       'foreground-back': areaLayer('desert-foreground-back'),
       foreground: areaLayer('desert-foreground'),
     },
-    landmarks: [],
+    exitMountain: 'rock-hill',
   },
 ];
 
-/** Tunnel between areas: rock hill with the portal at its left end (drawn in front of the train). */
-export const TUNNEL = { hillHeight: 300, portalHeight: 200, portalOffset: 30 };
-
-/** Distant landmarks: drawn this tall, scrolling at this fraction of the track's speed. */
-export const LANDMARK = { height: 300, factor: 0.12, bottom: 482 };
+/**
+ * Tunnels between areas: the line runs through a mountain, with a tunnel mouth at each end.
+ *  width: mountain width in design px (must be longer than the train, so it fits inside)
+ *  portalHeight: tunnel mouth height; opening: where the dark opening is in the portal image
+ *  (fractions of its width/height)
+ */
+export const TUNNEL = {
+  width: 1150,
+  bottom: RAIL_Y + 34,
+  portalHeight: 190,
+  opening: { left: 0.216, right: 0.595, top: 0.33 },
+};
 
 /**
  * The train, listed from the back to the front (the locomotive is last).

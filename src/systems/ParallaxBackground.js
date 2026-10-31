@@ -26,23 +26,60 @@ export class ParallaxBackground {
     });
   }
 
-  /** Swaps in an area's art (see AREAS in display.js). Bottom edges stay where they were. */
+  /** Layer settings for an area: its art and height, bottom edge kept (or at `bottom`). */
+  areaConfig(base, area) {
+    const over = area.layers[base.key];
+    const key = over?.key ?? base.key;
+    const height = over?.height ?? base.height;
+    const tileHeight = over?.tileHeight ?? (over ? undefined : base.tileHeight);
+    const y = (over?.bottom ?? base.y + base.height) - height;
+    return { ...base, key, height, tileHeight, y };
+  }
+
+  /** Builds a layer's display object for a config (sharing the scroll position `scrollPx`). */
+  makeObject(cfg, scrollPx = 0) {
+    // (Measure the source image: a TileSprite's own .texture is an internal copy.)
+    const scale = (cfg.tileHeight ?? cfg.height) / this.scene.textures.get(cfg.key).getSourceImage().height;
+    const obj = this.scene.add.tileSprite(SPAN_LEFT, cfg.y, SPAN_WIDTH, cfg.height, cfg.key).setOrigin(0, 0);
+    obj.setTileScale(scale, scale).setDepth(cfg.depth);
+    obj.tilePositionX = scrollPx / scale;
+    return { obj, scale };
+  }
+
+  /** Swaps in an area's art at once. */
   setArea(area) {
+    this.crossfadeTo(area, 0);
+  }
+
+  /** Fades each changed layer over to an area's art (see AREAS in display.js). */
+  crossfadeTo(area, duration) {
     for (const layer of this.layers) {
-      const base = layer.base;
-      const over = area.layers[base.key];
-      const key = over?.key ?? base.key;
-      const height = over?.height ?? base.height;
-      const tileHeight = over?.tileHeight ?? (over ? undefined : base.tileHeight);
-      const y = (over?.bottom ?? base.y + base.height) - height;
-      layer.cfg = { ...base, key, height, tileHeight, y };
-      if (base.tile === false) continue;
-      const x = layer.obj.tilePositionX * layer.scale;
-      layer.obj.setTexture(key).setPosition(layer.obj.x, y).setSize(layer.obj.width, height);
-      // (A TileSprite's own .texture is an internal copy, so measure the source image.)
-      layer.scale = (tileHeight ?? height) / this.scene.textures.get(key).getSourceImage().height;
-      layer.obj.setTileScale(layer.scale, layer.scale);
-      layer.obj.tilePositionX = x / layer.scale;
+      if (layer.base.tile === false) continue;
+      const cfg = this.areaConfig(layer.base, area);
+      if (cfg.key === layer.cfg.key) continue;
+      const old = layer.obj;
+      const oldScale = layer.scale;
+      const { obj, scale } = this.makeObject(cfg, old.tilePositionX * oldScale);
+      layer.cfg = cfg;
+      layer.obj = obj;
+      layer.scale = scale;
+      if (duration <= 0) {
+        old.destroy();
+        continue;
+      }
+      obj.setAlpha(0).setDepth(cfg.depth + 0.01);
+      this.scene.tweens.add({
+        targets: obj,
+        alpha: 1,
+        duration,
+        onComplete: () => {
+          old.destroy();
+          obj.setDepth(cfg.depth);
+          if (layer.fading?.obj === old) layer.fading = null;
+        },
+      });
+      // The old layer keeps scrolling while it fades out.
+      layer.fading = { obj: old, scale: oldScale };
     }
   }
 
@@ -56,6 +93,7 @@ export class ParallaxBackground {
       const px = trackPixels * layer.cfg.factor + (layer.cfg.drift ?? 0) * dt;
       // tilePosition is measured in texture pixels, so undo the scale.
       layer.obj.tilePositionX += px / layer.scale;
+      if (layer.fading?.obj.active) layer.fading.obj.tilePositionX += px / layer.fading.scale;
     }
   }
 }

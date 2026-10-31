@@ -1,9 +1,9 @@
 import Phaser from 'phaser';
 import { BALANCE, POI_TYPES, START_STATION } from '../config/balance.js';
 import { DEBUG } from '../config/debug.js';
-import { AREAS, COLORS, LANDMARK, PARALLAX_LAYERS, PX_PER_METRE, TRAIN_LAYOUT, WORLD_HEIGHT } from '../config/display.js';
+import { AREAS, COLORS, PARALLAX_LAYERS, PX_PER_METRE, TRAIN_LAYOUT, WORLD_HEIGHT } from '../config/display.js';
 import { Train } from '../objects/Train.js';
-import { createJunction, createLandmark, createStop, createTunnel } from '../objects/worldObjects.js';
+import { createJunction, createStop, createTunnel } from '../objects/worldObjects.js';
 import { createVisit } from '../poi/poiActions.js';
 import { TrainState } from '../state/TrainState.js';
 import { AudioManager } from '../systems/AudioManager.js';
@@ -32,7 +32,7 @@ export class GameScene extends Phaser.Scene {
     // Areas: the line runs through AREAS in turn, with a tunnel between each.
     this.areaIndex = 0;
     this.nextAreaAt = this.range(BALANCE.route.areaLength);
-    this.tunnel = null; // { at, obj, passed }
+    this.tunnel = null; // { at, parts, swapped }
     this.signpostsShown = false;
     this.chuffDistancePx = 0;
     this.wasBraking = false;
@@ -151,45 +151,40 @@ export class GameScene extends Phaser.Scene {
     this.audio.play('whistle');
   }
 
-  // --- Areas, tunnels and landmarks -----------------------------------------------------------
+  // --- Areas and tunnels -----------------------------------------------------------------------
 
   get area() {
     return AREAS[this.areaIndex];
   }
 
-  /** After leaving a stop: maybe a tunnel into the next area, maybe a landmark in the distance. */
+  /** After leaving a stop: when it's time, the line tunnels through a mountain into the next area. */
   planScenery() {
     const d = this.state.distance;
-    const r = BALANCE.route;
-    if (!this.tunnel && d >= this.nextAreaAt && AREAS.length > 1) {
-      const at = d + r.tunnelAfterDepart;
-      this.tunnel = { at, obj: this.world.add(at, createTunnel(this)), passed: false };
-      return;
-    }
-    const keys = this.area.landmarks;
-    if (keys.length && Math.random() < r.landmarkChance) {
-      // Start it just off the right of the screen; it drifts past slowly.
-      const at = d + (1450 - this.train.frontX) / (PX_PER_METRE * LANDMARK.factor);
-      this.world.add(at, createLandmark(this, Phaser.Utils.Array.GetRandom(keys)), { factor: LANDMARK.factor, cullMargin: 1400 });
-    }
+    if (this.tunnel || d < this.nextAreaAt || AREAS.length < 2) return;
+    const at = d + BALANCE.route.tunnelAfterDepart;
+    const parts = createTunnel(this, this.area.exitMountain);
+    this.world.add(at, parts.back, { cullMargin: 2400 });
+    this.world.add(at, parts.front, { cullMargin: 2400 });
+    this.tunnel = { at, parts, swapped: false };
   }
 
-  /** Once the train is inside the tunnel, darken the view, switch areas, and come out the far side. */
+  /**
+   * Once the whole train is inside the mountain, crossfade the scenery to the next area; it
+   * comes out of the far tunnel mouth into it.
+   */
   updateTunnel() {
     const t = this.tunnel;
-    if (!t || t.passed || this.state.distance < t.at + 32) return;
-    t.passed = true;
-    const cam = this.cameras.main;
-    cam.fadeOut(350, 8, 6, 4);
-    cam.once('camerafadeoutcomplete', () => {
+    if (!t) return;
+    const inside = (this.state.distance - t.at) * PX_PER_METRE - t.parts.enterX;
+    if (!t.swapped && inside > this.train.length + 10) {
+      t.swapped = true;
       this.areaIndex = (this.areaIndex + 1) % AREAS.length;
-      this.parallax.setArea(this.area);
-      this.world.removeWhere((obj) => obj === t.obj || obj.isLandmark);
-      this.tunnel = null;
+      this.parallax.crossfadeTo(this.area, 900);
       this.nextAreaAt = this.state.distance + this.range(BALANCE.route.areaLength);
-      cam.fadeIn(500, 8, 6, 4);
       this.ui.toast(`Entering ${this.area.name}`);
-    });
+    }
+    // Forget it once it has scrolled away (WorldLayer destroys the objects).
+    if (t.swapped && !t.parts.front.active) this.tunnel = null;
   }
 
   range([min, max]) {
