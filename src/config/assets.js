@@ -13,7 +13,6 @@ export const IMAGES = {
   trees: 'backgrounds/trees.png',
   village: 'backgrounds/village.png',
   ground: 'backgrounds/ground.png',
-  trackbed: 'backgrounds/trackbed.png',
   rails: 'backgrounds/rails.png',
   foreground: 'backgrounds/foreground.png',
 

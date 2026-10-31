@@ -386,15 +386,6 @@ save(compose(village, 2048, max(p.height for p in village), spacing=(20, 120), s
 hedges = pieces_in(kit_b, (0, 698, 1536, 778))
 save(compose(hedges, 2048, max(p.height for p in hedges), spacing=(30, 220), seed=6), 'backgrounds/foreground.png')
 
-# Track bed: the gravel, dirt and grass from the old track strip (below its rails), a whole
-# number of sleeper repeats wide so it tiles.
-seg = kit_b.crop((1075, 785, 1456, 868))
-band = np.asarray(seg.convert('L')).astype(float)[20:40, :].mean(axis=0)
-band -= band.mean()
-best = max(range(14, 60), key=lambda p: float(np.dot(band[:-p], band[p:])) / (len(band) - p))
-reps = (seg.width - 40) // best
-save(crossfade_tile(seg.crop((10, 44, 10 + reps * best + 40, seg.height)), 40), 'backgrounds/trackbed.png')
-
 # Rails: the long straight rail from rails.png, cropped to whole sleeper repeats so it tiles.
 K_RAIL = K_LOCO
 rails_sheet = S('rails.png')
@@ -426,24 +417,16 @@ train_layout['points'] = {
     'railTop': round(points_rail_top * K_RAIL, 2),
 }
 
-# Ground: the dirt from the ground strip in icons-ground-sky.png (below its grass), shrunk to
-# the same pixel scale as the rest of the art. To avoid stripes, it's stacked as overlapping
-# rows, each shifted sideways and blended into the one above, and darkens with depth.
-# Written at 2x: 320 px tall = 160 design px.
-dirt = crossfade_tile(extra.crop((70, 450, 1705, 540)).convert('RGBA'), 120)
-dirt = np.asarray(scale(dirt, 0.7)).astype(float)
-ROW_H, STEP, GH = dirt.shape[0], dirt.shape[0] - 16, 320
-rng = np.random.default_rng(3)
-acc = np.zeros((GH, dirt.shape[1], 3))
-for y in range(-16, GH, STEP):
-    row = np.roll(dirt[..., :3], int(rng.integers(0, dirt.shape[1])), axis=1)
-    alpha = np.ones(ROW_H)
-    alpha[:16] = np.linspace(0, 1, 16)  # blend into the row above
-    for k in range(ROW_H):
-        if 0 <= y + k < GH:
-            acc[y + k] = acc[y + k] * (1 - alpha[k]) + row[k] * alpha[k]
-shade = np.linspace(1.0, 0.72, GH)[:, None, None]
-save(Image.fromarray(np.clip(acc * shade, 0, 255).astype(np.uint8)).convert('RGBA'), 'backgrounds/ground.png')
+# Ground: the grass embankment from grass-embankment.png, cut just below its sleeper tops (the
+# rails have their own sleepers). It tiles left-right as drawn; below it the bottom colour
+# continues so tall screens are covered. Scale 0.3 design px per sheet px, written at 2x.
+bank = S('grass-embankment.png').crop((0, 362, 2172, 724)).convert('RGBA')
+bottom = np.median(np.asarray(bank.convert('RGB'))[-20:].reshape(-1, 3), axis=0)
+pad = 200
+ground = Image.new('RGBA', (bank.width, bank.height + pad), tuple(int(c) for c in bottom) + (255,))
+ground.alpha_composite(bank, (0, 0))
+save(scale(ground, 0.3 * HI), 'backgrounds/ground.png')
+report['ground.designHeight'] = round(ground.height * 0.3, 1)
 
 (ROOT / 'src' / 'config' / 'train-art.json').write_text(json.dumps(train_layout, indent=2) + '\n')
 print(json.dumps(report, indent=1))

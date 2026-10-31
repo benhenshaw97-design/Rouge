@@ -58,9 +58,9 @@ export const PARALLAX_LAYERS = [
   { key: 'hills', factor: 0.16, y: 330, height: 150, depth: DEPTH.hills },
   { key: 'trees', factor: 0.3, y: 376, height: 198, depth: DEPTH.trees },
   { key: 'village', factor: 0.5, y: 372, height: 207, depth: DEPTH.village },
-  { key: 'ground', factor: 1, y: 572, height: 1500, tileHeight: 160, depth: DEPTH.ground },
-  // Gravel and dirt under the line, then the rails (positioned so the rail's top edge is RAIL_Y).
-  { key: 'trackbed', factor: 1, y: RAIL_Y + 5, height: 49, depth: DEPTH.track - 0.2 },
+  // Grass bank under the line (its top sits just below the rail so the sleepers rest in the grass).
+  { key: 'ground', factor: 1, y: RAIL_Y + 6, height: 1500, tileHeight: 168.6, depth: DEPTH.ground },
+  // The rails, positioned so the rail's top edge is RAIL_Y.
   { key: 'rails', factor: 1, y: RAIL_Y - TRAIN_ART.rails.railTop, height: TRAIN_ART.rails.height, depth: DEPTH.track },
   { key: 'foreground', factor: 1.35, y: 618, height: 118, depth: DEPTH.foreground },
 ];

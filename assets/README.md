@@ -21,7 +21,7 @@ Don't re-run the slicing script after hand-replacing a file, or it will be overw
 
 | Folder         | Files                                                         | Notes                                                                   |
 |----------------|---------------------------------------------------------------|-------------------------------------------------------------------------|
-| `backgrounds/` | `sky`, `clouds`, `mountains`, `hills`, `trees`, `village`, `ground`, `trackbed`, `rails`, `foreground` | Scrolling layers. Each must tile left-to-right |
+| `backgrounds/` | `sky`, `clouds`, `mountains`, `hills`, `trees`, `village`, `ground` (grass bank), `rails`, `foreground` | Scrolling layers. Each must tile left-to-right |
 | `sprites/`     | `locomotive`, `tender`, `wagon`, `carriage`                   | Each car is its body drawn over its underframe, facing right, **without wheels** |
 |                | `coal-heap`                                                   | Coal on the tender (shrinks as fuel burns) |
 |                | `cargo-*`                                                     | Loads for the modular cargo wagon (gold, gems, logs, crates...)          |
