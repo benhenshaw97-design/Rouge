@@ -121,7 +121,20 @@ export function createTunnel(scene) {
   const exitFront = scene.add.image(exitLeft, portalY, 'tunnel-portal-exit').setOrigin(0, 1).setScale(k);
   exitFront.setCrop(0, 0, src.width * (1 - openMid), src.height);
 
-  front.add([interior, peak, ...bases, enterFront, exitFront]);
+  // Rocks along the line in front of the train beside both foothills, so the train runs through a
+  // rocky cutting (not over the top of the foothills) on its way in and out.
+  const edgeRocks = [];
+  const lay = (from, to) => {
+    for (let x = from, i = 0; x < to; i++) {
+      const r = img(x, RAIL_Y + 52, 'transition-rocks', T.edgeRocksHeight).setFlipX(i % 2 === 1);
+      edgeRocks.push(r);
+      x += r.displayWidth * 0.8;
+    }
+  };
+  lay(left.x + left.displayWidth * 0.1, enterX);
+  lay(exitX, right.x + right.displayWidth * 0.9);
+
+  front.add([interior, peak, ...bases, ...edgeRocks, enterFront, exitFront]);
   return { back, front, enterX, exitX };
 }
 

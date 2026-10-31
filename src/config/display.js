@@ -118,6 +118,7 @@ export const TUNNEL = {
   rockBandHeight: 150, // long low ridge behind the foothills
   rocksHeight: 175, // rock pile that sweeps past in front of everything (covers the ground's join)
   rocksFactor: 1.35, // ...at the foreground's parallax speed
+  edgeRocksHeight: 78, // rocks along the line in front of the train, beside the foothills
   portalHeight: 190,
   opening: { left: 0.216, right: 0.595, top: 0.33 },
 };
