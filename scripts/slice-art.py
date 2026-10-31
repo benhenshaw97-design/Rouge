@@ -502,8 +502,20 @@ desert_layer('desert-dunes', dunes_full, 1.9)
 rocks = objects_in(dkit, (0, 360, 1774, 469), min_w=80)
 desert_layer('desert-rocks', compose(rocks, 3072, max(p.height for p in rocks), spacing=(120, 380), seed=8), 1.5)
 village_d = objects_in(dkit, (0, 484, 1774, 614), min_w=60)
-# Spread out: a desert has scattered settlements with open sand between.
-desert_layer('desert-village', compose(village_d, 4096, max(p.height for p in village_d), spacing=(420, 900), seed=9), 1.5)
+# The desert's middle distance: mostly lone camps, ruins, wells, wagons and bones from
+# desert-props.png, with only an occasional small village (so it doesn't feel like a city).
+props_sheet = S('desert-props.png')
+props = []
+for band in ((0, 9, 2172, 190), (0, 204, 2172, 368), (0, 380, 2172, 518)):
+    props += objects_in(props_sheet, band, min_w=40)
+PROP_SCALE = 0.75  # props are drawn bigger than the village sheet; match them up
+props = [scale(p, PROP_SCALE) for p in props]
+# Single houses and palms (cut tightly, so clusters split up), not whole settlements.
+singles = [p for p in objects_in(dkit, (0, 484, 1774, 614), min_w=40, grow=1) if p.width < 300]
+villages = sorted(singles, key=lambda p: p.width)[:3]  # a few lone buildings
+mix = props + villages
+desert_layer('desert-village', compose(mix, 6144, max(p.height for p in mix), spacing=(70, 280), seed=9), 1.5)
+report['desert-props'] = [len(props), len(villages)]
 
 # Sand bank under the rails (cut below its sleeper tops), like the grass one.
 dbank = S('desert-embankment.png').crop((0, 398, 2170, 725)).convert('RGBA')
