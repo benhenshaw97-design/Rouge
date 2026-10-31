@@ -1,4 +1,4 @@
-import { DEPTH, FONT, POI_BUILDING_HEIGHT, POINTS, RAIL_Y, TUNNEL } from '../config/display.js';
+import { DEPTH, FONT, PLATFORM_HEIGHT, POI_BUILDING_HEIGHT, POINTS, RAIL_Y, TUNNEL } from '../config/display.js';
 
 /**
  * A stop beside the line: building, optional station platform and a name board.
@@ -13,8 +13,13 @@ export function createStop(scene, { buildingKey, title, subtitle, platform }) {
   c.add(img);
 
   if (platform) {
-    const p = scene.add.image(0, RAIL_Y + 6, typeof platform === 'string' ? platform : 'platform').setOrigin(0.5, 1);
-    p.setScale(Math.max(1.4, (img.displayWidth + 140) / p.width));
+    const key = typeof platform === 'string' ? platform : 'platform';
+    const p = scene.add.image(0, RAIL_Y + 6, key).setOrigin(0.5, 1);
+    const fixed = PLATFORM_HEIGHT[key];
+    // A low platform strip stretches to the building's width; a full station canopy (desert)
+    // is drawn at a set height instead, so it doesn't dwarf the train.
+    if (fixed) p.setScale(fixed / p.height);
+    else p.setScale(Math.max(1.4, (img.displayWidth + 140) / p.width));
     c.add(p);
   }
 

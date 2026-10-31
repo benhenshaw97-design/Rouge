@@ -154,6 +154,9 @@ export const TRAIN_LAYOUT = {
 
 export const POINTS = TRAIN_ART.points;
 
+/** Platforms drawn at a set height (design px); others stretch to the building's width. */
+export const PLATFORM_HEIGHT = { 'desert-platform': 105 };
+
 /** POI buildings are scaled to this height (design px). */
 export const POI_BUILDING_HEIGHT = 235;
 
