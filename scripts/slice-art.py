@@ -486,6 +486,59 @@ portal = scale(crop(S('tunnel-portal.png'), (0, 0, 1312, 1199)), 0.4)
 save(portal, 'sprites/tunnel-portal.png')
 save(portal.transpose(Image.FLIP_LEFT_RIGHT), 'sprites/tunnel-portal-exit.png')  # mirrored, for the far end
 
+# Front pieces of the tunnel mouths, drawn in front of the train. They follow the arch's curved
+# edge row by row, so the train disappears exactly at the edge of the dark opening (entrance) and
+# comes out exactly at it (exit), with no straight cut showing on the rounded part.
+pa = np.asarray(portal).copy()
+H, W = pa.shape[:2]
+lum = pa[..., :3].max(axis=2)
+cx = int(W * 0.405)  # a column through the middle of the opening
+raw_l, raw_r = np.full(H, -1), np.full(H, -1)
+top = H
+for y in range(H - 1, -1, -1):
+    if lum[y, cx] >= 70:
+        if y < H * 0.6:
+            top = y + 1
+            break
+        continue
+    l = r = cx
+    while l > 0 and lum[y, l - 1] < 70:
+        l -= 1
+    while r < W - 1 and lum[y, r + 1] < 70:
+        r += 1
+    if r - l < W * 0.8:  # skip the ground outline along the bottom
+        raw_l[y], raw_r[y] = l, r
+rows = np.array([y for y in range(top, H) if raw_l[y] >= 0])
+# Lanterns and outlines touch the opening in places, so smooth the edges (outliers make the
+# opening look wider) and make the arch widen steadily downwards.
+left_edge, right_edge = np.zeros(H, int), np.zeros(H, int)
+for y in rows:
+    win = rows[np.abs(rows - y) <= 10]
+    left_edge[y] = int(np.percentile(raw_l[win], 75))
+    right_edge[y] = int(np.percentile(raw_r[win], 25))
+for idx in range(len(rows) - 2, -1, -1):
+    y, below = rows[idx], rows[idx + 1]
+    left_edge[y] = max(left_edge[y], left_edge[below])
+    right_edge[y] = min(right_edge[y], right_edge[below])
+last = rows.max()
+left_edge[last + 1:], right_edge[last + 1:] = left_edge[last], right_edge[last]
+left_edge[:top], right_edge[:top] = W, -1  # above the arch: all stone, keep in front on both sides
+left_edge[:top] = left_edge[top]
+right_edge[:top] = right_edge[top]
+xs_grid = np.arange(W)[None, :]
+enter_front = pa.copy()
+enter_front[..., 3] = np.where(xs_grid >= left_edge[:, None], pa[..., 3], 0)
+save(Image.fromarray(enter_front), 'sprites/tunnel-portal-front.png')
+exit_front = pa.copy()
+exit_front[..., 3] = np.where(xs_grid > right_edge[:, None], pa[..., 3], 0)
+save(Image.fromarray(exit_front).transpose(Image.FLIP_LEFT_RIGHT), 'sprites/tunnel-portal-exit-front.png')
+low = rows[-40:]  # the straight bottom part of the opening, where the train passes
+area_art['tunnelOpening'] = {
+    'left': round(float(left_edge[low].min()) / W, 4),
+    'right': round(float(right_edge[low].max() + 1) / W, 4),
+    'top': round(float(top) / H, 4),
+}
+
 # Desert stops: buildings from desert-stops.png (transparent), plus the desert platform.
 ds = S('desert-stops.png')
 for name, box in {

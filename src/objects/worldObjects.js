@@ -118,14 +118,13 @@ export function createTunnel(scene) {
 
   // Entrance: whole mouth behind the train; its right half (from the middle of the opening) in front.
   back.add(scene.add.image(0, portalY, 'tunnel-portal').setOrigin(0, 1).setScale(k));
-  const enterFront = scene.add.image(0, portalY, 'tunnel-portal').setOrigin(0, 1).setScale(k);
-  enterFront.setCrop(src.width * T.opening.left, 0, src.width * (1 - T.opening.left), src.height);
+  // (The front piece follows the arch's curved edge, so the train vanishes right at the opening.)
+  const enterFront = scene.add.image(0, portalY, 'tunnel-portal-front').setOrigin(0, 1).setScale(k);
 
   // Exit: the mouth mirrored.
   back.add(scene.add.image(exitLeft, portalY, 'tunnel-portal-exit').setOrigin(0, 1).setScale(k));
-  const exitFront = scene.add.image(exitLeft, portalY, 'tunnel-portal-exit').setOrigin(0, 1).setScale(k);
-  // In front: only the part left of the opening, so the train comes out of the dark opening.
-  exitFront.setCrop(0, 0, src.width * (1 - T.opening.right), src.height);
+  // In front: the part left of the opening's curved edge, so the train comes out of the opening.
+  const exitFront = scene.add.image(exitLeft, portalY, 'tunnel-portal-exit-front').setOrigin(0, 1).setScale(k);
 
   // Rock bank across the whole bottom of the screen, in front of the train and the mouths'
   // bases, so the train runs into the mountain through a rocky cutting with no ground showing.

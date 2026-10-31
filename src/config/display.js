@@ -121,7 +121,7 @@ export const TUNNEL = {
   bankTop: RAIL_Y - 40,
   bankMargin: 900,
   portalHeight: 190,
-  opening: { left: 0.216, right: 0.595, top: 0.33 },
+  opening: AREA_ART.tunnelOpening, // measured from the art by slice-art.py
 };
 
 /**

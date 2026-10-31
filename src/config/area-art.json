@@ -19,5 +19,10 @@
   },
   "desert-foreground-back": {
     "height": 50.8
+  },
+  "tunnelOpening": {
+    "left": 0.2013,
+    "right": 0.5671,
+    "top": 0.3316
   }
 }

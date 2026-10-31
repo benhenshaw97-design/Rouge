@@ -42,6 +42,8 @@ export const IMAGES = {
   'desert-platform': 'sprites/desert-platform.png',
   'tunnel-portal': 'sprites/tunnel-portal.png',
   'tunnel-portal-exit': 'sprites/tunnel-portal-exit.png',
+  'tunnel-portal-front': 'sprites/tunnel-portal-front.png',
+  'tunnel-portal-exit-front': 'sprites/tunnel-portal-exit-front.png',
 
   // Train: each car is its body drawn over its underframe, without wheels.
   // Wheel positions etc. are in src/config/train-art.json (written by scripts/slice-art.py).
