@@ -115,23 +115,27 @@ export const MUSIC = [
   'audio/music/trains-4.mp3',
 ];
 
-/** Sound effects. */
+/**
+ * Sound effects. Originals are in art/sfx (Kenney packs are CC0; see art/sfx/README.md).
+ */
 export const AUDIO = {
   chuff: 'audio/chuff.wav',
   whistle: 'audio/whistle.wav',
   brake: 'audio/brake.wav',
   coins: 'audio/coins.wav',
   click: 'audio/click.wav',
+  switch: 'audio/switch.wav',
   warning: 'audio/warning.wav',
 };
 
 /** Default volume for each sound (0..1). */
 export const AUDIO_VOLUME = {
   music: 0.4,
-  chuff: 0.16,
-  whistle: 0.45,
-  brake: 0.35,
-  coins: 0.5,
-  click: 0.4,
-  warning: 0.45,
+  chuff: 0.22,
+  whistle: 0.5,
+  brake: 0.9,
+  coins: 0.6,
+  click: 0.35,
+  switch: 0.45,
+  warning: 0.35,
 };

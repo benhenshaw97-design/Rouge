@@ -10,14 +10,15 @@ pieces, like the existing train sheet.
 ## 1. Needed now (the game is using placeholders)
 
 ### Sound effects (`assets/audio/`)
-Short WAV, MP3 or OGG files. Keep the same names and they replace the placeholders automatically.
+Done with your uploads (see `art/sfx/README.md`). Could still use: a steam hiss for overheating,
+and a gentle station ambience (your 37 s steam recording might do for that).
 
-- [ ] `chuff.wav`: a single steam "chuff" (under 0.3 s). It plays rapidly in time with the wheels
-- [ ] `whistle.wav`: departure whistle (1–2 s)
-- [ ] `brake.wav`: brakes squealing and hissing as the train pulls into a stop (about 1 s)
-- [ ] `coins.wav`: buying or earning money (under 0.5 s)
-- [ ] `click.wav`: button tap, points switching (very short)
-- [ ] `warning.wav`: low-fuel / overheating alert (under 0.5 s)
+- [x] `chuff.wav`: a single steam "chuff" (under 0.3 s). It plays rapidly in time with the wheels
+- [x] `whistle.wav`: departure whistle (1–2 s)
+- [x] `brake.wav`: brakes squealing and hissing as the train pulls into a stop (about 1 s)
+- [x] `coins.wav`: buying or earning money (under 0.5 s)
+- [x] `click.wav`: button tap, points switching (very short)
+- [x] `warning.wav`: low-fuel / overheating alert (under 0.5 s)
 
 ### Stand-ins I made myself (would look better in your style)
 - [ ] **Water icon**, **wrench (condition) icon**, **distance icon**: same framed style as the

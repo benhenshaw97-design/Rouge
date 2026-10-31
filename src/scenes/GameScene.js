@@ -163,7 +163,7 @@ export class GameScene extends Phaser.Scene {
       const def = POI_TYPES[poi.type];
       this.signpostsShown = false;
       this.ui.hideJunction();
-      this.audio.play('click');
+      this.audio.play('switch');
       this.ui.toast(`Points set for ${def.name}`);
       this.world.add(
         poi.at,
@@ -181,7 +181,7 @@ export class GameScene extends Phaser.Scene {
   selectBranch(index) {
     const j = this.route.junction;
     if (this.phase !== 'running' || !j || j.resolved || !this.signpostsShown) return;
-    if (j.selected !== index) this.audio.play('click');
+    if (j.selected !== index) this.audio.play('switch');
     this.route.select(index);
     this.ui.setJunctionSelected(index);
   }
