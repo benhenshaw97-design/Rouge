@@ -73,11 +73,10 @@ export const PARALLAX_LAYERS = [
  * Areas the line passes through, in order (it loops back to the first). Each lists the
  * parallax layers it swaps in: a layer's art and drawn height; its bottom edge stays where
  * PARALLAX_LAYERS puts it (or at `bottom` if given). Layers not listed keep the default art.
- * exitMountain: the mountain the line tunnels through to reach the next area.
  */
 const areaLayer = (key) => ({ key, height: AREA_ART[key].height });
 export const AREAS = [
-  { id: 'meadow', name: 'The Meadows', layers: {}, exitMountain: 'waterfall-mountain' },
+  { id: 'meadow', name: 'The Meadows', layers: {} },
   {
     id: 'desert',
     name: 'The Red Desert',
@@ -91,19 +90,21 @@ export const AREAS = [
       'foreground-back': areaLayer('desert-foreground-back'),
       foreground: areaLayer('desert-foreground'),
     },
-    exitMountain: 'rock-hill',
   },
 ];
 
 /**
- * Tunnels between areas: the line runs through a mountain, with a tunnel mouth at each end.
- *  width: mountain width in design px (must be longer than the train, so it fits inside)
- *  portalHeight: tunnel mouth height; opening: where the dark opening is in the portal image
- *  (fractions of its width/height)
+ * Tunnels between areas: the line runs through a towering peak, with a tunnel mouth at each foot,
+ * rocky foothills either side (behind the train) and a grassy rock strip along the peak's base.
+ * Heights are design px. The peak must be wider than the train so the whole train fits inside.
+ *  opening: where the dark opening is in the tunnel-mouth image (fractions of width/height)
  */
 export const TUNNEL = {
-  width: 1150,
   bottom: RAIL_Y + 34,
+  peakHeight: 660,
+  foothillHeight: 250,
+  foothillOverlap: 0.45, // how much of each foothill tucks behind the peak
+  baseHeight: 96,
   portalHeight: 190,
   opening: { left: 0.216, right: 0.595, top: 0.33 },
 };

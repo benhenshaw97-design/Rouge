@@ -57,31 +57,52 @@ export function createJunction(scene) {
 }
 
 /**
- * A mountain the line tunnels through, with a mouth at each end. Returns { back, front, enterX, exitX }:
- *  back:  the full tunnel mouths, behind the train (it passes in front of the dark openings)
- *  front: the mountain, a dark tunnel interior and the far half of each mouth, in front of the
- *         train, so it disappears into the entrance and reappears from the exit
+ * A towering peak the line tunnels through, with a mouth at each foot. Returns
+ * { back, front, enterX, exitX }:
+ *  back:  foothills either side and the full tunnel mouths, behind the train (it runs past the
+ *         foothills and in front of the dark openings)
+ *  front: the peak, its rocky base, a dark tunnel interior and the far half of each mouth, in
+ *         front of the train, so it disappears into the entrance and comes out of the exit
  *  enterX / exitX: where the train vanishes / reappears, in design px from the entrance's left edge
  * Both containers are positioned by WorldLayer at the same spot (the entrance's left edge).
  */
-export function createTunnel(scene, mountainKey) {
+export function createTunnel(scene) {
   const back = scene.add.container(0, 0).setDepth(DEPTH.trainBack - 0.5);
   const front = scene.add.container(0, 0).setDepth(DEPTH.tunnel);
   const T = TUNNEL;
+  const img = (x, y, key, height) => {
+    const o = scene.add.image(x, y, key).setOrigin(0, 1);
+    return o.setScale(height / o.height);
+  };
+
   const src = scene.textures.get('tunnel-portal').getSourceImage();
   const k = T.portalHeight / src.height;
   const pw = src.width * k;
   const openMid = (T.opening.left + T.opening.right) / 2;
   const portalY = RAIL_Y + 12;
 
-  // Mountain, overlapping both mouths.
-  const mountainX = pw * 0.5;
-  const mountain = scene.add.image(mountainX, T.bottom, mountainKey).setOrigin(0, 1);
-  mountain.setScale(T.width / mountain.width);
-  const exitLeft = mountainX + T.width - pw * 0.5;
-
+  // The peak, starting halfway across the entrance mouth.
+  const peakLeft = pw * 0.5;
+  const peak = img(peakLeft, T.bottom, 'mountain-peak', T.peakHeight);
+  const peakW = peak.displayWidth;
+  const exitLeft = peakLeft + peakW - pw * 0.5;
   const enterX = pw * openMid;
   const exitX = exitLeft + pw * (1 - openMid);
+
+  // Foothills either side, tucked partly behind the peak.
+  const left = img(0, T.bottom, 'mountain-foothill', T.foothillHeight);
+  left.x = peakLeft + left.displayWidth * T.foothillOverlap - left.displayWidth;
+  const right = img(peakLeft + peakW - 0, T.bottom, 'mountain-foothill', T.foothillHeight).setFlipX(true);
+  right.x = peakLeft + peakW - right.displayWidth * T.foothillOverlap;
+  back.add([left, right]);
+
+  // Grassy rocks along the peak's foot (two copies, the second mirrored).
+  const bases = [];
+  for (let x = peakLeft, i = 0; x < peakLeft + peakW; i++) {
+    const b = img(x, T.bottom + 22, 'mountain-base', T.baseHeight).setFlipX(i % 2 === 1);
+    bases.push(b);
+    x += b.displayWidth - 30;
+  }
 
   // Dark tunnel interior between the mouths, so the train is hidden all the way through.
   const top = portalY - T.portalHeight * (1 - T.opening.top);
@@ -97,6 +118,6 @@ export function createTunnel(scene, mountainKey) {
   const exitFront = scene.add.image(exitLeft, portalY, 'tunnel-portal-exit').setOrigin(0, 1).setScale(k);
   exitFront.setCrop(0, 0, src.width * (1 - openMid), src.height);
 
-  front.add([interior, mountain, enterFront, exitFront]);
+  front.add([interior, peak, ...bases, enterFront, exitFront]);
   return { back, front, enterX, exitX };
 }

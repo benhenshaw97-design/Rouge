@@ -42,7 +42,7 @@ and a gentle station ambience (your 37 s steam recording might do for that).
 - [ ] **Track events**: fallen tree, cows on the line, rockfall, signal post (red/green)
 - [ ] **More cargo types**: icons for logs, crates, oil, stone (the matching wagons already exist)
 - [ ] **New terrain sets**, each needing sky, mountains, hills, trees, foreground and track bed:
-  - [x] Desert (in the game: through a tunnel in the waterfall mountain; back via the rock hill)
+  - [x] Desert (in the game: reached through a tunnel in the mountain peak)
   - [ ] Snow (you already have a snow track piece)
   - [ ] Coast
   - [ ] Industrial town

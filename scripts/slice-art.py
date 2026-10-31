@@ -477,8 +477,11 @@ for name, box, k in (('desert-foreground', (40, 28, 2130, 198), 0.42), ('desert-
     area_art[name] = {'height': round((box[3] - box[1]) * k, 1)}
 
 # Landmarks and the tunnel.
-save(scale(S('rock-hill.png'), 0.5), 'sprites/rock-hill.png')
-save(scale(crop(S('waterfall-mountain.png'), (0, 0, 2172, 724)), 0.5), 'sprites/waterfall-mountain.png')
+# Tunnel mountain kit: a tall peak (cut off at the top, so it towers off the screen), a tapered
+# rocky foothill for either side, and a grassy rock strip along the peak's foot.
+save(scale(S('mountain-peak.png'), 0.75), 'sprites/mountain-peak.png')
+save(scale(S('mountain-foothill.png').crop((115, 5, 2070, 511)), 0.5), 'sprites/mountain-foothill.png')
+save(scale(S('mountain-base-strip.png').crop((0, 675, 1671, 941)), 0.45), 'sprites/mountain-base.png')
 portal = scale(crop(S('tunnel-portal.png'), (0, 0, 1312, 1199)), 0.4)
 save(portal, 'sprites/tunnel-portal.png')
 save(portal.transpose(Image.FLIP_LEFT_RIGHT), 'sprites/tunnel-portal-exit.png')  # mirrored, for the far end

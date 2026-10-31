@@ -162,7 +162,7 @@ export class GameScene extends Phaser.Scene {
     const d = this.state.distance;
     if (this.tunnel || d < this.nextAreaAt || AREAS.length < 2) return;
     const at = d + BALANCE.route.tunnelAfterDepart;
-    const parts = createTunnel(this, this.area.exitMountain);
+    const parts = createTunnel(this);
     this.world.add(at, parts.back, { cullMargin: 2400 });
     this.world.add(at, parts.front, { cullMargin: 2400 });
     this.tunnel = { at, parts, swapped: false };

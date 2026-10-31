@@ -27,10 +27,11 @@ export const IMAGES = {
   'desert-foreground': 'backgrounds/desert-foreground.png',
 
   // Tunnels between areas: the mountains the line runs through, and the tunnel mouth
-  'rock-hill': 'sprites/rock-hill.png',
+  'mountain-peak': 'sprites/mountain-peak.png',
+  'mountain-foothill': 'sprites/mountain-foothill.png',
+  'mountain-base': 'sprites/mountain-base.png',
   'tunnel-portal': 'sprites/tunnel-portal.png',
   'tunnel-portal-exit': 'sprites/tunnel-portal-exit.png',
-  'waterfall-mountain': 'sprites/waterfall-mountain.png',
 
   // Train: each car is its body drawn over its underframe, without wheels.
   // Wheel positions etc. are in src/config/train-art.json (written by scripts/slice-art.py).
