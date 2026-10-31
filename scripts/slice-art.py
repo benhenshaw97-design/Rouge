@@ -426,13 +426,24 @@ train_layout['points'] = {
     'railTop': round(points_rail_top * K_RAIL, 2),
 }
 
-# Ground: the dirt from the ground strip in icons-ground-sky.png (below its grass), made to
-# tile both ways (crossfaded left-right, mirrored top-bottom).
+# Ground: the dirt from the ground strip in icons-ground-sky.png (below its grass), shrunk to
+# the same pixel scale as the rest of the art. To avoid stripes, it's stacked as overlapping
+# rows, each shifted sideways and blended into the one above, and darkens with depth.
+# Written at 2x: 320 px tall = 160 design px.
 dirt = crossfade_tile(extra.crop((70, 450, 1705, 540)).convert('RGBA'), 120)
-ground = Image.new('RGBA', (dirt.width, dirt.height * 2))
-ground.paste(dirt, (0, 0))
-ground.paste(dirt.transpose(Image.FLIP_TOP_BOTTOM), (0, dirt.height))
-save(ground, 'backgrounds/ground.png')
+dirt = np.asarray(scale(dirt, 0.7)).astype(float)
+ROW_H, STEP, GH = dirt.shape[0], dirt.shape[0] - 16, 320
+rng = np.random.default_rng(3)
+acc = np.zeros((GH, dirt.shape[1], 3))
+for y in range(-16, GH, STEP):
+    row = np.roll(dirt[..., :3], int(rng.integers(0, dirt.shape[1])), axis=1)
+    alpha = np.ones(ROW_H)
+    alpha[:16] = np.linspace(0, 1, 16)  # blend into the row above
+    for k in range(ROW_H):
+        if 0 <= y + k < GH:
+            acc[y + k] = acc[y + k] * (1 - alpha[k]) + row[k] * alpha[k]
+shade = np.linspace(1.0, 0.72, GH)[:, None, None]
+save(Image.fromarray(np.clip(acc * shade, 0, 255).astype(np.uint8)).convert('RGBA'), 'backgrounds/ground.png')
 
 (ROOT / 'src' / 'config' / 'train-art.json').write_text(json.dumps(train_layout, indent=2) + '\n')
 print(json.dumps(report, indent=1))
