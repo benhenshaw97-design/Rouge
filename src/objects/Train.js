@@ -44,6 +44,11 @@ export class Train {
           .setDepth(DEPTH.heaps);
       }
 
+      if (cfg.load) {
+        // Cargo on the deck; the image changes with what's being carried.
+        car.load = scene.add.image(x + cfg.load.x, top + cfg.load.bottom, 'cargo-gold').setOrigin(0, 1).setDepth(DEPTH.heaps).setVisible(false);
+      }
+
       if (cfg.rod && car.wheels.length >= 2) {
         const first = car.wheels[0];
         const last = car.wheels[car.wheels.length - 1];
@@ -94,6 +99,7 @@ export class Train {
       const bob = Math.sin(time * 0.018 + i * 1.7) * TRAIN_LAYOUT.bobAmount * speedFrac;
       car.body.y = car.top + bob;
       if (car.heap) this.updateHeap(car, bob, state);
+      if (car.load) this.updateLoad(car, bob, state);
       if (car.rod) this.updateRod(car);
     });
 
@@ -109,6 +115,21 @@ export class Train {
     car.heap.setVisible(fill > 0);
     if (fill > 0) car.heap.setDisplaySize(h.w, h.h * (0.3 + 0.7 * Math.min(1, fill)));
     car.heap.y = car.top + h.bottom + bob;
+  }
+
+  /** Shows the cargo on the wagon's deck, revealed from the bottom up as the wagon fills. */
+  updateLoad(car, bob, state) {
+    const fill = state.cargo / state.cargoCapacity;
+    const kind = state.cargoKind;
+    const info = kind && car.cfg.load.loads[kind];
+    car.load.setVisible(fill > 0 && !!info);
+    if (!car.load.visible) return;
+    if (car.load.texture.key !== `cargo-${kind}`) car.load.setTexture(`cargo-${kind}`);
+    car.load.setDisplaySize(info.w, info.h);
+    const shown = 0.45 + 0.55 * Math.min(1, fill); // the tub/base first, then the load piles up
+    const th = car.load.frame.height;
+    car.load.setCrop(0, th * (1 - shown), car.load.frame.width, th * shown);
+    car.load.y = car.top + car.cfg.load.bottom + bob;
   }
 
   /** The coupling rod joins the crank pins, so it circles with the driving wheels. */

@@ -18,6 +18,7 @@ export class TrainState {
     this.money = s.money;
     this.condition = s.condition;
     this.cargo = 0;
+    this.cargoKind = null; // which load the wagon shows, e.g. 'gold'
     /** Passenger groups: { count, boardedAt (metres), boardedStop (stop id) } */
     this.passengers = [];
     this.upgrades = { fuelTank: 0, boiler: 0 };
@@ -153,12 +154,14 @@ export class TrainState {
     this.condition = Math.min(this.b.condition.max, this.condition + points);
   }
 
-  addCargo(units) {
+  addCargo(units, kind = this.cargoKind) {
     this.cargo = Math.min(this.cargoCapacity, this.cargo + units);
+    if (units > 0) this.cargoKind = kind;
   }
   removeAllCargo() {
     const n = this.cargo;
     this.cargo = 0;
+    this.cargoKind = null;
     return n;
   }
 

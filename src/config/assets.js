@@ -24,7 +24,22 @@ export const IMAGES = {
   wagon: 'sprites/wagon.png',
   carriage: 'sprites/carriage.png',
   'coal-heap': 'sprites/coal-heap.png',
-  'cargo-load': 'sprites/cargo-load.png',
+
+  // Loads for the cargo wagon (shown on its deck while carrying cargo)
+  'cargo-logs': 'sprites/cargo-logs.png',
+  'cargo-coal': 'sprites/cargo-coal.png',
+  'cargo-crates': 'sprites/cargo-crates.png',
+  'cargo-tanker': 'sprites/cargo-tanker.png',
+  'cargo-stone': 'sprites/cargo-stone.png',
+  'cargo-pipes': 'sprites/cargo-pipes.png',
+  'cargo-barrels': 'sprites/cargo-barrels.png',
+  'cargo-sacks': 'sprites/cargo-sacks.png',
+  'cargo-gold': 'sprites/cargo-gold.png',
+  'cargo-red-gems': 'sprites/cargo-red-gems.png',
+  'cargo-blue-gems': 'sprites/cargo-blue-gems.png',
+  'cargo-trunks': 'sprites/cargo-trunks.png',
+  'cargo-tarp': 'sprites/cargo-tarp.png',
+
   wheel: 'sprites/wheel.png',
   'coupling-rod': 'sprites/coupling-rod.png',
   smoke: 'sprites/smoke.png',

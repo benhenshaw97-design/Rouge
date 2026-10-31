@@ -158,36 +158,47 @@ car, lay, _ = assemble(carriage_sheet, (118, 32, 1656, 528), (36, 718, 1738, 860
                        [(357, 770, 92), (642, 770, 92), (1132, 770, 92), (1412, 770, 92)])
 save_car('carriage', car, lay, K_CARRIAGE)
 
-# Goods wagons: every wagon on the sheet has the same underframe layout.
-wagons_sheet = S('goods-wagons.png')
-WAGONS = {
-    'logs': ((16, 119, 406, 318), (16, 363, 406, 451)),
-    'coal': ((411, 114, 768, 318), (412, 363, 768, 451)),
-    'crates': ((775, 113, 1141, 319), (774, 363, 1142, 451)),
-    'tanker': ((1148, 74, 1523, 319), (1147, 362, 1523, 451)),
-    'boxcar': ((16, 588, 396, 808), (16, 851, 396, 940)),
-    'slatted': ((402, 588, 768, 808), (402, 851, 768, 940)),
-    'tarp': ((775, 607, 1142, 808), (775, 851, 1142, 940)),
-    'stone': ((1148, 507, 1521, 808), (1147, 850, 1522, 941)),
+# Cargo wagon: the modular flat wagon from cargo-wagon-base.png, with interchangeable loads
+# from cargo-loads.png. Wheels sit on its two axle hangers; the wheel size is chosen so its
+# buffers are at the same height above the rail as the locomotive's.
+wagon_base_sheet = S('cargo-wagon-base.png')
+BASE_BOX = (80, 93, 2092, 641)
+base = wagon_base_sheet.crop(BASE_BOX)
+HUB, R = 575 - BASE_BOX[1], 134
+K_CARGO = 0.1
+lay = {
+    'width': base.width,
+    'height': HUB + R + 1,
+    'railY': HUB + R,
+    'wheels': [{'x': 573 - BASE_BOX[0], 'y': HUB, 'r': R}, {'x': 1599 - BASE_BOX[0], 'y': HUB, 'r': R}],
 }
+car = Image.new('RGBA', (base.width, lay['height']), (0, 0, 0, 0))
+car.alpha_composite(base, (0, 0))
+save_car('wagon', car, lay, K_CARGO)
 
-
-def wagon_parts(body, chassis):
-    dy = (body[3] - 52) - chassis[1]
-    w, h = chassis[2] - chassis[0], chassis[3] - chassis[1]
-    hub = chassis[1] + 2 + int(0.43 * h)
-    r = chassis[3] - hub + 2
-    return dy, [(chassis[0] + int(0.27 * w), hub, r), (chassis[0] + int(0.73 * w), hub, r)]
-
-
-# The train's own goods wagon: the coal wagon, with its load recoloured as iron ore.
-body, chassis = WAGONS['coal']
-dy, wheels = wagon_parts(body, chassis)
-car, lay, heap = assemble(wagons_sheet, body, chassis, dy, wheels, heap=(462, 720, 176))
-ore = np.asarray(heap).astype(float)
-l = ore[..., :3].mean(axis=2, keepdims=True) / 255.0
-ore[..., :3] = np.clip(l * np.array([300, 190, 130]) + np.array([20, 10, 0]), 0, 255)
-save_car('wagon', car, lay, K_WAGON, Image.fromarray(ore.astype(np.uint8)), 'cargo-load')
+# Loads sit on the deck, between the brass corner posts.
+DECK_TOP, DECK_LEFT, DECK_RIGHT = 362 - BASE_BOX[1], 250 - BASE_BOX[0], 1840 - BASE_BOX[0]
+loads_sheet = S('cargo-loads.png')
+LOADS = {
+    'logs': (49, 65, 586, 270), 'coal': (608, 37, 1048, 268), 'crates': (1089, 44, 1618, 268),
+    'tanker': (1644, 12, 2134, 268), 'stone': (34, 315, 552, 493), 'pipes': (590, 336, 1116, 495),
+    'barrels': (1158, 315, 1613, 493), 'sacks': (1663, 318, 2137, 493), 'gold': (34, 544, 446, 694),
+    'red-gems': (475, 544, 851, 694), 'blue-gems': (879, 544, 1252, 694), 'trunks': (1284, 541, 1693, 694),
+    'tarp': (1722, 541, 2138, 694),
+}
+loads = {}
+for name, box in LOADS.items():
+    load = crop(loads_sheet, box)
+    w = DECK_RIGHT - DECK_LEFT
+    fit = w / load.width
+    save(scale(load, fit * K_CARGO * HI), f'sprites/cargo-{name}.png')
+    h = load.height * fit
+    loads[name] = {'w': round(w * K_CARGO, 2), 'h': round(h * K_CARGO, 2)}
+train_layout['wagon']['load'] = {
+    'x': round(DECK_LEFT * K_CARGO, 2),
+    'bottom': round((DECK_TOP + 6) * K_CARGO, 2),
+    'loads': loads,
+}
 
 rod = S('wheel-and-rod-parts.png').crop((531, 589, 1346, 718))
 save(scale(rod, 0.26), 'sprites/coupling-rod.png')

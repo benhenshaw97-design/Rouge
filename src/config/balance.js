@@ -134,6 +134,12 @@ export const POI_TYPES = {
     names: ['Deepvein Colliery', 'Redrock Pit', 'Gallows Hill Mine', 'Tinner’s Shaft'],
     prices: { cargoBuyPerUnit: 2 },
     loadBundle: 5,
+    // What the mine produces; one is picked per visit. image = cargo-<image> load on the wagon.
+    ores: [
+      { name: 'gold ore', image: 'gold' },
+      { name: 'rubies', image: 'red-gems' },
+      { name: 'sapphires', image: 'blue-gems' },
+    ],
   },
 
   workshop: {

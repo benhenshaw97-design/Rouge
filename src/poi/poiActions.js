@@ -23,6 +23,7 @@ export function createVisit(poi) {
   const def = POI_TYPES[poi.type];
   const visit = { poi, def };
   if (def.waitingPassengers) visit.waitingPassengers = randInt(...def.waitingPassengers);
+  if (def.ores) visit.ore = def.ores[randInt(0, def.ores.length - 1)];
   return visit;
 }
 
@@ -120,15 +121,15 @@ const BUILDERS = {
     const burnPct = Math.round(BALANCE.fuel.cargoBurnPerUnit * 100);
     const load = (n) => {
       state.spend(n * price);
-      state.addCargo(n);
-      return `Loaded ${n} cargo for ${money(n * price)}. Fuel burn is now +${Math.round((state.burnMultiplier - 1) * 100)}%.`;
+      state.addCargo(n, visit.ore.image);
+      return `Loaded ${n} ${visit.ore.name} for ${money(n * price)}. Fuel burn is now +${Math.round((state.burnMultiplier - 1) * 100)}%.`;
     };
     const bundle = Math.min(def.loadBundle, space);
     const fill = Math.min(space, Math.floor(state.money / price));
 
     return [
       {
-        label: `Load ${bundle || def.loadBundle} cargo (+${burnPct * (bundle || def.loadBundle)}% burn)`,
+        label: `Load ${bundle || def.loadBundle} ${visit.ore.name} (+${burnPct * (bundle || def.loadBundle)}% burn)`,
         cost: bundle * price,
         disabledReason: space <= 0 ? 'Cargo hold is full' : notEnough(state, bundle * price),
         sound: 'coins',

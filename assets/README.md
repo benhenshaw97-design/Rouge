@@ -23,7 +23,8 @@ Don't re-run the slicing script after hand-replacing a file, or it will be overw
 |----------------|---------------------------------------------------------------|-------------------------------------------------------------------------|
 | `backgrounds/` | `sky`, `clouds`, `mountains`, `hills`, `trees`, `village`, `ground`, `trackbed`, `rails`, `foreground` | Scrolling layers. Each must tile left-to-right |
 | `sprites/`     | `locomotive`, `tender`, `wagon`, `carriage`                   | Each car is its body drawn over its underframe, facing right, **without wheels** |
-|                | `coal-heap`, `cargo-load`                                     | Loads on the tender and wagon (they grow and shrink with fuel and cargo) |
+|                | `coal-heap`                                                   | Coal on the tender (shrinks as fuel burns) |
+|                | `cargo-*`                                                     | Loads for the modular cargo wagon (gold, gems, logs, crates...)          |
 |                | `wheel`, `coupling-rod`                                       | The wheel spins; the rod rides the crank pins                           |
 |                | `points`, `smoke`, `junction-signpost`, `platform`            | Junction points, smoke puff and line-side scenery                        |
 | `pois/`        | `coal-depot`, `town`, `mine`, `workshop`, `water-tower`, each with `-a` and `-b` versions | One of the three looks is picked at random for each stop |

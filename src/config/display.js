@@ -68,7 +68,8 @@ export const PARALLAX_LAYERS = [
  * The train, listed from the back to the front (the locomotive is last).
  * Sizes, wheel positions (on the underframes' axle hangers), the rail line and where loads sit
  * all come from train-art.json, which scripts/slice-art.py writes when it cuts the art.
- *  heap.fill: what the load shows ('fuel' or 'cargo')
+ *  heap.fill: what the heap shows ('fuel')
+ *  load: where cargo sits on the cargo wagon's deck
  *  drivers: wheels joined by the coupling rod
  */
 export const TRAIN_LAYOUT = {
@@ -78,7 +79,8 @@ export const TRAIN_LAYOUT = {
   cameraFocus: 700,
   cars: [
     { key: 'carriage', ...TRAIN_ART.carriage },
-    { key: 'wagon', ...TRAIN_ART.wagon, heap: { ...TRAIN_ART.wagon.heap, fill: 'cargo' } },
+    // The cargo wagon shows a load on its deck (cargo-<kind> image) while carrying cargo.
+    { key: 'wagon', ...TRAIN_ART.wagon },
     { key: 'tender', ...TRAIN_ART.tender, heap: { ...TRAIN_ART.tender.heap, fill: 'fuel' } },
     {
       key: 'locomotive',
