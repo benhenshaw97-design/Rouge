@@ -127,6 +127,6 @@ export function createTunnel(scene) {
 
 /** The rock pile that sweeps past in front of everything during a tunnel (see TUNNEL.rocksFactor). */
 export function createTransitionRocks(scene) {
-  const r = scene.add.image(0, 742, 'transition-rocks').setOrigin(0.5, 1).setDepth(DEPTH.foreground + 1);
+  const r = scene.add.image(0, 748, 'transition-rocks').setOrigin(0.5, 1).setDepth(DEPTH.foreground + 1);
   return r.setScale(TUNNEL.rocksHeight / r.height);
 }

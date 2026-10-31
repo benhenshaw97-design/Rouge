@@ -35,16 +35,10 @@ export const IMAGES = {
 
   // Desert stops (see AREAS in display.js)
   'desert-coal-depot': 'pois/desert-coal-depot.png',
-  'desert-coal-depot-b': 'pois/desert-coal-depot-b.png',
   'desert-town': 'pois/desert-town.png',
-  'desert-town-b': 'pois/desert-town-b.png',
   'desert-mine': 'pois/desert-mine.png',
-  'desert-mine-b': 'pois/desert-mine-b.png',
   'desert-workshop': 'pois/desert-workshop.png',
-  'desert-workshop-b': 'pois/desert-workshop-b.png',
-  'desert-workshop-c': 'pois/desert-workshop-c.png',
   'desert-water-tower': 'pois/desert-water-tower.png',
-  'desert-water-tower-b': 'pois/desert-water-tower-b.png',
   'desert-platform': 'sprites/desert-platform.png',
   'tunnel-portal': 'sprites/tunnel-portal.png',
   'tunnel-portal-exit': 'sprites/tunnel-portal-exit.png',

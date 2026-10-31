@@ -1,3 +1,5 @@
+import Phaser from 'phaser';
+
 /**
  * Builds the background layers from PARALLAX_LAYERS and scrolls each at its own rate.
  *
@@ -81,6 +83,67 @@ export class ParallaxBackground {
       // The old layer keeps scrolling while it fades out.
       layer.fading = { obj: old, scale: oldScale };
     }
+  }
+
+  /**
+   * Seamless area change: the new area's layers appear to the right of a boundary and the old
+   * ones stay to the left. Layers in `frontKeys` (the ground and foreground) use one boundary,
+   * hidden behind the foreground rocks; the rest use another, hidden behind the tunnel mountain.
+   * Call setSplit() every frame with both boundaries' x, and endSplit() once they're off screen.
+   */
+  beginSplit(area, frontKeys) {
+    if (this.scene.sys.renderer.type !== Phaser.WEBGL) {
+      // Masks need WebGL; otherwise just crossfade.
+      this.crossfadeTo(area, 900);
+      return false;
+    }
+    const make = () => {
+      const g = this.scene.make.graphics({}, false);
+      const show = g.createGeometryMask();
+      const hide = g.createGeometryMask().setInvertAlpha(true);
+      return { g, show, hide };
+    };
+    const split = (this.split = { back: make(), front: make(), layers: [] });
+    for (const layer of this.layers) {
+      if (layer.base.tile === false) continue;
+      const cfg = this.areaConfig(layer.base, area);
+      if (cfg.key === layer.cfg.key) continue;
+      const side = frontKeys.includes(layer.base.key) ? split.front : split.back;
+      const old = layer.obj;
+      const oldScale = layer.scale;
+      const { obj, scale } = this.makeObject(cfg, old.tilePositionX * oldScale);
+      old.setMask(side.hide);
+      obj.setMask(side.show);
+      layer.cfg = cfg;
+      layer.obj = obj;
+      layer.scale = scale;
+      layer.fading = { obj: old, scale: oldScale }; // keeps scrolling until the split ends
+      split.layers.push(layer);
+    }
+    this.setSplit(99999, 99999);
+    return true;
+  }
+
+  setSplit(backX, frontX) {
+    if (!this.split) return;
+    for (const [side, x] of [[this.split.back, backX], [this.split.front, frontX]]) {
+      side.g.clear().fillStyle(0xffffff).fillRect(x, -4000, 40000, 8000);
+    }
+  }
+
+  endSplit() {
+    if (!this.split) return;
+    for (const layer of this.split.layers) {
+      layer.fading?.obj.destroy();
+      layer.fading = null;
+      layer.obj.clearMask();
+    }
+    for (const side of [this.split.back, this.split.front]) {
+      side.show.destroy();
+      side.hide.destroy();
+      side.g.destroy();
+    }
+    this.split = null;
   }
 
   /**

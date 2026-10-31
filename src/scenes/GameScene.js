@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { BALANCE, POI_TYPES, START_STATION } from '../config/balance.js';
 import { DEBUG } from '../config/debug.js';
-import { AREAS, COLORS, PARALLAX_LAYERS, TUNNEL, PX_PER_METRE, TRAIN_LAYOUT, WORLD_HEIGHT } from '../config/display.js';
+import { AREAS, COLORS, DEPTH, PARALLAX_LAYERS, TUNNEL, PX_PER_METRE, TRAIN_LAYOUT, WORLD_HEIGHT } from '../config/display.js';
 import { Train } from '../objects/Train.js';
 import { createJunction, createStop, createTransitionRocks, createTunnel } from '../objects/worldObjects.js';
 import { createVisit } from '../poi/poiActions.js';
@@ -180,7 +180,11 @@ export class GameScene extends Phaser.Scene {
     const when = peakMid + (this.train.frontX - screenMid) / PX_PER_METRE;
     const rocksAt = when + (screenMid - this.train.frontX) / (PX_PER_METRE * TUNNEL.rocksFactor);
     this.world.add(rocksAt, createTransitionRocks(this), { factor: TUNNEL.rocksFactor, cullMargin: 1200 });
-    this.tunnel = { at, parts, swapped: false };
+    // The scenery changes along a boundary hidden behind the peak (and, for the layers in front
+    // of it, behind the rocks), so it's meadow before the mountain and desert after.
+    const next = AREAS[(this.areaIndex + 1) % AREAS.length];
+    const split = this.parallax.beginSplit(next, ['ground', 'foreground-back', 'foreground']);
+    this.tunnel = { at, parts, swapped: false, split, peakMid, rocksAt };
   }
 
   /**
@@ -194,12 +198,22 @@ export class GameScene extends Phaser.Scene {
     if (!t.swapped && inside > this.train.length + 10) {
       t.swapped = true;
       this.areaIndex = (this.areaIndex + 1) % AREAS.length;
-      this.parallax.crossfadeTo(this.area, 900);
       this.nextAreaAt = this.state.distance + this.range(BALANCE.route.areaLength);
       this.ui.toast(`Entering ${this.area.name}`);
     }
+    if (t.split) {
+      const d = this.state.distance;
+      const backX = this.train.frontX + (t.peakMid - d) * PX_PER_METRE;
+      const frontX = this.train.frontX + (t.rocksAt - d) * PX_PER_METRE * TUNNEL.rocksFactor;
+      this.parallax.setSplit(backX, frontX);
+      const left = this.cameras.main.worldView.x - 50;
+      if (backX < left && frontX < left) {
+        this.parallax.endSplit();
+        t.split = false;
+      }
+    }
     // Forget it once it has scrolled away (WorldLayer destroys the objects).
-    if (t.swapped && !t.parts.front.active) this.tunnel = null;
+    if (t.swapped && !t.split && !t.parts.front.active) this.tunnel = null;
   }
 
   /** God mode: head into the next area (a tunnel just ahead, or straight after the next stop). */

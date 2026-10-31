@@ -93,11 +93,11 @@ export const AREAS = [
     },
     // Stops here use desert buildings (one look picked at random) and the desert platform.
     buildings: {
-      coalDepot: ['desert-coal-depot', 'desert-coal-depot-b'],
-      town: ['desert-town', 'desert-town-b'],
-      mine: ['desert-mine', 'desert-mine-b'],
-      workshop: ['desert-workshop', 'desert-workshop-b', 'desert-workshop-c'],
-      waterTower: ['desert-water-tower', 'desert-water-tower-b'],
+      coalDepot: ['desert-coal-depot'],
+      town: ['desert-town'],
+      mine: ['desert-mine'],
+      workshop: ['desert-workshop'],
+      waterTower: ['desert-water-tower'],
     },
     platform: 'desert-platform',
   },
@@ -116,7 +116,7 @@ export const TUNNEL = {
   foothillOverlap: 0.45, // how much of each foothill tucks behind the peak
   baseHeight: 96,
   rockBandHeight: 150, // long low ridge behind the foothills
-  rocksHeight: 120, // rock pile that sweeps past in front of everything
+  rocksHeight: 175, // rock pile that sweeps past in front of everything (covers the ground's join)
   rocksFactor: 1.35, // ...at the foreground's parallax speed
   portalHeight: 190,
   opening: { left: 0.216, right: 0.595, top: 0.33 },
