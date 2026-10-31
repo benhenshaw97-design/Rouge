@@ -73,6 +73,7 @@ export class GameScene extends Phaser.Scene {
     kb?.on('keydown-TWO', () => this.selectBranch(1));
     kb?.on('keydown-SPACE', () => this.tryDepart());
     kb?.on('keydown-ENTER', () => this.tryDepart());
+    if (DEBUG.god) kb?.on('keydown-G', () => this.ui.god?.toggle());
 
     this.audio.startMusic();
     this.cameras.main.fadeIn(500, 21, 17, 13);
@@ -119,6 +120,12 @@ export class GameScene extends Phaser.Scene {
 
     const underSteam = this.phase === 'running' && !state.isOutOfFuel && motion.speed > 0.01;
     for (const event of state.update(dt, motion.speed, metres, underSteam)) this.onStateEvent(event);
+    if (DEBUG.god && DEBUG.unlimited) {
+      state.fuel = state.fuelCapacity;
+      state.water = state.waterCapacity;
+      state.heat = Math.min(state.heat, 40);
+      state.overheated = false;
+    }
 
     const px = metres * PX_PER_METRE;
     this.parallax.scroll(px, dt);
@@ -193,6 +200,22 @@ export class GameScene extends Phaser.Scene {
     }
     // Forget it once it has scrolled away (WorldLayer destroys the objects).
     if (t.swapped && !t.parts.front.active) this.tunnel = null;
+  }
+
+  /** God mode: head into the next area (a tunnel just ahead, or straight after the next stop). */
+  godNextArea() {
+    this.nextAreaAt = 0;
+    const poi = this.route.poi;
+    const stopSoon = poi && !poi.visited && poi.at - this.state.distance < 450;
+    if (this.phase !== 'running' || this.tunnel || stopSoon) {
+      this.ui.toast('Tunnel after the next departure');
+      return;
+    }
+    const before = BALANCE.route.tunnelAfterDepart;
+    BALANCE.route.tunnelAfterDepart = 160;
+    this.planScenery();
+    BALANCE.route.tunnelAfterDepart = before;
+    this.ui.toast('Tunnel ahead');
   }
 
   range([min, max]) {

@@ -6,6 +6,8 @@ import { JunctionPicker } from '../ui/JunctionPicker.js';
 import { roundButton, text } from '../ui/kit.js';
 import { PoiPanel } from '../ui/PoiPanel.js';
 import { StatusCard } from '../ui/StatusCard.js';
+import { GodPanel } from '../ui/GodPanel.js';
+import { DEBUG } from '../config/debug.js';
 import { BALANCE, POI_TYPES, START_STATION } from '../config/balance.js';
 
 /**
@@ -62,6 +64,7 @@ export class UIScene extends Phaser.Scene {
       .setVisible(false);
 
     this.buildControls(L);
+    if (DEBUG.god) this.god = new GodPanel(this, L);
 
     if (this.junction) this.picker = new JunctionPicker(this, L.picker, this.junction, (i) => this.main.selectBranch(i), animate);
     if (this.panelArgs) this.panel = new PoiPanel(this, L.panel, this.panelArgs);

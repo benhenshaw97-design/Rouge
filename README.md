@@ -24,6 +24,10 @@ npm run dev        # http://localhost:5173
 
 Add `?timescale=4` to the URL to run the simulation 4× faster when testing balance.
 
+**God mode:** add `#god` to the end of the URL (works on the shared link too). A **GOD** button
+appears by the sound controls (or press **G**) with: unlimited fuel and water, +£500, game speed
+1× / 3× / 8×, go to the next area now, and full repair.
+
 ## Controls
 
 - **Tap or click a signpost**, or press **1 / 2**, to set the points before a junction
