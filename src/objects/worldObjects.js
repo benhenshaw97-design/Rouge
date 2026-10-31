@@ -114,7 +114,10 @@ export function createTunnel(scene) {
 
   // Dark tunnel interior between the mouths, so the train is hidden all the way through.
   const top = portalY - T.portalHeight * (1 - T.opening.top);
-  const interior = scene.add.rectangle(enterX, top, exitX - enterX, portalY - top + 4, 0x120d0a).setOrigin(0, 0);
+  // It starts behind the solid stonework right of the entrance opening (the opening itself is
+  // dark in the entrance's front piece), so its corners never show past the curved arch.
+  const interiorFrom = pw * T.opening.right;
+  const interior = scene.add.rectangle(interiorFrom, top, exitX - interiorFrom, portalY - top + 4, 0x120d0a).setOrigin(0, 0);
 
   // Entrance: whole mouth behind the train; its right half (from the middle of the opening) in front.
   back.add(scene.add.image(0, portalY, 'tunnel-portal').setOrigin(0, 1).setScale(k));
