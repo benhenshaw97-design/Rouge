@@ -1,11 +1,10 @@
-import { DEPTH, FONT, POI_BUILDING_HEIGHT, POINTS, RAIL_Y, SIDING } from '../config/display.js';
+import { DEPTH, FONT, POI_BUILDING_HEIGHT, POINTS, RAIL_Y } from '../config/display.js';
 
 /**
- * A stop beside the line: building, optional station platform, a name board, and optionally a
- * goods wagon parked on a siding just past the building.
+ * A stop beside the line: building, optional station platform and a name board.
  * Returns a Container whose x is the building's centre; WorldLayer moves it.
  */
-export function createStop(scene, { buildingKey, title, subtitle, platform, parkedWagon, sidingOffset = 0 }) {
+export function createStop(scene, { buildingKey, title, subtitle, platform }) {
   const c = scene.add.container(0, 0).setDepth(DEPTH.buildings);
   const groundY = RAIL_Y + 14;
 
@@ -18,8 +17,6 @@ export function createStop(scene, { buildingKey, title, subtitle, platform, park
     p.setScale(Math.max(1.4, (img.displayWidth + 140) / p.width));
     c.add(p);
   }
-
-  if (parkedWagon) c.add(createSiding(scene, sidingOffset, parkedWagon));
 
   const boardY = groundY - img.displayHeight - 28;
   const res = 2;
@@ -41,29 +38,6 @@ export function createStop(scene, { buildingKey, title, subtitle, platform, park
   board.lineStyle(3, 0x4a3220, 1).strokeRoundedRect(-width / 2, boardY - height / 2, width, height, 6);
   c.add([board, ...parts]);
   return c;
-}
-
-/** A short siding behind the main line with a goods wagon standing on it. */
-function createSiding(scene, x, wagon) {
-  const s = scene.add.container(x, 0);
-  const railY = RAIL_Y - SIDING.raise;
-  const k = SIDING.scale;
-  const info = SIDING.parked[wagon];
-  const lengths = Math.ceil((info.width * k + 60) / (SIDING.width * k));
-  const total = lengths * SIDING.width * k;
-  for (let i = 0; i < lengths; i++) {
-    s.add(
-      scene.add
-        .image(-total / 2 + i * SIDING.width * k, railY - SIDING.railTop * k, 'siding')
-        .setOrigin(0, 0)
-        .setDisplaySize(SIDING.width * k, SIDING.height * k),
-    );
-  }
-  // Stand the wagon's wheels on the siding rail.
-  const car = scene.add.image(0, railY - info.railY * k, `parked-${wagon}`).setOrigin(0.5, 0);
-  car.setDisplaySize(info.width * k, (info.width * k * car.height) / car.width);
-  s.add(car);
-  return s;
 }
 
 /** The junction: a set of points on the main line, and a fingerpost beside it. */

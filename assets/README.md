@@ -25,8 +25,7 @@ Don't re-run the slicing script after hand-replacing a file, or it will be overw
 | `sprites/`     | `locomotive`, `tender`, `wagon`, `carriage`                   | Each car is its body drawn over its underframe, facing right, **without wheels** |
 |                | `coal-heap`, `cargo-load`                                     | Loads on the tender and wagon (they grow and shrink with fuel and cargo) |
 |                | `wheel`, `coupling-rod`                                       | The wheel spins; the rod rides the crank pins                           |
-|                | `parked-*`                                                    | Goods wagons (wheels included) standing on sidings at stops              |
-|                | `points`, `siding`, `smoke`, `junction-signpost`, `platform`  | Junction points, siding rail, smoke puff and line-side scenery           |
+|                | `points`, `smoke`, `junction-signpost`, `platform`            | Junction points, smoke puff and line-side scenery                        |
 | `pois/`        | `coal-depot`, `town`, `mine`, `workshop`, `water-tower`, each with `-a` and `-b` versions | One of the three looks is picked at random for each stop |
 | `ui/`          | `icon-*`                                                      | HUD and menu icons                                                       |
 |                | `button-<colour>`, `-hover`, `-pressed`                       | Stretched as 9-slices for every button and panel                         |

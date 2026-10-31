@@ -31,20 +31,9 @@ export const IMAGES = {
 
   // Line-side
   points: 'sprites/points.png',
-  siding: 'sprites/siding.png',
   'junction-signpost': 'sprites/junction-signpost.png',
   platform: 'sprites/platform.png',
 
-  // Goods wagons parked on sidings at stops (wheels included)
-  'parked-logs': 'sprites/parked-logs.png',
-  'parked-coal': 'sprites/parked-coal.png',
-  'parked-crates': 'sprites/parked-crates.png',
-  'parked-tanker': 'sprites/parked-tanker.png',
-  'parked-boxcar': 'sprites/parked-boxcar.png',
-  'parked-slatted': 'sprites/parked-slatted.png',
-  'parked-tarp': 'sprites/parked-tarp.png',
-  'parked-stone': 'sprites/parked-stone.png',
-  'parked-flatbed': 'sprites/parked-flatbed.png',
 
   // Points of interest. Each type has several looks; see `buildings` in POI_TYPES (balance.js).
   'poi-coal-depot': 'pois/coal-depot.png',

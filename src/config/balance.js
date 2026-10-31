@@ -93,7 +93,6 @@ export const BALANCE = {
  *  weight:   how often this type shows up on signposts (relative to the others)
  *  buildings: image keys (see config/assets.js); one is picked at random for each stop
  *  platform: draw a station platform in front of the building
- *  parkedWagons: goods wagons that may be standing on a siding beside the stop
  *  icon:     image key shown on signposts
  *  blurb:    short line shown on the signpost
  *  names:    random place names shown when you arrive
@@ -106,7 +105,6 @@ export const POI_TYPES = {
     description: 'Coal by the shovelful. Top up the tender before the long haul.',
     weight: 3,
     buildings: ['poi-coal-depot', 'poi-coal-depot-a', 'poi-coal-depot-b'],
-    parkedWagons: ['coal'],
     icon: 'icon-fuel',
     names: ['Blackheap Sidings', 'Cinder Yard', 'Ashpit Lane', 'Collier’s Halt'],
     prices: { fuelPerUnit: 1 },
@@ -119,7 +117,6 @@ export const POI_TYPES = {
     description: 'Drop off passengers for their fares, sell cargo, and pick up new travellers.',
     weight: 3,
     buildings: ['poi-town', 'poi-town-a', 'poi-town-b'],
-    parkedWagons: ['boxcar', 'crates', 'slatted'],
     platform: true,
     icon: 'icon-passengers',
     names: ['Millbrook', 'Hartwell', 'Kingsferry', 'Little Rouge', 'Oakham Cross', 'Stourby'],
@@ -133,7 +130,6 @@ export const POI_TYPES = {
     description: 'Cheap ore to sell at the next Town. Heavy loads burn more fuel.',
     weight: 2,
     buildings: ['poi-mine', 'poi-mine-a', 'poi-mine-b'],
-    parkedWagons: ['stone', 'coal'],
     icon: 'icon-cargo',
     names: ['Deepvein Colliery', 'Redrock Pit', 'Gallows Hill Mine', 'Tinner’s Shaft'],
     prices: { cargoBuyPerUnit: 2 },
@@ -146,7 +142,6 @@ export const POI_TYPES = {
     description: 'Patch up wear and tear, or fit better parts.',
     weight: 1.5,
     buildings: ['poi-workshop', 'poi-workshop-a', 'poi-workshop-b'],
-    parkedWagons: ['flatbed', 'tanker'],
     icon: 'icon-condition',
     names: ['Rivet & Sons', 'Crankshaft Works', 'Boilerplate Sheds'],
     prices: { repairPerPoint: 0.6 },
@@ -158,7 +153,6 @@ export const POI_TYPES = {
     description: 'Fill the boiler and let it breathe. Cheap, and keeps the heat down.',
     weight: 2,
     buildings: ['poi-water-tower', 'poi-water-tower-a', 'poi-water-tower-b'],
-    parkedWagons: ['tanker'],
     icon: 'icon-water',
     names: ['Spring Tank', 'Wellmere Halt', 'Fernside Tower'],
     prices: { refill: 5 },
@@ -171,6 +165,5 @@ export const START_STATION = {
   name: 'Rouge Central',
   building: 'poi-town',
   platform: true,
-  parkedWagons: ['logs'],
   departDelayMs: 1200,
 };

@@ -90,8 +90,6 @@ export const TRAIN_LAYOUT = {
   ],
 };
 
-/** Sidings with parked wagons beside stops. */
-export const SIDING = { raise: 26, scale: 0.92, ...TRAIN_ART.siding, parked: TRAIN_ART.parked };
 export const POINTS = TRAIN_ART.points;
 
 /** POI buildings are scaled to this height (design px). */

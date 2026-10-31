@@ -50,7 +50,6 @@ export class GameScene extends Phaser.Scene {
         platform: START_STATION.platform,
         title: START_STATION.name,
         subtitle: 'Departures',
-        ...this.sidingFor(START_STATION.parkedWagons),
       }),
       { offsetX: -this.train.length / 2 },
     );
@@ -173,17 +172,10 @@ export class GameScene extends Phaser.Scene {
           platform: def.platform,
           title: def.name,
           subtitle: poi.name,
-          ...this.sidingFor(def.parkedWagons),
         }),
         { offsetX: -this.train.length / 2 },
       );
     }
-  }
-
-  /** A goods wagon standing on a siding just ahead of where the locomotive stops. */
-  sidingFor(wagons) {
-    if (!wagons?.length) return {};
-    return { parkedWagon: Phaser.Utils.Array.GetRandom(wagons), sidingOffset: this.train.length / 2 + 120 };
   }
 
   selectBranch(index) {

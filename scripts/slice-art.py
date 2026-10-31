@@ -71,7 +71,7 @@ def split_heap(body_img, body_box, heap):
     return Image.fromarray(arr), Image.fromarray(heap_arr)
 
 
-def assemble(img, body, chassis, dy, wheels, *, heap=None, bake_wheels=False):
+def assemble(img, body, chassis, dy, wheels, *, heap=None, bake_wheels=False, erase=()):
     """Body over underframe. wheels: [(x, hub_y_on_underframe, r)] in sheet px.
     Returns the car image, its layout (sheet px, relative to the image) and the heap image."""
     x0, y0 = min(body[0], chassis[0]), body[1]
@@ -88,6 +88,10 @@ def assemble(img, body, chassis, dy, wheels, *, heap=None, bake_wheels=False):
 
     put(img.crop(chassis), chassis[0], chassis[1] + dy)
     body_img = img.crop(body)
+    # Remove parts of the body that the underframe also draws (e.g. a second cowcatcher).
+    for ex0, ey0, ex1, ey1 in erase:
+        clear = Image.new('RGBA', (ex1 - ex0, ey1 - ey0), (0, 0, 0, 0))
+        body_img.paste(clear, (ex0 - body[0], ey0 - body[1]))
     heap_img, heap_info = None, None
     if heap:
         body_img, heap_full = split_heap(body_img, body, heap)
@@ -136,7 +140,8 @@ chassis_sheet = S('train-bodies-and-chassis.png')
 
 # Locomotive: four coupled driving wheels on the underframe's four axle hangers.
 car, lay, _ = assemble(chassis_sheet, (16, 16, 1337, 474), (16, 482, 1330, 670), -157,
-                       [(255, 540, 100), (497, 540, 100), (763, 540, 100), (1060, 540, 100)])
+                       [(255, 540, 100), (497, 540, 100), (763, 540, 100), (1060, 540, 100)],
+                       erase=[(1150, 372, 1337, 474)])  # the body's cowcatcher; the underframe has its own
 save_car('locomotive', car, lay, K_LOCO, extra={
     'chimney': {'x': round((1069 - 16) * K_LOCO, 2), 'y': round((18 - 16) * K_LOCO, 2)},
     'crankRadius': round(40 * K_LOCO, 2),
@@ -183,20 +188,6 @@ ore = np.asarray(heap).astype(float)
 l = ore[..., :3].mean(axis=2, keepdims=True) / 255.0
 ore[..., :3] = np.clip(l * np.array([300, 190, 130]) + np.array([20, 10, 0]), 0, 255)
 save_car('wagon', car, lay, K_WAGON, Image.fromarray(ore.astype(np.uint8)), 'cargo-load')
-
-# Wagons parked on sidings at stops: wheels baked in, since they never move.
-parked = {}
-for name, (body, chassis) in WAGONS.items():
-    dy, wheels = wagon_parts(body, chassis)
-    car, lay, _ = assemble(wagons_sheet, body, chassis, dy, wheels, bake_wheels=True)
-    save(scale(car, K_WAGON * HI), f'sprites/parked-{name}.png')
-    parked[name] = {'railY': round(lay['railY'] * K_WAGON, 2), 'width': round(car.width * K_WAGON, 2)}
-car, lay, _ = assemble(S('flatbed-wagon.png'), (52, 169, 1266, 504), (52, 579, 1267, 777), -216,
-                       [(335, 650, 127), (965, 650, 127)], bake_wheels=True)
-K_FLAT = 0.1
-save(scale(car, K_FLAT * HI), 'sprites/parked-flatbed.png')
-parked['flatbed'] = {'railY': round(lay['railY'] * K_FLAT, 2), 'width': round(car.width * K_FLAT, 2)}
-train_layout['parked'] = parked
 
 rod = S('wheel-and-rod-parts.png').crop((531, 589, 1346, 718))
 save(scale(rod, 0.26), 'sprites/coupling-rod.png')
@@ -458,16 +449,6 @@ train_layout['points'] = {
     'width': round(points.width * K_RAIL, 2),
     'height': round(points.height * K_RAIL, 2),
     'railTop': round(points_rail_top * K_RAIL, 2),
-}
-
-# A short siding rail for parked wagons (a straight segment from the rails sheet).
-siding = crop(rails_sheet, (138, 280, 590, 356))
-save(scale(siding, K_RAIL * HI), 'sprites/siding.png')
-s_alpha = np.asarray(siding.getchannel('A')) > 128
-train_layout['siding'] = {
-    'width': round(siding.width * K_RAIL, 2),
-    'height': round(siding.height * K_RAIL, 2),
-    'railTop': round(int(np.argmax(s_alpha.mean(axis=1) > 0.95)) * K_RAIL, 2),
 }
 
 # Ground: speckled pixel-art dirt using colours sampled from the ground chunks.
