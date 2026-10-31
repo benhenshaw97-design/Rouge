@@ -2,17 +2,19 @@ import Phaser from 'phaser';
 import { DEPTH, PX_PER_METRE, RAIL_Y, TRAIN_FRONT_X, TRAIN_LAYOUT } from '../config/display.js';
 
 /**
- * The train's visuals: car bodies, spinning wheels, coupling and connecting rods, chimney
- * smoke, and the loads (the coal heap on the tender shrinks as fuel burns; the ore heap on
- * the wagon grows with cargo). It stays put on the design stage; the world scrolls past.
+ * The train's visuals. Each car is one image (body over underframe) with wheels centred on the
+ * underframe's axle hangers and standing on the rail. The locomotive's driving wheels are
+ * joined by a coupling rod; the tender's coal heap shrinks as fuel burns and the wagon's ore
+ * heap grows with cargo. The train stays put on the design stage; the world scrolls past.
  *
- * Built from TRAIN_LAYOUT, so adding cars is a config change.
+ * Built from TRAIN_LAYOUT (display.js / train-art.json), so adding cars is a config change.
  */
 export class Train {
   constructor(scene) {
     this.scene = scene;
     const L = TRAIN_LAYOUT;
     this.length = L.cars.reduce((s, c) => s + c.width, 0) + L.gap * (L.cars.length - 1);
+    this.frontX = TRAIN_FRONT_X;
     this.centerX = TRAIN_FRONT_X - this.length / 2;
     this.wheelTravel = 0; // design px rolled; drives wheel rotation
     this.cars = [];
@@ -20,40 +22,36 @@ export class Train {
 
     let x = TRAIN_FRONT_X - this.length;
     for (const cfg of L.cars) {
-      const baseY = RAIL_Y - cfg.bodyLift; // bottom of the body image
-      const body = scene.add.image(x, baseY, cfg.key).setOrigin(0, 1).setDisplaySize(cfg.width, cfg.height).setDepth(DEPTH.train);
-      const car = { cfg, body, x, baseY, wheels: [] };
+      const top = RAIL_Y - cfg.railY;
+      const body = scene.add.image(x, top, cfg.key).setOrigin(0, 0).setDisplaySize(cfg.width, cfg.height).setDepth(DEPTH.train);
+      const car = { cfg, body, x, top, wheels: [] };
 
       for (const w of cfg.wheels) {
-        const wy = RAIL_Y - w.r;
         const sprite = scene.add
-          .image(x + w.x, wy, 'wheel')
+          .image(x + w.x, top + w.y, 'wheel')
           .setDisplaySize(w.r * 2, w.r * 2)
-          .setDepth(w.behind ? DEPTH.trainBack : DEPTH.wheels);
-        const wheel = { sprite, r: w.r, driver: !!w.driver, x: x + w.x, y: wy };
+          .setDepth(DEPTH.wheels);
+        const wheel = { sprite, r: w.r, x: x + w.x, y: top + w.y };
         car.wheels.push(wheel);
         this.wheels.push(wheel);
       }
 
       if (cfg.heap) {
         car.heap = scene.add
-          .image(x + cfg.heap.x, baseY - cfg.height + cfg.heap.y, cfg.heap.key)
+          .image(x + cfg.heap.x, top + cfg.heap.bottom, cfg.heap.key)
           .setOrigin(0, 1)
-          .setDisplaySize(cfg.heap.width, cfg.heap.height)
+          .setDisplaySize(cfg.heap.w, cfg.heap.h)
           .setDepth(DEPTH.heaps);
       }
 
-      if (cfg.rod) {
-        const drivers = car.wheels.filter((w) => w.driver);
-        const span = drivers[drivers.length - 1].x - drivers[0].x;
-        const width = span / cfg.rod.eyeSpan;
+      if (cfg.rod && car.wheels.length >= 2) {
+        const first = car.wheels[0];
+        const last = car.wheels[car.wheels.length - 1];
         car.rod = scene.add
           .image(0, 0, cfg.rod.key)
           .setOrigin(cfg.rod.leftEye.x, cfg.rod.leftEye.y)
-          .setDisplaySize(width, width * cfg.rod.aspect)
+          .setDisplaySize((last.x - first.x) / cfg.rod.eyeSpan, cfg.rod.thickness)
           .setDepth(DEPTH.rods);
-        car.rodGfx = scene.add.graphics().setDepth(DEPTH.rods - 0.1);
-        car.drivers = drivers;
       }
 
       this.cars.push(car);
@@ -65,7 +63,7 @@ export class Train {
     const ch = this.loco.cfg.chimney;
     this.smokeDrift = 0;
     this.smoke = scene.add
-      .particles(this.loco.x + ch.x, this.loco.baseY - this.loco.cfg.height + ch.y, 'smoke', {
+      .particles(this.loco.x + ch.x, this.loco.top + ch.y, 'smoke', {
         lifespan: { min: 1400, max: 2300 },
         speedX: { onEmit: () => this.smokeDrift + Phaser.Math.Between(-12, 12) },
         speedY: { min: -70, max: -38 },
@@ -81,7 +79,7 @@ export class Train {
    * @param {number} speed m/s
    * @param {number} travelledPx design pixels the track moved this frame
    * @param {number} time ms since start
-   * @param {object} state TrainState (fuel and cargo for the heaps)
+   * @param {object} state TrainState (fuel and cargo for the loads)
    * @param {number} maxSpeed for scaling effects
    */
   update(speed, travelledPx, time, state, maxSpeed) {
@@ -92,10 +90,11 @@ export class Train {
     for (const w of this.wheels) w.sprite.rotation = this.wheelTravel / w.r;
 
     this.cars.forEach((car, i) => {
+      // A gentle sway on the springs; wheels stay on the rail.
       const bob = Math.sin(time * 0.018 + i * 1.7) * TRAIN_LAYOUT.bobAmount * speedFrac;
-      car.body.y = car.baseY + bob;
+      car.body.y = car.top + bob;
       if (car.heap) this.updateHeap(car, bob, state);
-      if (car.rod) this.updateRods(car);
+      if (car.rod) this.updateRod(car);
     });
 
     // Smoke: puffs more often at speed and trails behind as the world scrolls.
@@ -108,27 +107,15 @@ export class Train {
     const h = car.cfg.heap;
     const fill = h.fill === 'fuel' ? state.fuel / state.fuelCapacity : state.cargo / state.cargoCapacity;
     car.heap.setVisible(fill > 0);
-    if (fill > 0) car.heap.setDisplaySize(h.width, h.height * (0.3 + 0.7 * Math.min(1, fill)));
-    car.heap.y = car.baseY - car.cfg.height + h.y + bob;
+    if (fill > 0) car.heap.setDisplaySize(h.w, h.h * (0.3 + 0.7 * Math.min(1, fill)));
+    car.heap.y = car.top + h.bottom + bob;
   }
 
-  updateRods(car) {
-    const angle = this.wheelTravel / car.drivers[0].r;
+  /** The coupling rod joins the crank pins, so it circles with the driving wheels. */
+  updateRod(car) {
+    const first = car.wheels[0];
+    const angle = this.wheelTravel / first.r;
     const crank = car.cfg.crankRadius;
-    const ox = Math.cos(angle) * crank;
-    const oy = Math.sin(angle) * crank;
-    const first = car.drivers[0];
-    const last = car.drivers[car.drivers.length - 1];
-
-    // Coupling rod: joins the crank pins of the driving wheels, so it circles with them.
-    car.rod.setPosition(first.x + ox, first.y + oy);
-
-    // Connecting rod: from the front crank pin to the piston's crosshead.
-    const ch = car.cfg.crosshead;
-    const g = car.rodGfx;
-    g.clear();
-    g.lineStyle(3.5, 0x8d9296, 1);
-    g.lineBetween(last.x + ox, last.y + oy, car.x + ch.x, RAIL_Y - ch.aboveRail);
-    g.fillStyle(0xc9a24a, 1).fillCircle(last.x + ox, last.y + oy, 2.6);
+    car.rod.setPosition(first.x + Math.cos(angle) * crank, first.y + Math.sin(angle) * crank);
   }
 }

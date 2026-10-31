@@ -1,6 +1,8 @@
 import Phaser from 'phaser';
 import { AUDIO, IMAGES, PIXEL_PERFECT } from '../config/assets.js';
 import { COLORS, PARALLAX_LAYERS, RAIL_Y, TRAIN_LAYOUT } from '../config/display.js';
+import { AudioManager } from '../systems/AudioManager.js';
+import { music } from '../systems/MusicPlayer.js';
 import { cssSize, isTouch, uiScale } from '../systems/Viewport.js';
 import { text } from '../ui/kit.js';
 
@@ -36,6 +38,9 @@ export class BootScene extends Phaser.Scene {
     const start = () => {
       if (this.started) return;
       this.started = true;
+      // Inside the tap/click, so phones allow the music to start (with the saved mute setting).
+      new AudioManager(this);
+      music.start();
       this.scene.start('Game');
     };
     this.input.on('pointerup', start);
@@ -60,7 +65,8 @@ export class BootScene extends Phaser.Scene {
 
     // Scenery: the game's own layers, scaled to fit the bottom of the screen.
     this.add.image(0, 0, 'sky').setOrigin(0).setDisplaySize(w, h);
-    const s = Math.min(h / 720, w / 900) * 1.05;
+    const trainLength = TRAIN_LAYOUT.cars.reduce((n, c) => n + c.width, 0);
+    const s = Math.min(h / 720, (w - 24) / (trainLength + 40));
     const scenery = this.add.container(w / 2, h * 0.86 - RAIL_Y * s).setScale(s);
     for (const cfg of PARALLAX_LAYERS) {
       if (cfg.tile === false || cfg.key === 'foreground') continue;
@@ -73,19 +79,20 @@ export class BootScene extends Phaser.Scene {
       if (cfg.key === 'clouds') this.clouds = t;
     }
     // The train standing at the line.
-    let x = -330;
+    let x = -trainLength / 2;
     for (const car of TRAIN_LAYOUT.cars) {
-      scenery.add(this.add.image(x, RAIL_Y - car.bodyLift, car.key).setOrigin(0, 1).setDisplaySize(car.width, car.height));
+      const top = RAIL_Y - car.railY;
+      scenery.add(this.add.image(x, top, car.key).setOrigin(0, 0).setDisplaySize(car.width, car.height));
       if (car.heap) {
         scenery.add(
           this.add
-            .image(x + car.heap.x, RAIL_Y - car.bodyLift - car.height + car.heap.y, car.heap.key)
+            .image(x + car.heap.x, top + car.heap.bottom, car.heap.key)
             .setOrigin(0, 1)
-            .setDisplaySize(car.heap.width, car.heap.height)
+            .setDisplaySize(car.heap.w, car.heap.h)
             .setDepth(-1),
         );
       }
-      for (const wl of car.wheels) scenery.add(this.add.image(x + wl.x, RAIL_Y - wl.r, 'wheel').setDisplaySize(wl.r * 2, wl.r * 2));
+      for (const wl of car.wheels) scenery.add(this.add.image(x + wl.x, top + wl.y, 'wheel').setDisplaySize(wl.r * 2, wl.r * 2));
       x += car.width + TRAIN_LAYOUT.gap;
     }
     scenery.sort('depth');

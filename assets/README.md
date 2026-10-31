@@ -21,18 +21,24 @@ Don't re-run the slicing script after hand-replacing a file, or it will be overw
 
 | Folder         | Files                                                         | Notes                                                                   |
 |----------------|---------------------------------------------------------------|-------------------------------------------------------------------------|
-| `backgrounds/` | `sky`, `clouds`, `mountains`, `hills`, `trees`, `village`, `ground`, `track`, `foreground` | Scrolling layers. Each must tile left-to-right. The rail's top edge is 2 px from the top of `track.png` |
-| `sprites/`     | `locomotive`, `tender`, `wagon`                               | Train bodies, facing right, **without wheels**                           |
+| `backgrounds/` | `sky`, `clouds`, `mountains`, `hills`, `trees`, `village`, `ground`, `trackbed`, `rails`, `foreground` | Scrolling layers. Each must tile left-to-right |
+| `sprites/`     | `locomotive`, `tender`, `wagon`, `carriage`                   | Each car is its body drawn over its underframe, facing right, **without wheels** |
 |                | `coal-heap`, `cargo-load`                                     | Loads on the tender and wagon (they grow and shrink with fuel and cargo) |
 |                | `wheel`, `coupling-rod`                                       | The wheel spins; the rod rides the crank pins                           |
-|                | `smoke`, `junction-signpost`, `platform`, `branch-line.svg`   | Smoke puff and line-side scenery                                         |
+|                | `parked-*`                                                    | Goods wagons (wheels included) standing on sidings at stops              |
+|                | `points`, `siding`, `smoke`, `junction-signpost`, `platform`  | Junction points, siding rail, smoke puff and line-side scenery           |
 | `pois/`        | `coal-depot`, `town`, `mine`, `workshop`, `water-tower`, each with `-a` and `-b` versions | One of the three looks is picked at random for each stop |
 | `ui/`          | `icon-*`                                                      | HUD and menu icons                                                       |
 |                | `button-<colour>`, `-hover`, `-pressed`                       | Stretched as 9-slices for every button and panel                         |
-| `audio/`       | `music-loop.wav`, `chuff`, `whistle`, `brake`, `coins`, `click`, `warning` | Placeholder sounds: upload your own with the same names     |
+| `audio/music/` | `trains-1.mp3` … `trains-4.mp3`                               | Your music, played in a shuffled order. Add more and list them in `MUSIC` in `src/config/assets.js` |
+| `audio/`       | `chuff`, `whistle`, `brake`, `coins`, `click`, `warning`      | Placeholder sound effects: upload your own with the same names           |
 
-Wheel positions, car sizes and where the loads sit are set in `TRAIN_LAYOUT` in
-`src/config/display.js`. Update them if replacement train art has its wheels in different places.
+Car sizes, wheel positions (centred on each underframe's axle hangers), the rail line and where
+the loads sit are measured by the slicing script and saved to `src/config/train-art.json`. If you
+replace a car image by hand with one whose wheels are elsewhere, edit that file to match.
+
+The original music (Opus in `.m4a`, which iPhones don't reliably play) is kept in `art/music/`;
+the game uses MP3 copies made with `ffmpeg -i in.m4a -b:a 112k out.mp3`.
 Volumes are in `AUDIO_VOLUME` in `src/config/assets.js`.
 
 ## Uploading on GitHub

@@ -1,3 +1,5 @@
+import TRAIN_ART from './train-art.json';
+
 // Layout and "feel" settings. Gameplay/balance numbers live in balance.js instead.
 //
 // The world is laid out in "design pixels" on a 1280 × 720 stage. The camera then zooms and
@@ -56,68 +58,41 @@ export const PARALLAX_LAYERS = [
   { key: 'trees', factor: 0.3, y: 376, height: 198, depth: DEPTH.trees },
   { key: 'village', factor: 0.5, y: 372, height: 207, depth: DEPTH.village },
   { key: 'ground', factor: 1, y: 572, height: 1500, tileHeight: 160, depth: DEPTH.ground },
-  // Track art: the rail's top edge is 2 px from the top of the image (x1.25 scale).
-  { key: 'track', factor: 1, y: RAIL_Y - 2.5, height: 104, depth: DEPTH.track },
+  // Gravel and dirt under the line, then the rails (positioned so the rail's top edge is RAIL_Y).
+  { key: 'trackbed', factor: 1, y: RAIL_Y + 5, height: 49, depth: DEPTH.track - 0.2 },
+  { key: 'rails', factor: 1, y: RAIL_Y - TRAIN_ART.rails.railTop, height: TRAIN_ART.rails.height, depth: DEPTH.track },
   { key: 'foreground', factor: 1.35, y: 618, height: 118, depth: DEPTH.foreground },
 ];
 
 /**
- * The train, listed from the back to the front (the locomotive is last). All measurements are
- * design pixels relative to each car's top-left corner.
- *  width/height: on-screen size of the car body image
- *  bodyLift: gap between the rail and the bottom of the body image
- *  wheels: x = centre of the wheel from the car's left edge, r = radius, behind = drawn behind
- *          the body, driver = joined by the coupling rod
- *  heap: a load drawn on top of the car that grows with `fill` ('fuel' or 'cargo')
+ * The train, listed from the back to the front (the locomotive is last).
+ * Sizes, wheel positions (on the underframes' axle hangers), the rail line and where loads sit
+ * all come from train-art.json, which scripts/slice-art.py writes when it cuts the art.
+ *  heap.fill: what the load shows ('fuel' or 'cargo')
+ *  drivers: wheels joined by the coupling rod
  */
-const TENDER_WHEELS = [
-  { x: 58, r: 11 },
-  { x: 84, r: 11 },
-  { x: 141, r: 11 },
-  { x: 167, r: 11 },
-];
-
 export const TRAIN_LAYOUT = {
   gap: 0,
   bobAmount: 0.8,
+  /** The camera keeps at least this much of the train (from the front) in view. */
+  cameraFocus: 700,
   cars: [
-    {
-      key: 'wagon',
-      width: 208.5,
-      height: 53.6,
-      bodyLift: 6,
-      wheels: TENDER_WHEELS,
-      heap: { key: 'cargo-load', x: 29.8, y: 0.5, width: 147.5, height: 17.5, fill: 'cargo' },
-    },
-    {
-      key: 'tender',
-      width: 208.5,
-      height: 53.6,
-      bodyLift: 6,
-      wheels: TENDER_WHEELS,
-      heap: { key: 'coal-heap', x: 29.8, y: 0.5, width: 147.5, height: 17.5, fill: 'fuel' },
-    },
+    { key: 'carriage', ...TRAIN_ART.carriage },
+    { key: 'wagon', ...TRAIN_ART.wagon, heap: { ...TRAIN_ART.wagon.heap, fill: 'cargo' } },
+    { key: 'tender', ...TRAIN_ART.tender, heap: { ...TRAIN_ART.tender.heap, fill: 'fuel' } },
     {
       key: 'locomotive',
-      width: 300,
-      height: 97.3,
-      bodyLift: 5,
-      wheels: [
-        { x: 44.6, r: 10.6, behind: true },
-        { x: 93.5, r: 20.2, driver: true },
-        { x: 138.1, r: 20.2, driver: true },
-        { x: 182.8, r: 20.2, driver: true },
-        { x: 233.8, r: 11.7, behind: true },
-      ],
-      chimney: { x: 247, y: 4 },
-      crankRadius: 8,
+      ...TRAIN_ART.locomotive,
+      drivers: true,
       // Coupling rod image: where its two pivot holes are, as fractions of the image size.
-      rod: { key: 'coupling-rod', leftEye: { x: 0.055, y: 0.48 }, eyeSpan: 0.847, aspect: 129 / 815 },
-      // Where the connecting rod meets the piston (design px from the car's left edge / the rail).
-      crosshead: { x: 228, aboveRail: 23 },
+      rod: { key: 'coupling-rod', leftEye: { x: 0.055, y: 0.48 }, eyeSpan: 0.847, thickness: 9 },
     },
   ],
 };
+
+/** Sidings with parked wagons beside stops. */
+export const SIDING = { raise: 26, scale: 0.92, ...TRAIN_ART.siding, parked: TRAIN_ART.parked };
+export const POINTS = TRAIN_ART.points;
 
 /** POI buildings are scaled to this height (design px). */
 export const POI_BUILDING_HEIGHT = 235;

@@ -1,9 +1,10 @@
 import { AUDIO_VOLUME } from '../config/assets.js';
+import { music } from './MusicPlayer.js';
 
 const MUTE_KEY = 'rouge.muted';
 
 /**
- * Thin wrapper over Phaser's sound manager. Missing audio files are skipped silently, so you
+ * Thin wrapper over Phaser's sound manager (effects) and the music player. Missing audio files are skipped silently, so you
  * can delete or rename sounds while working on them without breaking the game.
  */
 export class AudioManager {
@@ -11,6 +12,7 @@ export class AudioManager {
     this.scene = scene;
     this.sound = scene.sound;
     this.sound.mute = readMuted();
+    music.setMuted(this.sound.mute);
   }
 
   has(key) {
@@ -23,15 +25,9 @@ export class AudioManager {
     this.sound.play(key, { volume: AUDIO_VOLUME[key] ?? 0.5, ...config });
   }
 
+  /** Starts the music playlist (call from a tap/click the first time, for mobile browsers). */
   startMusic() {
-    if (!this.has('music')) return;
-    const start = () => {
-      let music = this.sound.get('music');
-      if (!music) music = this.sound.add('music', { loop: true, volume: AUDIO_VOLUME.music ?? 0.25 });
-      if (!music.isPlaying) music.play();
-    };
-    if (this.sound.locked) this.sound.once('unlocked', start);
-    else start();
+    music.start();
   }
 
   get muted() {
@@ -40,6 +36,7 @@ export class AudioManager {
 
   toggleMute() {
     this.sound.mute = !this.sound.mute;
+    music.setMuted(this.sound.mute);
     try {
       localStorage.setItem(MUTE_KEY, this.sound.mute ? '1' : '0');
     } catch {

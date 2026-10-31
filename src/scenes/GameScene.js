@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { BALANCE, POI_TYPES, START_STATION } from '../config/balance.js';
 import { DEBUG } from '../config/debug.js';
-import { COLORS, PARALLAX_LAYERS, PX_PER_METRE, WORLD_HEIGHT } from '../config/display.js';
+import { COLORS, PARALLAX_LAYERS, PX_PER_METRE, TRAIN_LAYOUT, WORLD_HEIGHT } from '../config/display.js';
 import { Train } from '../objects/Train.js';
 import { createJunction, createStop } from '../objects/worldObjects.js';
 import { createVisit } from '../poi/poiActions.js';
@@ -50,6 +50,7 @@ export class GameScene extends Phaser.Scene {
         platform: START_STATION.platform,
         title: START_STATION.name,
         subtitle: 'Departures',
+        ...this.sidingFor(START_STATION.parkedWagons),
       }),
       { offsetX: -this.train.length / 2 },
     );
@@ -75,7 +76,11 @@ export class GameScene extends Phaser.Scene {
     this.time.delayedCall(START_STATION.departDelayMs, () => this.depart());
   }
 
-  /** Zooms and positions the camera so the train fits the area the layout gives the world. */
+  /**
+   * Zooms and positions the camera for the area the layout gives the world: the locomotive's
+   * nose sits at L.frontX, and at least TRAIN_LAYOUT.cameraFocus of the train fits behind it
+   * (a long train's last car may run off the left edge on narrow screens).
+   */
   fitCamera() {
     const u = uiScale(this);
     const { w, h } = cssSize(this);
@@ -84,16 +89,14 @@ export class GameScene extends Phaser.Scene {
     cam.setViewport(L.x * u, L.y * u, L.w * u, L.h * u);
     cam.setBackgroundColor(COLORS.panel);
 
-    // Zoom (in CSS px per design px): show the full stage height when there's room, but
-    // always fit the whole train in the space it's allowed.
-    let zoom = L.trainMaxW / this.train.length;
+    // Zoom in CSS px per design px.
+    let zoom = L.focusW / Math.min(this.train.length, TRAIN_LAYOUT.cameraFocus);
     if (L.fitHeight) zoom = Math.min(L.h / WORLD_HEIGHT, zoom);
     cam.setZoom(zoom * u);
 
-    // Bottom of the view sits on the bottom of the stage; the train sits at L.trainX.
     const viewW = L.w / zoom;
     const viewH = L.h / zoom;
-    const left = this.train.centerX - L.trainX / zoom;
+    const left = this.train.frontX - L.frontX / zoom;
     cam.centerOn(left + viewW / 2, WORLD_HEIGHT - viewH / 2);
   }
 
@@ -165,10 +168,22 @@ export class GameScene extends Phaser.Scene {
       this.ui.toast(`Points set for ${def.name}`);
       this.world.add(
         poi.at,
-        createStop(this, { buildingKey: poi.building, platform: def.platform, title: def.name, subtitle: poi.name }),
+        createStop(this, {
+          buildingKey: poi.building,
+          platform: def.platform,
+          title: def.name,
+          subtitle: poi.name,
+          ...this.sidingFor(def.parkedWagons),
+        }),
         { offsetX: -this.train.length / 2 },
       );
     }
+  }
+
+  /** A goods wagon standing on a siding just ahead of where the locomotive stops. */
+  sidingFor(wagons) {
+    if (!wagons?.length) return {};
+    return { parkedWagon: Phaser.Utils.Array.GetRandom(wagons), sidingOffset: this.train.length / 2 + 120 };
   }
 
   selectBranch(index) {

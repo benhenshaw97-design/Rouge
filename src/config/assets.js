@@ -13,13 +13,16 @@ export const IMAGES = {
   trees: 'backgrounds/trees.png',
   village: 'backgrounds/village.png',
   ground: 'backgrounds/ground.png',
-  track: 'backgrounds/track.png',
+  trackbed: 'backgrounds/trackbed.png',
+  rails: 'backgrounds/rails.png',
   foreground: 'backgrounds/foreground.png',
 
-  // Train (see TRAIN_LAYOUT in display.js)
+  // Train: each car is its body drawn over its underframe, without wheels.
+  // Wheel positions etc. are in src/config/train-art.json (written by scripts/slice-art.py).
   locomotive: 'sprites/locomotive.png',
   tender: 'sprites/tender.png',
   wagon: 'sprites/wagon.png',
+  carriage: 'sprites/carriage.png',
   'coal-heap': 'sprites/coal-heap.png',
   'cargo-load': 'sprites/cargo-load.png',
   wheel: 'sprites/wheel.png',
@@ -27,9 +30,21 @@ export const IMAGES = {
   smoke: 'sprites/smoke.png',
 
   // Line-side
-  'branch-line': 'sprites/branch-line.svg',
+  points: 'sprites/points.png',
+  siding: 'sprites/siding.png',
   'junction-signpost': 'sprites/junction-signpost.png',
   platform: 'sprites/platform.png',
+
+  // Goods wagons parked on sidings at stops (wheels included)
+  'parked-logs': 'sprites/parked-logs.png',
+  'parked-coal': 'sprites/parked-coal.png',
+  'parked-crates': 'sprites/parked-crates.png',
+  'parked-tanker': 'sprites/parked-tanker.png',
+  'parked-boxcar': 'sprites/parked-boxcar.png',
+  'parked-slatted': 'sprites/parked-slatted.png',
+  'parked-tarp': 'sprites/parked-tarp.png',
+  'parked-stone': 'sprites/parked-stone.png',
+  'parked-flatbed': 'sprites/parked-flatbed.png',
 
   // Points of interest. Each type has several looks; see `buildings` in POI_TYPES (balance.js).
   'poi-coal-depot': 'pois/coal-depot.png',
@@ -88,8 +103,16 @@ export const NINE_SLICE = {
   default: { left: 12, right: 12, top: 11, bottom: 11 },
 };
 
+/** Background music, played in a shuffled order (streamed, see systems/MusicPlayer.js). */
+export const MUSIC = [
+  'audio/music/trains-1.mp3',
+  'audio/music/trains-2.mp3',
+  'audio/music/trains-3.mp3',
+  'audio/music/trains-4.mp3',
+];
+
+/** Sound effects. */
 export const AUDIO = {
-  music: 'audio/music-loop.wav',
   chuff: 'audio/chuff.wav',
   whistle: 'audio/whistle.wav',
   brake: 'audio/brake.wav',
@@ -100,7 +123,7 @@ export const AUDIO = {
 
 /** Default volume for each sound (0..1). */
 export const AUDIO_VOLUME = {
-  music: 0.22,
+  music: 0.4,
   chuff: 0.16,
   whistle: 0.45,
   brake: 0.35,

@@ -71,7 +71,8 @@ export function hudHeight(hud) {
  * Works out where everything goes for a screen of cssW × cssH.
  *
  *  hud:     the gauges and counters
- *  world:   the area the train scene is drawn in, and where the train sits inside it
+ *  world:   the area the train scene is drawn in; frontX is where the locomotive's nose sits
+ *           and focusW how much room there is behind it (the rest of the train may run off-screen)
  *  side:    where junction signposts and stop menus appear
  *  notice:  centre-top point for warnings and messages
  *  controls: where the sound / fullscreen buttons go
@@ -90,7 +91,7 @@ export function computeLayout(cssW, cssH) {
     L.hud.h = hudHeight(L.hud);
     const bandY = L.hud.y + L.hud.h + 8;
     const bandH = Math.round(clamp(cssW * 0.78, 190, cssH * 0.4));
-    L.world = { x: 0, y: bandY, w: cssW, h: bandH, trainX: cssW * 0.47, trainMaxW: cssW * 0.84, fitHeight: false };
+    L.world = { x: 0, y: bandY, w: cssW, h: bandH, frontX: cssW * 0.93, focusW: cssW * 0.9, fitHeight: false };
     const areaY = bandY + bandH + 10;
     L.side = { x: pad, y: areaY, w: cssW - pad * 2, h: cssH - areaY - pad };
     L.notice = { x: cssW / 2, y: bandY + 18, maxW: cssW - pad * 2 };
@@ -107,7 +108,7 @@ export function computeLayout(cssW, cssH) {
       L.hud = { x: pad, y: pad, w: 340, style: 'panel' };
     }
     L.hud.h = hudHeight(L.hud);
-    L.world = { x: 0, y: 0, w: cssW, h: cssH, trainX: L.side.x / 2, trainMaxW: L.side.x * 0.9, fitHeight: true };
+    L.world = { x: 0, y: 0, w: cssW, h: cssH, frontX: L.side.x - pad, focusW: L.side.x - pad * 2, fitHeight: true };
     const hudRight = L.hud.x + L.hud.w;
     const roomBesideHud = L.side.x - hudRight - pad * 2;
     L.notice =

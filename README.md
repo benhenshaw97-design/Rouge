@@ -67,12 +67,14 @@ your top speed drops.
 
 ```
 art/sheets/                Your original sprite sheets (not shipped with the game)
+art/music/                 Your original music files
 assets/                    Art & audio cut from the sheets, served as-is (see assets/README.md)
 src/
   main.js                  Phaser game config
   config/
     balance.js             ★ All gameplay numbers + POI definitions. Tune here.
     display.js             Design-stage layout, parallax layers, train composition, colours
+    train-art.json         Car sizes and wheel/rail positions measured from the art (generated)
     assets.js              Every asset file the game loads, by key
     debug.js               URL-driven dev helpers (?timescale=)
   scenes/
@@ -87,7 +89,8 @@ src/
     ParallaxBackground.js  Scrolls the background layers
     WorldLayer.js          Moves objects pinned to a spot on the line
     Viewport.js            Screen sizing and the phone / desktop layouts
-    AudioManager.js        Sound playback that tolerates missing files
+    AudioManager.js        Sound effects that tolerate missing files
+    MusicPlayer.js         Streams the music playlist (light on phone memory)
   objects/
     Train.js               Train visuals: cars, wheels, rods, smoke, cargo heap
     worldObjects.js        Station buildings and junction graphics
@@ -99,7 +102,8 @@ scripts/generate-placeholders.mjs   Makes placeholder files for anything without
 
 ### Extending it
 
-- **Carriages**: add an entry to `TRAIN_LAYOUT.cars` in `display.js` and an image key in `assets.js`.
+- **Carriages / wagons**: cut the art in `scripts/slice-art.py` (see how the carriage is assembled), then add an
+  entry to `TRAIN_LAYOUT.cars` in `display.js` and an image key in `assets.js`.
   To make it matter, read capacities from the car list in `TrainState`.
 - **New POI type**: add it to `POI_TYPES` in `balance.js` and a builder with the same key in `poi/poiActions.js`.
 - **Breakdowns / track events**: `TrainState.update()` already returns events. Add new ones

@@ -1,10 +1,11 @@
-import { DEPTH, FONT, POI_BUILDING_HEIGHT, RAIL_Y } from '../config/display.js';
+import { DEPTH, FONT, POI_BUILDING_HEIGHT, POINTS, RAIL_Y, SIDING } from '../config/display.js';
 
 /**
- * A stop beside the line: building, optional station platform, and a name board.
+ * A stop beside the line: building, optional station platform, a name board, and optionally a
+ * goods wagon parked on a siding just past the building.
  * Returns a Container whose x is the building's centre; WorldLayer moves it.
  */
-export function createStop(scene, { buildingKey, title, subtitle, platform }) {
+export function createStop(scene, { buildingKey, title, subtitle, platform, parkedWagon, sidingOffset = 0 }) {
   const c = scene.add.container(0, 0).setDepth(DEPTH.buildings);
   const groundY = RAIL_Y + 14;
 
@@ -17,6 +18,8 @@ export function createStop(scene, { buildingKey, title, subtitle, platform }) {
     p.setScale(Math.max(1.4, (img.displayWidth + 140) / p.width));
     c.add(p);
   }
+
+  if (parkedWagon) c.add(createSiding(scene, sidingOffset, parkedWagon));
 
   const boardY = groundY - img.displayHeight - 28;
   const res = 2;
@@ -40,11 +43,40 @@ export function createStop(scene, { buildingKey, title, subtitle, platform }) {
   return c;
 }
 
-/** The junction: a branch line peeling off towards the horizon, and a fingerpost. */
+/** A short siding behind the main line with a goods wagon standing on it. */
+function createSiding(scene, x, wagon) {
+  const s = scene.add.container(x, 0);
+  const railY = RAIL_Y - SIDING.raise;
+  const k = SIDING.scale;
+  const info = SIDING.parked[wagon];
+  const lengths = Math.ceil((info.width * k + 60) / (SIDING.width * k));
+  const total = lengths * SIDING.width * k;
+  for (let i = 0; i < lengths; i++) {
+    s.add(
+      scene.add
+        .image(-total / 2 + i * SIDING.width * k, railY - SIDING.railTop * k, 'siding')
+        .setOrigin(0, 0)
+        .setDisplaySize(SIDING.width * k, SIDING.height * k),
+    );
+  }
+  // Stand the wagon's wheels on the siding rail.
+  const car = scene.add.image(0, railY - info.railY * k, `parked-${wagon}`).setOrigin(0.5, 0);
+  car.setDisplaySize(info.width * k, (info.width * k * car.height) / car.width);
+  s.add(car);
+  return s;
+}
+
+/** The junction: a set of points on the main line, and a fingerpost beside it. */
 export function createJunction(scene) {
-  const c = scene.add.container(0, 0).setDepth(DEPTH.branchLine);
-  c.add(scene.add.image(0, RAIL_Y + 10, 'branch-line').setOrigin(0, 1));
-  const post = scene.add.image(-60, RAIL_Y + 4, 'junction-signpost').setOrigin(0.5, 1);
+  const c = scene.add.container(0, 0).setDepth(DEPTH.track + 0.1);
+  c.add(
+    scene.add
+      .image(-POINTS.width * 0.25, RAIL_Y - POINTS.railTop, 'points')
+      .setOrigin(0, 0)
+      .setDisplaySize(POINTS.width, POINTS.height),
+  );
+  // The fingerpost stands just behind the rails, before the points.
+  const post = scene.add.image(-70, RAIL_Y - 6, 'junction-signpost').setOrigin(0.5, 1);
   post.setScale(150 / post.height);
   c.add(post);
   return c;

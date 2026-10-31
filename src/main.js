@@ -27,4 +27,7 @@ const game = new Phaser.Game({
 installResponsiveScale(game, parent);
 
 // Handy for poking at the game from the browser console while developing.
-if (import.meta.env.DEV) window.game = game;
+if (import.meta.env.DEV) {
+  window.game = game;
+  import('./systems/MusicPlayer.js').then((m) => (window.music = m.music));
+}

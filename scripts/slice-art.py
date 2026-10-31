@@ -45,41 +45,158 @@ def crop(img, box):
 
 
 # ------------------------------------------------------------------------------------------
-# Train. Source measurements are in train-bodies.png pixels (see display.js for how they map).
+# Train. Each car is its body drawn over its underframe ("chassis"); wheels are centred on the
+# underframe's axle hangers so the train sits properly on the rails. Source measurements are
+# in the sheets' own pixels. Layout numbers for the game go to src/config/train-art.json.
 # ------------------------------------------------------------------------------------------
-TRAIN_OUT_SCALE = 0.425  # sprites are written at 2x their in-game size so they stay sharp
-bodies = S('train-bodies.png')
+HI = 2  # images are written at 2x their in-game size so they stay sharp on phones
+K_LOCO, K_CARRIAGE, K_WAGON = 0.22, 0.19, 0.34  # design px per sheet px, per sheet
+train_layout = {}
 
-loco_box = (670, 10, 2082, 468)
-save(scale(bodies.crop(loco_box), TRAIN_OUT_SCALE), 'sprites/locomotive.png')
+wheel_src = crop(S('wheel-large.png'), (0, 0, 1272, 1236))
+save(wheel_src.resize((128, 128), Image.LANCZOS), 'sprites/wheel.png')
 
-TENDER_LEFT, TENDER_RIGHT, TENDER_RIM, TENDER_BOTTOM = 25, 1006, 462, 714
-tender_body = bodies.crop((TENDER_LEFT, TENDER_RIM, TENDER_RIGHT, TENDER_BOTTOM))
-save(scale(tender_body, TRAIN_OUT_SCALE), 'sprites/tender.png')
-save(scale(tender_body, TRAIN_OUT_SCALE), 'sprites/wagon.png')
 
-# The coal heap sits between the tender's brass corner posts. Parts of the locomotive overlap
-# this area of the sheet (top right), so mask those out.
-HEAP_BOX = (165, 380, 860, 463)
-arr = np.asarray(bodies.crop(HEAP_BOX)).copy()
-ys, xs = np.mgrid[HEAP_BOX[1]:HEAP_BOX[3], HEAP_BOX[0]:HEAP_BOX[2]]
-arr[..., 3] = np.where((xs > 690) & (ys < 418), 0, arr[..., 3])
-lum = arr[..., :3].mean(axis=2)
-warm = (arr[..., 0].astype(int) - arr[..., 2].astype(int)) > 40
-arr[..., 3] = np.where(warm & (lum > 70), 0, arr[..., 3])
-heap = Image.fromarray(arr)
-heap = heap.crop(heap.getchannel('A').point(lambda v: 255 if v > 100 else 0).getbbox())
-report['heap.offset'] = [HEAP_BOX[0] - TENDER_LEFT, HEAP_BOX[1]]
-save(scale(heap, TRAIN_OUT_SCALE), 'sprites/coal-heap.png')
+def split_heap(body_img, body_box, heap):
+    """Cut the load (coal) off a body: pixels above the rim, between the brass corner posts."""
+    xl, xr, rim = heap
+    arr = np.asarray(body_img).copy()
+    ys, xs = np.mgrid[body_box[1]:body_box[3], body_box[0]:body_box[2]]
+    lum = arr[..., :3].mean(axis=2)
+    brass = ((arr[..., 0].astype(int) - arr[..., 2].astype(int)) > 40) & (lum > 70)
+    in_heap = (ys < rim) & (xs > xl) & (xs < xr) & ~brass
+    heap_arr = arr.copy()
+    heap_arr[..., 3] = np.where(in_heap, arr[..., 3], 0)
+    arr[..., 3] = np.where(in_heap, 0, arr[..., 3])
+    return Image.fromarray(arr), Image.fromarray(heap_arr)
 
-# Ore for the cargo wagon: the coal heap recoloured to a rusty iron-ore brown.
+
+def assemble(img, body, chassis, dy, wheels, *, heap=None, bake_wheels=False):
+    """Body over underframe. wheels: [(x, hub_y_on_underframe, r)] in sheet px.
+    Returns the car image, its layout (sheet px, relative to the image) and the heap image."""
+    x0, y0 = min(body[0], chassis[0]), body[1]
+    hubs = [(x, hy + dy, r) for x, hy, r in wheels]
+    rail = max(hy + r for _, hy, r in hubs)
+    x1 = max(body[2], chassis[2])
+    y1 = max(body[3], chassis[3] + dy, rail)
+    car = Image.new('RGBA', (x1 - x0, y1 - y0 + 1), (0, 0, 0, 0))
+
+    def put(piece, x, y):
+        layer = Image.new('RGBA', car.size, (0, 0, 0, 0))
+        layer.paste(piece, (x - x0, y - y0))
+        car.alpha_composite(layer)
+
+    put(img.crop(chassis), chassis[0], chassis[1] + dy)
+    body_img = img.crop(body)
+    heap_img, heap_info = None, None
+    if heap:
+        body_img, heap_full = split_heap(body_img, body, heap)
+        bb = heap_full.getchannel('A').point(lambda v: 255 if v > 100 else 0).getbbox()
+        heap_img = heap_full.crop(bb)
+        heap_info = {'x': body[0] + bb[0] - x0, 'bottom': body[1] + bb[3] - y0, 'w': heap_img.width, 'h': heap_img.height}
+    put(body_img, body[0], body[1])
+    if bake_wheels:
+        for x, hy, r in hubs:
+            put(wheel_src.resize((2 * r, 2 * r), Image.LANCZOS), x - r, hy - r)
+    layout = {
+        'width': car.width,
+        'height': car.height,
+        'railY': rail - y0,
+        'wheels': [{'x': x - x0, 'y': hy - y0, 'r': r} for x, hy, r in hubs],
+    }
+    if heap_info:
+        layout['heap'] = heap_info
+    return car, layout, heap_img
+
+
+def design(layout, k):
+    """Sheet-px layout -> design-px layout."""
+    out = {}
+    for key, v in layout.items():
+        if isinstance(v, (int, float)):
+            out[key] = round(v * k, 2)
+        elif isinstance(v, dict):
+            out[key] = {kk: round(vv * k, 2) for kk, vv in v.items()}
+        elif isinstance(v, list):
+            out[key] = [{kk: round(vv * k, 2) for kk, vv in w.items()} for w in v]
+    return out
+
+
+def save_car(name, car, layout, k, heap_img=None, heap_name=None, extra=None):
+    save(scale(car, k * HI), f'sprites/{name}.png')
+    entry = design(layout, k)
+    entry.update(extra or {})
+    if heap_img is not None:
+        save(scale(heap_img, k * HI), f'sprites/{heap_name}.png')
+        entry['heap']['key'] = heap_name
+    train_layout[name] = entry
+
+
+chassis_sheet = S('train-bodies-and-chassis.png')
+
+# Locomotive: four coupled driving wheels on the underframe's four axle hangers.
+car, lay, _ = assemble(chassis_sheet, (16, 16, 1337, 474), (16, 482, 1330, 670), -157,
+                       [(255, 540, 100), (497, 540, 100), (763, 540, 100), (1060, 540, 100)])
+save_car('locomotive', car, lay, K_LOCO, extra={
+    'chimney': {'x': round((1069 - 16) * K_LOCO, 2), 'y': round((18 - 16) * K_LOCO, 2)},
+    'crankRadius': round(40 * K_LOCO, 2),
+})
+
+# Tender: two axles; coal heap cut off so it can shrink as fuel burns.
+car, lay, heap = assemble(chassis_sheet, (1362, 85, 2170, 423), (1362, 482, 2163, 652), -157,
+                          [(1580, 575, 75), (1950, 575, 75)], heap=(1478, 2062, 167))
+save_car('tender', car, lay, K_LOCO, heap, 'coal-heap')
+
+# Passenger carriage on two bogies (the second underframe on the sheet).
+carriage_sheet = S('carriage-and-underframes.png')
+car, lay, _ = assemble(carriage_sheet, (118, 32, 1656, 528), (36, 718, 1738, 860), -287,
+                       [(357, 770, 92), (642, 770, 92), (1132, 770, 92), (1412, 770, 92)])
+save_car('carriage', car, lay, K_CARRIAGE)
+
+# Goods wagons: every wagon on the sheet has the same underframe layout.
+wagons_sheet = S('goods-wagons.png')
+WAGONS = {
+    'logs': ((16, 119, 406, 318), (16, 363, 406, 451)),
+    'coal': ((411, 114, 768, 318), (412, 363, 768, 451)),
+    'crates': ((775, 113, 1141, 319), (774, 363, 1142, 451)),
+    'tanker': ((1148, 74, 1523, 319), (1147, 362, 1523, 451)),
+    'boxcar': ((16, 588, 396, 808), (16, 851, 396, 940)),
+    'slatted': ((402, 588, 768, 808), (402, 851, 768, 940)),
+    'tarp': ((775, 607, 1142, 808), (775, 851, 1142, 940)),
+    'stone': ((1148, 507, 1521, 808), (1147, 850, 1522, 941)),
+}
+
+
+def wagon_parts(body, chassis):
+    dy = (body[3] - 52) - chassis[1]
+    w, h = chassis[2] - chassis[0], chassis[3] - chassis[1]
+    hub = chassis[1] + 2 + int(0.43 * h)
+    r = chassis[3] - hub + 2
+    return dy, [(chassis[0] + int(0.27 * w), hub, r), (chassis[0] + int(0.73 * w), hub, r)]
+
+
+# The train's own goods wagon: the coal wagon, with its load recoloured as iron ore.
+body, chassis = WAGONS['coal']
+dy, wheels = wagon_parts(body, chassis)
+car, lay, heap = assemble(wagons_sheet, body, chassis, dy, wheels, heap=(462, 720, 176))
 ore = np.asarray(heap).astype(float)
 l = ore[..., :3].mean(axis=2, keepdims=True) / 255.0
 ore[..., :3] = np.clip(l * np.array([300, 190, 130]) + np.array([20, 10, 0]), 0, 255)
-save(scale(Image.fromarray(ore.astype(np.uint8)), TRAIN_OUT_SCALE), 'sprites/cargo-load.png')
+save_car('wagon', car, lay, K_WAGON, Image.fromarray(ore.astype(np.uint8)), 'cargo-load')
 
-wheel = crop(S('wheel-large.png'), (0, 0, 1272, 1236)).resize((128, 128), Image.LANCZOS)
-save(wheel, 'sprites/wheel.png')
+# Wagons parked on sidings at stops: wheels baked in, since they never move.
+parked = {}
+for name, (body, chassis) in WAGONS.items():
+    dy, wheels = wagon_parts(body, chassis)
+    car, lay, _ = assemble(wagons_sheet, body, chassis, dy, wheels, bake_wheels=True)
+    save(scale(car, K_WAGON * HI), f'sprites/parked-{name}.png')
+    parked[name] = {'railY': round(lay['railY'] * K_WAGON, 2), 'width': round(car.width * K_WAGON, 2)}
+car, lay, _ = assemble(S('flatbed-wagon.png'), (52, 169, 1266, 504), (52, 579, 1267, 777), -216,
+                       [(335, 650, 127), (965, 650, 127)], bake_wheels=True)
+K_FLAT = 0.1
+save(scale(car, K_FLAT * HI), 'sprites/parked-flatbed.png')
+parked['flatbed'] = {'railY': round(lay['railY'] * K_FLAT, 2), 'width': round(car.width * K_FLAT, 2)}
+train_layout['parked'] = parked
 
 rod = S('wheel-and-rod-parts.png').crop((531, 589, 1346, 718))
 save(scale(rod, 0.26), 'sprites/coupling-rod.png')
@@ -303,17 +420,55 @@ save(compose(village, 2048, max(p.height for p in village), spacing=(20, 120), s
 hedges = pieces_in(kit_b, (0, 698, 1536, 778))
 save(compose(hedges, 2048, max(p.height for p in hedges), spacing=(30, 220), seed=6), 'backgrounds/foreground.png')
 
-# Track: crop a whole number of sleeper repeats from the middle of the longest segment.
+# Track bed: the gravel, dirt and grass from the old track strip (below its rails), a whole
+# number of sleeper repeats wide so it tiles.
 seg = kit_b.crop((1075, 785, 1456, 868))
 band = np.asarray(seg.convert('L')).astype(float)[20:40, :].mean(axis=0)
 band -= band.mean()
 best = max(range(14, 60), key=lambda p: float(np.dot(band[:-p], band[p:])) / (len(band) - p))
 reps = (seg.width - 40) // best
-track = seg.crop((20, 0, 20 + reps * best, seg.height))
-rail_top = int(np.argmax((np.asarray(track.getchannel('A')) > 128).mean(axis=1) > 0.9))
-save(track, 'backgrounds/track.png')
-report['track.railTop'] = rail_top
-report['track.sleeperPeriod'] = best
+save(crossfade_tile(seg.crop((10, 44, 10 + reps * best + 40, seg.height)), 40), 'backgrounds/trackbed.png')
+
+# Rails: the long straight rail from rails.png, cropped to whole sleeper repeats so it tiles.
+K_RAIL = K_LOCO
+rails_sheet = S('rails.png')
+strip = rails_sheet.crop((34, 126, 2137, 206))
+alpha = np.asarray(strip.getchannel('A')) > 128
+rail_top = int(np.argmax(alpha.mean(axis=1) > 0.95))
+b = alpha[-12:, :].mean(axis=0).astype(float)
+b -= b.mean()
+period = max(range(60, 180), key=lambda p: float(np.dot(b[:-p], b[p:])) / (len(b) - p))
+n = (strip.width - 80) // period
+rails_tile = strip.crop((40, 0, 40 + n * period, strip.height))
+save(scale(rails_tile, K_RAIL * HI), 'backgrounds/rails.png')
+train_layout['rails'] = {
+    'height': round(rails_tile.height * K_RAIL, 2),
+    'railTop': round(rail_top * K_RAIL, 2),
+    'sleeperPeriod': period,
+}
+
+# Points (where a branch line splits off), for junctions.
+points_box = tight(rails_sheet, (1730, 505, 2140, 680), alpha=100)
+points = rails_sheet.crop(points_box)
+pa = np.asarray(points.getchannel('A')) > 128
+left = pa[:, : pa.shape[1] // 6].mean(axis=1)
+points_rail_top = int(np.argmax(left > 0.9))
+save(scale(points, K_RAIL * HI), 'sprites/points.png')
+train_layout['points'] = {
+    'width': round(points.width * K_RAIL, 2),
+    'height': round(points.height * K_RAIL, 2),
+    'railTop': round(points_rail_top * K_RAIL, 2),
+}
+
+# A short siding rail for parked wagons (a straight segment from the rails sheet).
+siding = crop(rails_sheet, (138, 280, 590, 356))
+save(scale(siding, K_RAIL * HI), 'sprites/siding.png')
+s_alpha = np.asarray(siding.getchannel('A')) > 128
+train_layout['siding'] = {
+    'width': round(siding.width * K_RAIL, 2),
+    'height': round(siding.height * K_RAIL, 2),
+    'railTop': round(int(np.argmax(s_alpha.mean(axis=1) > 0.95)) * K_RAIL, 2),
+}
 
 # Ground: speckled pixel-art dirt using colours sampled from the ground chunks.
 chunk = np.asarray(kit_b.crop((252, 932, 428, 976)).convert('RGB')).reshape(-1, 3).astype(float)
@@ -334,4 +489,6 @@ ground_rgb[:24] *= fade
 ground = Image.fromarray(ground_rgb.astype(np.uint8)).convert('RGBA')
 save(ground, 'backgrounds/ground.png')
 
+(ROOT / 'src' / 'config' / 'train-art.json').write_text(json.dumps(train_layout, indent=2) + '\n')
 print(json.dumps(report, indent=1))
+print(json.dumps(train_layout, indent=1))
