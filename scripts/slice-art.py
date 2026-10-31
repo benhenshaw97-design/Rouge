@@ -71,7 +71,7 @@ def split_heap(body_img, body_box, heap):
     return Image.fromarray(arr), Image.fromarray(heap_arr)
 
 
-def assemble(img, body, chassis, dy, wheels, *, heap=None, bake_wheels=False, erase=()):
+def assemble(img, body, chassis, dy, wheels, *, heap=None, bake_wheels=False, erase=(), move=()):
     """Body over underframe. wheels: [(x, hub_y_on_underframe, r)] in sheet px.
     Returns the car image, its layout (sheet px, relative to the image) and the heap image."""
     x0, y0 = min(body[0], chassis[0]), body[1]
@@ -87,6 +87,13 @@ def assemble(img, body, chassis, dy, wheels, *, heap=None, bake_wheels=False, er
         car.alpha_composite(layer)
 
     put(img.crop(chassis), chassis[0], chassis[1] + dy)
+    # Shift parts of the underframe (in car-image coords), e.g. raise buffers to match other cars.
+    for mx0, my0, mx1, my1, mdy in move:
+        piece = car.crop((mx0, my0, mx1, my1))
+        car.paste(Image.new('RGBA', piece.size, (0, 0, 0, 0)), (mx0, my0))
+        layer = Image.new('RGBA', car.size, (0, 0, 0, 0))
+        layer.paste(piece, (mx0, my0 + mdy))
+        car.alpha_composite(layer)
     body_img = img.crop(body)
     # Remove parts of the body that the underframe also draws (e.g. a second cowcatcher).
     for ex0, ey0, ex1, ey1 in erase:
@@ -149,13 +156,17 @@ save_car('locomotive', car, lay, K_LOCO, extra={
 
 # Tender: two axles; coal heap cut off so it can shrink as fuel burns.
 car, lay, heap = assemble(chassis_sheet, (1362, 85, 2170, 423), (1362, 482, 2163, 652), -157,
-                          [(1580, 575, 75), (1950, 575, 75)], heap=(1478, 2062, 167))
+                          [(1580, 575, 66), (1950, 575, 66)], heap=(1478, 2062, 167))
 save_car('tender', car, lay, K_LOCO, heap, 'coal-heap')
 
 # Passenger carriage on two bogies (the second underframe on the sheet).
 carriage_sheet = S('carriage-and-underframes.png')
+# Its buffers sit lower than the other cars', so: slightly bigger wheels (raising the whole car)
+# and the buffer beams at each end lifted 20 px. Buffers end up level with the locomotive's.
+CARRIAGE_W = 1738 - 36
 car, lay, _ = assemble(carriage_sheet, (118, 32, 1656, 528), (36, 718, 1738, 860), -287,
-                       [(357, 770, 92), (642, 770, 92), (1132, 770, 92), (1412, 770, 92)])
+                       [(357, 770, 115), (642, 770, 115), (1132, 770, 115), (1412, 770, 115)],
+                       move=[(0, 395, 125, 500, -20), (CARRIAGE_W - 125, 395, CARRIAGE_W, 500, -20)])
 save_car('carriage', car, lay, K_CARRIAGE)
 
 # Cargo wagon: the modular flat wagon from cargo-wagon-base.png, with interchangeable loads
