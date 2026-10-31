@@ -86,7 +86,13 @@ export function createTunnel(scene) {
   const peakW = peak.displayWidth;
   const exitLeft = peakLeft + peakW - pw * 0.5;
   const enterX = pw * T.opening.left;
-  const exitX = exitLeft + pw * (1 - T.opening.left);
+  // The exit mouth is mirrored, so its opening's left edge is at (1 - opening.right).
+  const exitX = exitLeft + pw * (1 - T.opening.right);
+
+  // Trim the peak where it would overlap the exit mouth (from its opening onwards), so it doesn't
+  // cover the arch or the train coming out.
+  const peakKeep = (exitX - peakLeft) / peak.scaleX;
+  peak.setCrop(0, 0, Math.min(peak.width, peakKeep), peak.height);
 
   // Foothills either side, tucked partly behind the peak.
   const left = img(0, T.bottom, 'mountain-foothill', T.foothillHeight);
@@ -115,10 +121,11 @@ export function createTunnel(scene) {
   const enterFront = scene.add.image(0, portalY, 'tunnel-portal').setOrigin(0, 1).setScale(k);
   enterFront.setCrop(src.width * T.opening.left, 0, src.width * (1 - T.opening.left), src.height);
 
-  // Exit: the mouth mirrored; its left half (up to the middle of the opening) in front.
+  // Exit: the mouth mirrored.
   back.add(scene.add.image(exitLeft, portalY, 'tunnel-portal-exit').setOrigin(0, 1).setScale(k));
   const exitFront = scene.add.image(exitLeft, portalY, 'tunnel-portal-exit').setOrigin(0, 1).setScale(k);
-  exitFront.setCrop(0, 0, src.width * (1 - T.opening.left), src.height);
+  // In front: only the part left of the opening, so the train comes out of the dark opening.
+  exitFront.setCrop(0, 0, src.width * (1 - T.opening.right), src.height);
 
   // Rock bank across the whole bottom of the screen, in front of the train and the mouths'
   // bases, so the train runs into the mountain through a rocky cutting with no ground showing.
