@@ -195,6 +195,12 @@ export class GameScene extends Phaser.Scene {
       t.swapped = true;
       this.areaIndex = (this.areaIndex + 1) % AREAS.length;
       this.nextAreaAt = this.state.distance + this.range(BALANCE.route.areaLength);
+      // Stops planned before the tunnel take the new area's buildings.
+      const j = this.route.junction;
+      if (j && !j.resolved) {
+        this.route.restyleJunction(this.area);
+        if (this.signpostsShown) this.ui.showJunction(j);
+      }
       this.ui.toast(`Entering ${this.area.name}`);
     }
     if (t.split) {
@@ -217,7 +223,7 @@ export class GameScene extends Phaser.Scene {
   godNextArea() {
     this.nextAreaAt = 0;
     const poi = this.route.poi;
-    const stopSoon = poi && !poi.visited && poi.at - this.state.distance < 450;
+    const stopSoon = poi && !poi.visited; // its building is already drawn in this area's style
     if (this.phase !== 'running' || this.tunnel || stopSoon) {
       this.ui.toast('Tunnel after the next departure');
       return;

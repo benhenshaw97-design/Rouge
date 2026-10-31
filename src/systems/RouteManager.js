@@ -30,7 +30,7 @@ export class RouteManager {
     };
     // Pick which look each destination has now, so the signpost can show the real building.
     // (Using the area the stops will be in, which may differ from the current one after a tunnel.)
-    this.junction.buildings = this.junction.options.map((type) => this.pick(area?.buildings?.[type] ?? this.poiTypes[type].buildings));
+    this.junction.buildings = this.junction.options.map((type) => this.buildingFor(type, area));
     return this.junction;
   }
 
@@ -84,7 +84,17 @@ export class RouteManager {
     return ids[ids.length - 1];
   }
 
-  pick(list) {
+  /** A building for a POI type in an area (the area's own look if it has one). */
+  buildingFor(type, area) {
+    return this.pick(area?.buildings?.[type] ?? this.poiTypes[type].buildings);
+  }
+
+  /** Re-picks the pending junction's buildings for an area (after going through a tunnel). */
+  restyleJunction(area) {
+    if (this.junction) this.junction.buildings = this.junction.options.map((type) => this.buildingFor(type, area));
+  }
+
+    pick(list) {
     return list[Math.floor(this.random() * list.length)];
   }
 
