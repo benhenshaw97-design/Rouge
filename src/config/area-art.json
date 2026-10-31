@@ -1,0 +1,23 @@
+{
+  "desert-mesas": {
+    "height": 174.8
+  },
+  "desert-dunes": {
+    "height": 248.9
+  },
+  "desert-rocks": {
+    "height": 159.0
+  },
+  "desert-village": {
+    "height": 192.0
+  },
+  "desert-ground": {
+    "height": 158.1
+  },
+  "desert-foreground": {
+    "height": 71.4
+  },
+  "desert-foreground-back": {
+    "height": 50.8
+  }
+}

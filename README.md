@@ -111,7 +111,8 @@ scripts/generate-placeholders.mjs   Makes placeholder files for anything without
   Pin things to the line with `WorldLayer.add(metres, gameObject)`.
 - **Passenger requests**: passengers are stored as groups with where and when they boarded
   (`TrainState.passengers`), so a destination field slots in naturally.
-- **Changing terrain**: add parallax layer sets to `display.js` and swap them in `ParallaxBackground`.
+- **New areas**: add an entry to `AREAS` in `display.js` listing the layer art it swaps in. The line runs through
+  the areas in turn, with a tunnel between each (`route.areaLength` in `balance.js` sets how long each lasts).
 
 ## Deploying to GitHub Pages
 

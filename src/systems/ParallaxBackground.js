@@ -10,6 +10,7 @@ const SPAN_WIDTH = 6400;
 
 export class ParallaxBackground {
   constructor(scene, layers) {
+    this.scene = scene;
     this.layers = layers.map((cfg) => {
       const source = scene.textures.get(cfg.key).getSourceImage();
       const scale = (cfg.tileHeight ?? cfg.height) / source.height;
@@ -21,8 +22,28 @@ export class ParallaxBackground {
         obj.setTileScale(scale, scale);
       }
       obj.setDepth(cfg.depth);
-      return { cfg, obj, scale };
+      return { cfg, base: cfg, obj, scale };
     });
+  }
+
+  /** Swaps in an area's art (see AREAS in display.js). Bottom edges stay where they were. */
+  setArea(area) {
+    for (const layer of this.layers) {
+      const base = layer.base;
+      const over = area.layers[base.key];
+      const key = over?.key ?? base.key;
+      const height = over?.height ?? base.height;
+      const tileHeight = over?.tileHeight ?? (over ? undefined : base.tileHeight);
+      const y = (over?.bottom ?? base.y + base.height) - height;
+      layer.cfg = { ...base, key, height, tileHeight, y };
+      if (base.tile === false) continue;
+      const x = layer.obj.tilePositionX * layer.scale;
+      layer.obj.setTexture(key).setPosition(layer.obj.x, y).setSize(layer.obj.width, height);
+      // (A TileSprite's own .texture is an internal copy, so measure the source image.)
+      layer.scale = (tileHeight ?? height) / this.scene.textures.get(key).getSourceImage().height;
+      layer.obj.setTileScale(layer.scale, layer.scale);
+      layer.obj.tilePositionX = x / layer.scale;
+    }
   }
 
   /**

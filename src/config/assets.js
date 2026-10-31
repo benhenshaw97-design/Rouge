@@ -17,6 +17,20 @@ export const IMAGES = {
   'foreground-back': 'backgrounds/foreground-back.png',
   foreground: 'backgrounds/foreground.png',
 
+  // Desert area layers (see AREAS in display.js)
+  'desert-mesas': 'backgrounds/desert-mesas.png',
+  'desert-dunes': 'backgrounds/desert-dunes.png',
+  'desert-rocks': 'backgrounds/desert-rocks.png',
+  'desert-village': 'backgrounds/desert-village.png',
+  'desert-ground': 'backgrounds/desert-ground.png',
+  'desert-foreground-back': 'backgrounds/desert-foreground-back.png',
+  'desert-foreground': 'backgrounds/desert-foreground.png',
+
+  // Tunnel between areas, and landmarks
+  'rock-hill': 'sprites/rock-hill.png',
+  'tunnel-portal': 'sprites/tunnel-portal.png',
+  'waterfall-mountain': 'sprites/waterfall-mountain.png',
+
   // Train: each car is its body drawn over its underframe, without wheels.
   // Wheel positions etc. are in src/config/train-art.json (written by scripts/slice-art.py).
   locomotive: 'sprites/locomotive.png',

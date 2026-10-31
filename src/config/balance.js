@@ -70,6 +70,12 @@ export const BALANCE = {
     signpostRevealDistance: 360,
     /** Force a Coal Depot onto a signpost if none has been offered for this many junctions. */
     coalDepotGuaranteeEvery: 2,
+    /** How far the line runs through each area before a tunnel leads to the next [min, max]. */
+    areaLength: [2200, 3200],
+    /** The tunnel comes this far after leaving a stop. */
+    tunnelAfterDepart: 130,
+    /** Chance of a distant landmark (e.g. the waterfall mountain) after leaving a stop. */
+    landmarkChance: 0.5,
   },
 
   upgrades: {

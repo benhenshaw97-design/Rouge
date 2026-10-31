@@ -21,15 +21,25 @@ export class WorldLayer {
    * @param {object} [opts]
    * @param {number} [opts.offsetX] screen-pixel offset from the anchor
    * @param {number} [opts.cullMargin] how far past the left edge before it is destroyed
+   * @param {number} [opts.factor] parallax: <1 for things in the distance (moves slower)
    */
-  add(worldX, obj, { offsetX = 0, cullMargin = 1600 } = {}) {
-    this.items.push({ worldX, obj, offsetX, cullMargin });
+  add(worldX, obj, { offsetX = 0, cullMargin = 1600, factor = 1 } = {}) {
+    this.items.push({ worldX, obj, offsetX, cullMargin, factor });
     return obj;
+  }
+
+  /** Removes every object for which `test(obj)` is true. */
+  removeWhere(test) {
+    this.items = this.items.filter((item) => {
+      if (!test(item.obj)) return true;
+      item.obj.destroy();
+      return false;
+    });
   }
 
   update(distance) {
     this.items = this.items.filter((item) => {
-      const x = worldToScreenX(item.worldX, distance) + item.offsetX;
+      const x = TRAIN_FRONT_X + (item.worldX - distance) * PX_PER_METRE * item.factor + item.offsetX;
       if (x < -item.cullMargin) {
         item.obj.destroy();
         return false;

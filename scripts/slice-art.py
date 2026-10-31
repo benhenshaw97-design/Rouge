@@ -434,6 +434,55 @@ ground.alpha_composite(bank, (0, 0))
 save(scale(ground, 0.3 * HI), 'backgrounds/ground.png')
 report['ground.designHeight'] = round(ground.height * 0.3, 1)
 
+# ------------------------------------------------------------------------------------------
+# Desert area. Layer images are written at the sheet's own resolution; display.js (AREAS) sets
+# how big each is drawn. Heights in design px are reported to src/config/area-art.json.
+# ------------------------------------------------------------------------------------------
+area_art = {}
+dkit = remove_painted_background(S('desert-kit.png'))
+
+
+def desert_layer(name, img, scale_):
+    save(img, f'backgrounds/{name}.png')
+    area_art[name] = {'height': round(img.height * scale_, 1)}
+
+
+mesas = pieces_in(dkit, (0, 157, 1774, 250), min_w=60)
+desert_layer('desert-mesas', compose(mesas, 2048, max(p.height for p in mesas), overlap=30, seed=7), 1.9)
+dunes = dkit.crop(tight(dkit, (0, 268, 1774, 341), alpha=100))
+dunes = crossfade_tile(dunes, 140)
+# Continue the sand below the dunes so there's desert floor behind the rocks and village.
+sand = np.median(np.asarray(dunes.convert('RGB'))[-4:].reshape(-1, 3), axis=0)
+dunes_full = Image.new('RGBA', (dunes.width, dunes.height + 60), tuple(int(c) for c in sand) + (255,))
+dunes_full.paste(Image.new('RGBA', (dunes.width, dunes.height), (0, 0, 0, 0)), (0, 0))
+dunes_full.alpha_composite(dunes, (0, 0))
+desert_layer('desert-dunes', dunes_full, 1.9)
+rocks = pieces_in(dkit, (0, 360, 1774, 469), min_w=80)
+desert_layer('desert-rocks', compose(rocks, 2048, max(p.height for p in rocks), spacing=(20, 160), seed=8), 1.5)
+village_d = pieces_in(dkit, (0, 484, 1774, 614), min_w=60)
+desert_layer('desert-village', compose(village_d, 2048, max(p.height for p in village_d), spacing=(10, 120), seed=9), 1.5)
+
+# Sand bank under the rails (cut below its sleeper tops), like the grass one.
+dbank = S('desert-embankment.png').crop((0, 398, 2170, 725)).convert('RGBA')
+dbottom = np.median(np.asarray(dbank.convert('RGB'))[-20:].reshape(-1, 3), axis=0)
+dground = Image.new('RGBA', (dbank.width, dbank.height + 200), tuple(int(c) for c in dbottom) + (255,))
+dground.alpha_composite(dbank, (0, 0))
+save(scale(crossfade_tile(dground, 120), 0.3 * HI), 'backgrounds/desert-ground.png')
+area_art['desert-ground'] = {'height': round(dground.height * 0.3, 1)}
+
+# Foreground rows have tapered ends, so they're crossfaded into a loop.
+dfg = S('desert-foreground.png')
+for name, box, k in (('desert-foreground', (40, 28, 2130, 198), 0.42), ('desert-foreground-back', (40, 219, 2130, 360), 0.36)):
+    save(scale(crossfade_tile(dfg.crop(box), 160), k * HI), f'backgrounds/{name}.png')
+    area_art[name] = {'height': round((box[3] - box[1]) * k, 1)}
+
+# Landmarks and the tunnel.
+save(scale(S('rock-hill.png'), 0.5), 'sprites/rock-hill.png')
+save(scale(crop(S('waterfall-mountain.png'), (0, 0, 2172, 724)), 0.5), 'sprites/waterfall-mountain.png')
+save(scale(crop(S('tunnel-portal.png'), (0, 0, 1312, 1199)), 0.4), 'sprites/tunnel-portal.png')
+
+(ROOT / 'src' / 'config' / 'area-art.json').write_text(json.dumps(area_art, indent=2) + '\n')
+
 (ROOT / 'src' / 'config' / 'train-art.json').write_text(json.dumps(train_layout, indent=2) + '\n')
 print(json.dumps(report, indent=1))
 print(json.dumps(train_layout, indent=1))
