@@ -62,7 +62,9 @@ export const PARALLAX_LAYERS = [
   { key: 'ground', factor: 1, y: RAIL_Y + 6, height: 1500, tileHeight: 168.6, depth: DEPTH.ground },
   // The rails, positioned so the rail's top edge is RAIL_Y.
   { key: 'rails', factor: 1, y: RAIL_Y - TRAIN_ART.rails.railTop, height: TRAIN_ART.rails.height, depth: DEPTH.track },
-  { key: 'foreground', factor: 1.35, y: 618, height: 118, depth: DEPTH.foreground },
+  // Grass, flowers and bushes along the bottom of the screen, nearer the viewer than the line.
+  { key: 'foreground-back', factor: 1.15, y: 706 - 63, height: 63, depth: DEPTH.foreground - 1 },
+  { key: 'foreground', factor: 1.35, y: 726 - 81, height: 81, depth: DEPTH.foreground },
 ];
 
 /**

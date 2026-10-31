@@ -14,6 +14,7 @@ export const IMAGES = {
   village: 'backgrounds/village.png',
   ground: 'backgrounds/ground.png',
   rails: 'backgrounds/rails.png',
+  'foreground-back': 'backgrounds/foreground-back.png',
   foreground: 'backgrounds/foreground.png',
 
   // Train: each car is its body drawn over its underframe, without wheels.

@@ -383,8 +383,14 @@ save(compose(trees, 2048, max(p.height for p in trees), overlap=24, seed=3), 'ba
 village = pieces_in(kit_c, (250, 475, 1774, 620), min_w=100)
 save(compose(village, 2048, max(p.height for p in village), spacing=(20, 120), seed=5), 'backgrounds/village.png')
 
-hedges = pieces_in(kit_b, (0, 698, 1536, 778))
-save(compose(hedges, 2048, max(p.height for p in hedges), spacing=(30, 220), seed=6), 'backgrounds/foreground.png')
+# Foreground grass along the bottom of the screen: rows from foreground-grass-tiling.png, which
+# repeat left-right as drawn. Row 1 = bushes and posts (front), row 2 = flowers and fence (behind).
+# Rows 3 (logs, ferns) and 4 (autumn) are there for other seasons/areas later.
+fg_sheet = S('foreground-grass-tiling.png')
+FG_ROWS = {'foreground': ((0, 9, 2172, 202), 0.42), 'foreground-back': ((0, 224, 2172, 399), 0.36)}
+for name, (box, k) in FG_ROWS.items():
+    save(scale(fg_sheet.crop(box), k * HI), f'backgrounds/{name}.png')
+    report[f'{name}.designHeight'] = round((box[3] - box[1]) * k, 1)
 
 # Rails: the long straight rail from rails.png, cropped to whole sleeper repeats so it tiles.
 K_RAIL = K_LOCO
