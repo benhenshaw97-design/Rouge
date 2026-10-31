@@ -500,9 +500,10 @@ dunes_full.paste(Image.new('RGBA', (dunes.width, dunes.height), (0, 0, 0, 0)), (
 dunes_full.alpha_composite(dunes, (0, 0))
 desert_layer('desert-dunes', dunes_full, 1.9)
 rocks = objects_in(dkit, (0, 360, 1774, 469), min_w=80)
-desert_layer('desert-rocks', compose(rocks, 2048, max(p.height for p in rocks), spacing=(20, 160), seed=8), 1.5)
+desert_layer('desert-rocks', compose(rocks, 3072, max(p.height for p in rocks), spacing=(120, 380), seed=8), 1.5)
 village_d = objects_in(dkit, (0, 484, 1774, 614), min_w=60)
-desert_layer('desert-village', compose(village_d, 2048, max(p.height for p in village_d), spacing=(10, 120), seed=9), 1.5)
+# Spread out: a desert has scattered settlements with open sand between.
+desert_layer('desert-village', compose(village_d, 4096, max(p.height for p in village_d), spacing=(420, 900), seed=9), 1.5)
 
 # Sand bank under the rails (cut below its sleeper tops), like the grass one.
 dbank = S('desert-embankment.png').crop((0, 398, 2170, 725)).convert('RGBA')
