@@ -25,7 +25,7 @@ and a gentle station ambience (your 37 s steam recording might do for that).
       coal / fire / coins / people / crate icons
 - [ ] **Ground / dirt** below the track: a strip that tiles left to right (currently generated noise)
 - [ ] **Sky** backdrop: tall gradient, can include a sun (currently generated from your colours)
-- [ ] **Ore load** for the cargo wagon: a heap that sits in the wagon (currently your coal recoloured)
+- [x] **Ore load** for the cargo wagon: done with your modular wagon loads (gold, rubies, sapphires)
 - [ ] **Branch line**: track continuing off from the end of the points piece, so junctions don't stop short
 
 ## 2. Nice to have (would improve what's already there)
