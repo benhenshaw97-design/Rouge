@@ -310,7 +310,7 @@ def pieces_in(img, box, min_w=30):
     return [img.crop(p) for p in find_pieces(img, box, alpha=100, grow=1, min_size=16) if p[2] - p[0] >= min_w]
 
 
-def objects_in(img, box, min_w=30, grow=6, grounded=None):
+def objects_in(img, box, min_w=30, grow=6, grounded=None, with_x=False):
     """Like pieces_in, but each piece is cut out by its own outline (not a rectangle), so parts
     of neighbouring objects never come with it. Bits within `grow` px (leaf tips, pebbles)
     stay attached to their object."""
@@ -349,7 +349,10 @@ def objects_in(img, box, min_w=30, grow=6, grounded=None):
         piece = arr.copy()
         piece[..., 3] = np.where(label == i, piece[..., 3], 0)
         out.append((xs.min(), Image.fromarray(piece).crop((xs.min(), ys.min(), xs.max() + 1, ys.max() + 1))))
-    return [p for _, p in sorted(out, key=lambda t: t[0])]
+    out.sort(key=lambda t: t[0])
+    if with_x:
+        return [(box[0] + x, p) for x, p in out]
+    return [p for _, p in out]
 
 
 def paste_wrap(tile, piece, x, y):
@@ -505,15 +508,17 @@ village_d = objects_in(dkit, (0, 484, 1774, 614), min_w=60)
 # The desert's middle distance: mostly lone camps, ruins, wells, wagons and bones from
 # desert-props.png, with only an occasional small village (so it doesn't feel like a city).
 props_sheet = S('desert-props.png')
+PROP_SCALE = 0.75  # props are drawn bigger than the village sheet; match them up
+# These are drawn much bigger on the sheet than the rest, so they get shrunk further:
+# the well (with its standing stone), the cooking tripod, the campfire and the gem cart.
+SHRINK = {(0, 1638): 0.5, (1, 837): 0.5, (1, 1009): 0.5, (1, 1687): 0.5}
 props = []
-for band in ((0, 9, 2172, 190), (0, 204, 2172, 368), (0, 380, 2172, 518)):
-    props += objects_in(props_sheet, band, min_w=40)
-PROP_SCALE = 0.42  # props are drawn bigger than the village sheet; match them up
-props = [scale(p, PROP_SCALE) for p in props]
+for b, band in enumerate(((0, 9, 2172, 190), (0, 204, 2172, 368), (0, 380, 2172, 518))):
+    for x, p in objects_in(props_sheet, band, min_w=40, with_x=True):
+        props.append(scale(p, PROP_SCALE * SHRINK.get((b, int(x)), 1)))
 # Single houses and palms (cut tightly, so clusters split up), not whole settlements.
 singles = [p for p in objects_in(dkit, (0, 484, 1774, 614), min_w=40, grow=1) if p.width < 300]
 villages = sorted(singles, key=lambda p: p.width)[:3]  # a few lone buildings
-villages = [scale(v, 0.7) for v in villages]
 mix = props + villages
 desert_layer('desert-village', compose(mix, 6144, max(p.height for p in mix), spacing=(70, 280), seed=9), 1.5)
 report['desert-props'] = [len(props), len(villages)]
