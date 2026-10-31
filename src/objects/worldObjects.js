@@ -78,7 +78,6 @@ export function createTunnel(scene) {
   const src = scene.textures.get('tunnel-portal').getSourceImage();
   const k = T.portalHeight / src.height;
   const pw = src.width * k;
-  const openMid = (T.opening.left + T.opening.right) / 2;
   const portalY = RAIL_Y + 12;
 
   // The peak, starting halfway across the entrance mouth.
@@ -86,8 +85,8 @@ export function createTunnel(scene) {
   const peak = img(peakLeft, T.bottom, 'mountain-peak', T.peakHeight);
   const peakW = peak.displayWidth;
   const exitLeft = peakLeft + peakW - pw * 0.5;
-  const enterX = pw * openMid;
-  const exitX = exitLeft + pw * (1 - openMid);
+  const enterX = pw * T.opening.left;
+  const exitX = exitLeft + pw * (1 - T.opening.left);
 
   // Foothills either side, tucked partly behind the peak.
   const left = img(0, T.bottom, 'mountain-foothill', T.foothillHeight);
@@ -114,32 +113,26 @@ export function createTunnel(scene) {
   // Entrance: whole mouth behind the train; its right half (from the middle of the opening) in front.
   back.add(scene.add.image(0, portalY, 'tunnel-portal').setOrigin(0, 1).setScale(k));
   const enterFront = scene.add.image(0, portalY, 'tunnel-portal').setOrigin(0, 1).setScale(k);
-  enterFront.setCrop(src.width * openMid, 0, src.width * (1 - openMid), src.height);
+  enterFront.setCrop(src.width * T.opening.left, 0, src.width * (1 - T.opening.left), src.height);
 
   // Exit: the mouth mirrored; its left half (up to the middle of the opening) in front.
   back.add(scene.add.image(exitLeft, portalY, 'tunnel-portal-exit').setOrigin(0, 1).setScale(k));
   const exitFront = scene.add.image(exitLeft, portalY, 'tunnel-portal-exit').setOrigin(0, 1).setScale(k);
-  exitFront.setCrop(0, 0, src.width * (1 - openMid), src.height);
+  exitFront.setCrop(0, 0, src.width * (1 - T.opening.left), src.height);
 
-  // Rocks along the line in front of the train beside both foothills, so the train runs through a
-  // rocky cutting (not over the top of the foothills) on its way in and out.
-  const edgeRocks = [];
-  const lay = (from, to) => {
-    for (let x = from, i = 0; x < to; i++) {
-      const r = img(x, RAIL_Y + 52, 'transition-rocks', T.edgeRocksHeight).setFlipX(i % 2 === 1);
-      edgeRocks.push(r);
-      x += r.displayWidth * 0.8;
-    }
-  };
-  lay(left.x + left.displayWidth * 0.1, enterX);
-  lay(exitX, right.x + right.displayWidth * 0.9);
+  // Rock bank across the whole bottom of the screen, in front of the train and the mouths'
+  // bases, so the train runs into the mountain through a rocky cutting with no ground showing.
+  const bank = scene.add.container(0, 0).setDepth(DEPTH.foreground + 1);
+  const bankFrom = left.x - T.bankMargin;
+  const bankTo = right.x + right.displayWidth + T.bankMargin;
+  const bankSrc = scene.textures.get('tunnel-rock-bank').getSourceImage();
+  const bankH = 760 - T.bankTop;
+  const bankW = bankSrc.width * (bankH / bankSrc.height);
+  for (let x = bankFrom, i = 0; x < bankTo; i++) {
+    bank.add(scene.add.image(x, 762, 'tunnel-rock-bank').setOrigin(0, 1).setDisplaySize(bankW, bankH).setFlipX(i % 2 === 1));
+    x += bankW * 0.82;
+  }
 
-  front.add([interior, peak, ...bases, ...edgeRocks, enterFront, exitFront]);
-  return { back, front, enterX, exitX };
-}
-
-/** The rock pile that sweeps past in front of everything during a tunnel (see TUNNEL.rocksFactor). */
-export function createTransitionRocks(scene) {
-  const r = scene.add.image(0, 748, 'transition-rocks').setOrigin(0.5, 1).setDepth(DEPTH.foreground + 1);
-  return r.setScale(TUNNEL.rocksHeight / r.height);
+  front.add([interior, peak, ...bases, enterFront, exitFront]);
+  return { back, front, bank, enterX, exitX, bankFrom, bankTo };
 }

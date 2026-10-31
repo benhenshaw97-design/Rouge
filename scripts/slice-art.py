@@ -497,10 +497,10 @@ for name, box in {
 save(crop(ds, (1210, 426, 2086, 688)), 'sprites/desert-platform.png')
 # (desert-stops-variants.png isn't used: its painted background leaves white inside the buildings.)
 
-# Transition: rock pile that passes in front of everything as the train goes through the tunnel.
-fg_rocks = remove_painted_background(S('transition-foreground-rocks.png'))
-save(scale(crop(fg_rocks, (0, 0, fg_rocks.width, fg_rocks.height)), 0.6), 'sprites/transition-rocks.png')
 save(scale(crop(S('mountain-rock-band.png'), (0, 0, 2172, 724)), 0.5), 'sprites/mountain-rock-band.png')
+# Rock bank that fills the whole bottom of the screen in front of the train around the tunnel.
+bank_r = remove_painted_background(S('tunnel-rock-bank.png'))
+save(scale(crop(bank_r, (0, 400, 2172, 724)), 0.5), 'sprites/tunnel-rock-bank.png')
 
 (ROOT / 'src' / 'config' / 'area-art.json').write_text(json.dumps(area_art, indent=2) + '\n')
 

@@ -3,7 +3,7 @@ import { BALANCE, POI_TYPES, START_STATION } from '../config/balance.js';
 import { DEBUG } from '../config/debug.js';
 import { AREAS, COLORS, DEPTH, PARALLAX_LAYERS, TUNNEL, PX_PER_METRE, TRAIN_LAYOUT, WORLD_HEIGHT } from '../config/display.js';
 import { Train } from '../objects/Train.js';
-import { createJunction, createStop, createTransitionRocks, createTunnel } from '../objects/worldObjects.js';
+import { createJunction, createStop, createTunnel } from '../objects/worldObjects.js';
 import { createVisit } from '../poi/poiActions.js';
 import { TrainState } from '../state/TrainState.js';
 import { AudioManager } from '../systems/AudioManager.js';
@@ -174,17 +174,13 @@ export class GameScene extends Phaser.Scene {
     const parts = createTunnel(this);
     this.world.add(at, parts.back, { cullMargin: 2400 });
     this.world.add(at, parts.front, { cullMargin: 2400 });
-    // Rocks in the foreground pass the middle of the screen as the peak does.
+    this.world.add(at, parts.bank, { cullMargin: 4000 });
     const peakMid = at + (parts.enterX + parts.exitX) / 2 / PX_PER_METRE;
-    const screenMid = 640;
-    const when = peakMid + (this.train.frontX - screenMid) / PX_PER_METRE;
-    const rocksAt = when + (screenMid - this.train.frontX) / (PX_PER_METRE * TUNNEL.rocksFactor);
-    this.world.add(rocksAt, createTransitionRocks(this), { factor: TUNNEL.rocksFactor, cullMargin: 1200 });
     // The scenery changes along a boundary hidden behind the peak (and, for the layers in front
     // of it, behind the rocks), so it's meadow before the mountain and desert after.
     const next = AREAS[(this.areaIndex + 1) % AREAS.length];
     const split = this.parallax.beginSplit(next, ['ground', 'foreground-back', 'foreground']);
-    this.tunnel = { at, parts, swapped: false, split, peakMid, rocksAt };
+    this.tunnel = { at, parts, swapped: false, split, peakMid };
   }
 
   /**
@@ -204,8 +200,9 @@ export class GameScene extends Phaser.Scene {
     if (t.split) {
       const d = this.state.distance;
       const backX = this.train.frontX + (t.peakMid - d) * PX_PER_METRE;
-      const frontX = this.train.frontX + (t.rocksAt - d) * PX_PER_METRE * TUNNEL.rocksFactor;
-      this.parallax.setSplit(backX, frontX);
+      // The rock bank covers the ground and foreground there, so both switch at the peak.
+      this.parallax.setSplit(backX, backX);
+      const frontX = backX;
       const left = this.cameras.main.worldView.x - 50;
       if (backX < left && frontX < left) {
         this.parallax.endSplit();
@@ -213,7 +210,7 @@ export class GameScene extends Phaser.Scene {
       }
     }
     // Forget it once it has scrolled away (WorldLayer destroys the objects).
-    if (t.swapped && !t.split && !t.parts.front.active) this.tunnel = null;
+    if (t.swapped && !t.split && !t.parts.front.active && !t.parts.bank.active) this.tunnel = null;
   }
 
   /** God mode: head into the next area (a tunnel just ahead, or straight after the next stop). */

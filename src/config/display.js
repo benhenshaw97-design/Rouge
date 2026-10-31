@@ -116,9 +116,10 @@ export const TUNNEL = {
   foothillOverlap: 0.45, // how much of each foothill tucks behind the peak
   baseHeight: 96,
   rockBandHeight: 150, // long low ridge behind the foothills
-  rocksHeight: 175, // rock pile that sweeps past in front of everything (covers the ground's join)
-  rocksFactor: 1.35, // ...at the foreground's parallax speed
-  edgeRocksHeight: 78, // rocks along the line in front of the train, beside the foothills
+  // Rock bank filling the bottom of the screen in front of the train, all along the tunnel
+  // stretch: its top edge sits at bankTop, and it runs bankMargin past each foothill.
+  bankTop: RAIL_Y - 40,
+  bankMargin: 900,
   portalHeight: 190,
   opening: { left: 0.216, right: 0.595, top: 0.33 },
 };

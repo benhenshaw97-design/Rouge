@@ -31,7 +31,7 @@ export const IMAGES = {
   'mountain-foothill': 'sprites/mountain-foothill.png',
   'mountain-base': 'sprites/mountain-base.png',
   'mountain-rock-band': 'sprites/mountain-rock-band.png',
-  'transition-rocks': 'sprites/transition-rocks.png',
+  'tunnel-rock-bank': 'sprites/tunnel-rock-bank.png',
 
   // Desert stops (see AREAS in display.js)
   'desert-coal-depot': 'pois/desert-coal-depot.png',
