@@ -1,4 +1,6 @@
 import AREA_ART from './area-art.json';
+import { AREAS } from './areas.js';
+export { AREAS } from './areas.js';
 import TRAIN_ART from './train-art.json';
 
 // Layout and "feel" settings. Gameplay/balance numbers live in balance.js instead.
@@ -75,33 +77,6 @@ export const PARALLAX_LAYERS = [
  * PARALLAX_LAYERS puts it (or at `bottom` if given). Layers not listed keep the default art.
  * buildings: stop buildings per POI type (else POI_TYPES' own); platform: platform image for towns.
  */
-const areaLayer = (key) => ({ key, height: AREA_ART[key].height });
-export const AREAS = [
-  { id: 'meadow', name: 'The Meadows', layers: {}, platform: 'platform' },
-  {
-    id: 'desert',
-    name: 'The Red Desert',
-    layers: {
-      mountains: areaLayer('desert-mesas'),
-      // Dunes run down to the line, so sand fills in behind the rocks and village.
-      hills: { ...areaLayer('desert-dunes'), bottom: 590 },
-      trees: areaLayer('desert-rocks'),
-      village: areaLayer('desert-village'),
-      ground: { key: 'desert-ground', height: 1500, tileHeight: AREA_ART['desert-ground'].height },
-      'foreground-back': areaLayer('desert-foreground-back'),
-      foreground: areaLayer('desert-foreground'),
-    },
-    // Stops here use desert buildings (one look picked at random) and the desert platform.
-    buildings: {
-      coalDepot: ['desert-coal-depot'],
-      town: ['desert-town'],
-      mine: ['desert-mine'],
-      workshop: ['desert-workshop'],
-      waterTower: ['desert-water-tower'],
-    },
-    platform: 'desert-platform',
-  },
-];
 
 /**
  * Tunnels between areas: the line runs through a towering peak, with a tunnel mouth at each foot,
