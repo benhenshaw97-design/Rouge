@@ -28,14 +28,14 @@ export class ParallaxBackground {
     });
   }
 
-  /** Layer settings for an area: its art and height, bottom edge kept (or at `bottom`). */
+  /** Layer settings for an area: its art and height, bottom edge kept (or at `bottom`), and draw order (`depth`). */
   areaConfig(base, area) {
     const over = area.layers[base.key];
     const key = over?.key ?? base.key;
     const height = over?.height ?? base.height;
     const tileHeight = over?.tileHeight ?? (over ? undefined : base.tileHeight);
     const y = (over?.bottom ?? base.y + base.height) - height;
-    return { ...base, key, height, tileHeight, y };
+    return { ...base, key, height, tileHeight, y, depth: over?.depth ?? base.depth };
   }
 
   /** Builds a layer's display object for a config (sharing the scroll position `scrollPx`). */

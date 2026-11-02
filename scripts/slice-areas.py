@@ -28,6 +28,7 @@ H_MOUNTAINS, H_HILLS, H_TREES, H_VILLAGE = 185, 120, 190, 150
 HILLS_PAD = 0.6  # hills continue down to the line in their bottom colour, so gaps never show sky
 FG_K, FG_BACK_K, BANK_K = 0.42, 0.36, 0.3
 RAILGRASS_H, FGTREES_H = 30, 440
+RAIL_Y = 560  # design y of the rail top (src/config/display.js)
 
 
 def S(name, haze=None):
@@ -118,16 +119,6 @@ def drop_columns(img, ranges, blend=40):
     return out
 
 
-def tips(row, keep=0.42, solid=0.6):
-    """Just the tops of a plant row (blade tips with gaps), solid for the top `solid` of the
-    strip and then fading out, so it pokes up over the rails without hiding them."""
-    top = row.crop((0, 0, row.width, int(row.height * keep)))
-    a = np.asarray(top).copy()
-    fade = np.clip((1 - np.linspace(0, 1, a.shape[0])) / (1 - solid), 0, 1)[:, None]
-    a[..., 3] = (a[..., 3] * fade).astype(np.uint8)
-    return Image.fromarray(a)
-
-
 def middle_colour(img):
     """A darkened median of the image's middle rows (for padding below misty strips)."""
     a = np.asarray(img.convert('RGBA'))
@@ -199,9 +190,8 @@ AREAS = {
         'fg': ('jungle-foreground-rows.png', 200, (8, 199), (208, 370)),
         'fg_clear': True,  # the sheet's white backdrop clings round the leaves
         'fg_drop': {'front': [(775, 862)], 'back': [(1495, 1995)]},  # wooden posts and fences
-        # Low ferns in front of the rails, and big trees that sweep past in front of the train.
-        'railgrass': lambda: tips(crossfade_tile(drop_columns(
-            clear_fringe(S('jungle-foreground-rows.png')).crop((40, 540, 2130, 701)), [(1080, 1500)]), 160), keep=0.55, solid=0.85),
+        # Big trees that sweep past in front of the train.
+        'bank_over_rails': 8,  # the jungle bank's plants grow up in front of the track
         'fgtrees': lambda: scatter(S('jungle-kit.png'), [(0, 290, 1774, 464)], 6144, (700, 1600), min_w=120,
                                    keep=lambda p: p.height > 120, seed=4),
         'stops': [
@@ -282,6 +272,10 @@ def main():
         rel = save(scale(b, BANK_K * HI), f'backgrounds/{area}-ground.png')
         out['images'][f'{area}-ground'] = rel
         layers['ground'] = {'key': f'{area}-ground', 'height': 1500, 'tileHeight': round(bh, 1)}
+        if a.get('bank_over_rails'):
+            # The bank's plant tops rise this many px above its usual top (just under the
+            # sleepers) and it is drawn in front of the track (still behind the train).
+            layers['ground'].update(bottom=RAIL_Y + 6 + 1500 - a['bank_over_rails'], depth=6.4)
 
         fg_sheet, haze, front, back = a['fg']
         fs = clear_fringe(S(fg_sheet), haze) if a.get('fg_clear') else S(fg_sheet, haze)
@@ -303,8 +297,8 @@ def main():
             layers['foreground' if name.endswith('foreground') else 'foreground-back'] = {'key': name, 'height': round(h, 1)}
 
         if 'railgrass' in a:
-            g = a['railgrass']()
-            layers['railgrass'] = layer(f'{area}-railgrass', g, RAILGRASS_H)
+            layers['railgrass'] = layer(f'{area}-railgrass', a['railgrass'](), RAILGRASS_H)
+        if 'fgtrees' in a:
             layers['foreground-trees'] = layer(f'{area}-fgtrees', a['fgtrees'](), FGTREES_H)
 
         buildings = {}
