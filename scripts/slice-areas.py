@@ -27,7 +27,7 @@ HI = 2  # images are written at up to 2x their drawn size
 H_MOUNTAINS, H_HILLS, H_TREES, H_VILLAGE = 185, 120, 190, 150
 HILLS_PAD = 0.6  # hills continue down to the line in their bottom colour, so gaps never show sky
 FG_K, FG_BACK_K, BANK_K = 0.42, 0.36, 0.3
-RAILGRASS_H, FGTREES_H = 22, 440
+RAILGRASS_H, FGTREES_H = 30, 440
 
 
 def S(name, haze=None):
@@ -73,12 +73,57 @@ def scatter(img, boxes, width, spacing, *, overlap=0, grounded=None, min_w=40, s
     return compose(pieces, width, max(p.height for p in pieces), spacing=spacing, overlap=overlap, seed=seed)
 
 
-def tips(row, keep=0.42):
-    """Just the tops of a plant row (blade tips with gaps), fading out downwards, so it can
-    poke up over the rails without hiding them."""
+def clear_fringe(img, haze=200):
+    """Pale, washed-out pixels (left from a painted white backdrop) that touch the transparent
+    background are made transparent too, spreading inwards while they stay pale."""
+    a = np.asarray(img.convert('RGBA')).copy()
+    rgb = a[..., :3].astype(int)
+    pale = (rgb.mean(axis=2) > 150) & ((rgb.max(axis=2) - rgb.min(axis=2)) < 60)
+    bg = a[..., 3] < haze
+    while True:
+        g = bg.copy()
+        g[1:] |= bg[:-1]
+        g[:-1] |= bg[1:]
+        g[:, 1:] |= bg[:, :-1]
+        g[:, :-1] |= bg[:, 1:]
+        g = bg | (g & pale)
+        if (g == bg).all():
+            break
+        bg = g
+    a[..., 3] = np.where(bg, 0, a[..., 3])
+    return Image.fromarray(a)
+
+
+def drop_columns(img, ranges, blend=40):
+    """Cuts out x ranges (e.g. fence posts), blending each join so it doesn't show."""
+    keep, x = [], 0
+    for x0, x1 in sorted(ranges):
+        keep.append((x, x0))
+        x = x1
+    keep.append((x, img.width))
+    out = img.crop((keep[0][0], 0, keep[0][1], img.height))
+    for x0, x1 in keep[1:]:
+        nxt = img.crop((x0, 0, x1, img.height))
+        b = min(blend, out.width, nxt.width)
+        a1 = np.asarray(out).astype(float)
+        a2 = np.asarray(nxt).astype(float)
+        a1[..., :3] *= a1[..., 3:4] / 255
+        a2[..., :3] *= a2[..., 3:4] / 255
+        t = np.linspace(0, 1, b)[None, :, None]
+        mid = a1[:, -b:] * (1 - t) + a2[:, :b] * t
+        m = np.concatenate([a1[:, :-b], mid, a2[:, b:]], axis=1)
+        al = m[..., 3:4]
+        m[..., :3] = np.where(al > 0, m[..., :3] * 255 / np.maximum(al, 1e-6), 0)
+        out = Image.fromarray(np.clip(m, 0, 255).astype(np.uint8))
+    return out
+
+
+def tips(row, keep=0.42, solid=0.6):
+    """Just the tops of a plant row (blade tips with gaps), solid for the top `solid` of the
+    strip and then fading out, so it pokes up over the rails without hiding them."""
     top = row.crop((0, 0, row.width, int(row.height * keep)))
     a = np.asarray(top).copy()
-    fade = np.clip(np.linspace(1.6, 0, a.shape[0]), 0, 1)[:, None]
+    fade = np.clip((1 - np.linspace(0, 1, a.shape[0])) / (1 - solid), 0, 1)[:, None]
     a[..., 3] = (a[..., 3] * fade).astype(np.uint8)
     return Image.fromarray(a)
 
@@ -152,8 +197,11 @@ AREAS = {
         'village': lambda: scatter(S('jungle-kit.png'), [(0, 485, 1774, 608)], 4096, (140, 420)),
         'bank': lambda: bank(S('jungle-embankment.png'), (0, 225, 2172, 724), solid=False),
         'fg': ('jungle-foreground-rows.png', 200, (8, 199), (208, 370)),
+        'fg_clear': True,  # the sheet's white backdrop clings round the leaves
+        'fg_drop': {'front': [(775, 862)], 'back': [(1495, 1995)]},  # wooden posts and fences
         # Low ferns in front of the rails, and big trees that sweep past in front of the train.
-        'railgrass': lambda: tips(crossfade_tile(S('jungle-foreground-rows.png', 200).crop((40, 540, 2130, 701)), 160)),
+        'railgrass': lambda: tips(crossfade_tile(drop_columns(
+            clear_fringe(S('jungle-foreground-rows.png')).crop((40, 540, 2130, 701)), [(1080, 1500)]), 160), keep=0.55, solid=0.85),
         'fgtrees': lambda: scatter(S('jungle-kit.png'), [(0, 290, 1774, 464)], 6144, (700, 1600), min_w=120,
                                    keep=lambda p: p.height > 120, seed=4),
         'stops': [
@@ -236,14 +284,19 @@ def main():
         layers['ground'] = {'key': f'{area}-ground', 'height': 1500, 'tileHeight': round(bh, 1)}
 
         fg_sheet, haze, front, back = a['fg']
-        fs = S(fg_sheet, haze)
+        fs = clear_fringe(S(fg_sheet), haze) if a.get('fg_clear') else S(fg_sheet, haze)
+        drops = a.get('fg_drop', {})
         for name, rows, k in ((f'{area}-foreground', front, FG_K), (f'{area}-foreground-back', back, FG_BACK_K)):
             if rows is None:  # no row here: an empty strip, so the meadow's doesn't show
                 out['images'][name] = save(Image.new('RGBA', (64, 8), (0, 0, 0, 0)), f'backgrounds/{name}.png')
                 layers['foreground-back'] = {'key': name, 'height': 8}
                 continue
             y0, y1 = rows
-            row = crossfade_tile(fs.crop((40, y0, fs.width - 42, y1)), 160)
+            row = fs.crop((40, y0, fs.width - 42, y1))
+            ranges = drops.get('front' if name.endswith('foreground') else 'back')
+            if ranges:
+                row = drop_columns(row, [(x0 - 40, x1 - 40) for x0, x1 in ranges])
+            row = crossfade_tile(row, 160)
             h = row.height * k
             rel = save(scale(row, k * HI), f'backgrounds/{name}.png')
             out['images'][name] = rel
