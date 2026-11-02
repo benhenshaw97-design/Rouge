@@ -28,7 +28,7 @@ export class Hud {
     const { x, y, w, h } = spec;
     const panel = spec.style === 'panel';
 
-    frame(scene, 'button-brown', x + w / 2, y + h / 2, w, h).setAlpha(0.94);
+    this.frame = frame(scene, 'button-brown', x + w / 2, y + h / 2, w, h).setAlpha(0.94);
 
     // --- Gauges ---------------------------------------------------------------------------------
     const cols = panel ? 1 : spec.gaugeCols;

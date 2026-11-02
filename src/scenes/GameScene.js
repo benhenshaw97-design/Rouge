@@ -73,7 +73,7 @@ export class GameScene extends Phaser.Scene {
     kb?.on('keydown-TWO', () => this.selectBranch(1));
     kb?.on('keydown-SPACE', () => this.tryDepart());
     kb?.on('keydown-ENTER', () => this.tryDepart());
-    if (DEBUG.god) kb?.on('keydown-G', () => this.ui.god?.toggle());
+    kb?.on('keydown-G', () => this.ui.god?.toggle());
 
     this.audio.startMusic();
     this.cameras.main.fadeIn(500, 21, 17, 13);

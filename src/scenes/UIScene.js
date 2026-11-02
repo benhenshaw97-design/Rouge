@@ -7,7 +7,7 @@ import { roundButton, text } from '../ui/kit.js';
 import { PoiPanel } from '../ui/PoiPanel.js';
 import { StatusCard } from '../ui/StatusCard.js';
 import { GodPanel } from '../ui/GodPanel.js';
-import { DEBUG } from '../config/debug.js';
+import { DEBUG, setGod } from '../config/debug.js';
 import { BALANCE, POI_TYPES, START_STATION } from '../config/balance.js';
 
 /**
@@ -64,10 +64,25 @@ export class UIScene extends Phaser.Scene {
       .setVisible(false);
 
     this.buildControls(L);
-    if (DEBUG.god) this.god = new GodPanel(this, L);
+    this.god = DEBUG.god ? new GodPanel(this, L) : null;
+    this.addGodSwitch();
 
     if (this.junction) this.picker = new JunctionPicker(this, L.picker, this.junction, (i) => this.main.selectBranch(i), animate);
     if (this.panelArgs) this.panel = new PoiPanel(this, L.panel, this.panelArgs);
+  }
+
+  /** Tapping the gauges panel 5 times within 2 seconds switches god mode on or off. */
+  addGodSwitch() {
+    let taps = [];
+    this.hud.frame.setInteractive().on('pointerdown', () => {
+      const now = this.time.now;
+      taps = [...taps.filter((t) => now - t < 2000), now];
+      if (taps.length < 5) return;
+      taps = [];
+      setGod(!DEBUG.god);
+      this.build(false);
+      this.toast(`God mode ${DEBUG.god ? 'ON' : 'off'}`);
+    });
   }
 
   buildControls(L) {
