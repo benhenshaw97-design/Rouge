@@ -22,6 +22,7 @@ npm run dev        # http://localhost:5173
 | `npm run placeholders` | Recreate any missing placeholder sounds (never overwrites)      |
 | `python3 scripts/slice-art.py` | Re-cut the game's art from the sheets in `art/sheets/`  |
 | `python3 scripts/slice-areas.py` | Re-cut the snow, jungle, marsh, coast and town areas     |
+| `python3 scripts/compress-images.py` | Shrink images (run after either slicing script) |
 | `npm run check:assets` | Check every file the game loads exists                          |
 
 Add `?timescale=4` to the URL to run the simulation 4× faster when testing balance.
