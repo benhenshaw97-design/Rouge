@@ -27,10 +27,9 @@ npm run dev        # http://localhost:5173
 
 Add `?timescale=4` to the URL to run the simulation 4× faster when testing balance.
 
-**God mode:** tap the gauges panel 5 times quickly (do the same to switch it off; it's remembered
-on that device), or add `#god` to the end of the URL. A **GOD** button
-appears by the sound controls (or press **G**) with: unlimited fuel and water, +£500, game speed
-1× / 3× / 8×, go to the next area now, and full repair.
+**God mode:** tap the dim **GOD** button by the sound button (or add `#god` to the URL). It
+lights up and opens a panel (or press **G**) with: unlimited fuel and water, +£500, game speed
+1× / 3× / 8×, go to the next area now, full repair, and God mode off. It's remembered on that device.
 
 ## Controls
 

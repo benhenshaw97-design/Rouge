@@ -1,8 +1,7 @@
 // Developer helpers, switched on from the URL so they never ship switched on by accident.
 //   #god            god mode: a test panel in the game (unlimited fuel, money, speed, next area)
-//                   (or tap the gauges panel 5 times quickly; it stays on until switched off the same way)
+//                   (or tap the dim GOD button by the sound button; it stays on until switched off)
 //   ?timescale=4    run the simulation 4x faster (handy for testing balance)
-// (Tapping the panel is the way in on the shared artifact link, which may not pass #god through.)
 
 const loc = typeof location !== 'undefined' ? location : { search: '', hash: '' };
 const params = new URLSearchParams(loc.search);
