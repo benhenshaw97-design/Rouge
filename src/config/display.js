@@ -163,7 +163,9 @@ export const PLATFORM_HEIGHT = {
   ...Object.fromEntries(NEW_AREAS.areas.filter((a) => a.platform).map((a) => [a.platform, a.platformHeight])),
 };
 
-/** POI buildings are scaled to this height (design px). */
+/** POI buildings are scaled to this height (design px), but never wider than POI_BUILDING_MAX_WIDTH. */
+export const POI_BUILDING_MAX_WIDTH = 340;
+
 export const POI_BUILDING_HEIGHT = 235;
 
 /** Pixel font that matches the art, with fallbacks if it can't load. */

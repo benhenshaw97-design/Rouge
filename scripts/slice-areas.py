@@ -124,14 +124,15 @@ AREAS = {
         'name': 'The Emerald Jungle',
         'mountains': lambda: strip(S(JUNGLE), (0, 5, 2172, 183)),
         'hills': lambda: strip(S(JUNGLE), (0, 188, 2172, 360)),
-        'trees': lambda: strip(S(JUNGLE), (0, 376, 2172, 539)),
+        # Free-standing banyans, palms and bamboo (the close-up panel on jungle-layers is cut flat on top).
+        'trees': lambda: scatter(S('jungle-kit.png'), [(0, 298, 1774, 464)], 2048, (-30, 10), overlap=10, min_w=60),
         'village': lambda: scatter(S('jungle-kit.png'), [(0, 485, 1774, 608)], 4096, (140, 420)),
         'bank': lambda: bank(S('jungle-embankment.png'), (0, 225, 2172, 724), solid=False),
         'fg': ('jungle-foreground-rows.png', 200, (8, 199), (208, 370)),
         'stops': [
             ('jungle-stops.png', (0, 0, 2172, 268), {'waterTower': 0, 'workshop': 3}),
             ('jungle-stops.png', (0, 268, 2172, 500), {'town': 0, 'coalDepot': 6}),
-            ('jungle-stops.png', (0, 500, 2172, 700), {'mine': 7}),
+            ('jungle-stops.png', (0, 500, 2172, 700), {'mine': (7, 0.44)}),  # the cave, not its crates
         ],
     },
     'marsh': {
@@ -168,7 +169,7 @@ AREAS = {
         'trees': lambda: strip(S(TOWN), (0, 331, 2172, 503)),
         'village': lambda: scatter(S('town-kit.png'), [(0, 327, 2172, 464)], 4096, (160, 520)),
         'bank': lambda: bank(S('town-embankment.png'), (0, 354, 2172, 715)),
-        'fg': ('town-foreground-rows.png', None, (4, 196), (197, 374)),
+        'fg': ('town-foreground-rows.png', None, (4, 196), None),  # the bank is already a wall
         'stops': [
             ('town-kit.png', (0, 159, 2172, 322), {'town': 0, 'workshop': 5, 'coalDepot': 8, 'waterTower': 9}),
             ('victorian-station-props.png', (0, 452, 1774, 660), {'mine': 6}),
@@ -205,7 +206,12 @@ def main():
 
         fg_sheet, haze, front, back = a['fg']
         fs = S(fg_sheet, haze)
-        for name, (y0, y1), k in ((f'{area}-foreground', front, FG_K), (f'{area}-foreground-back', back, FG_BACK_K)):
+        for name, rows, k in ((f'{area}-foreground', front, FG_K), (f'{area}-foreground-back', back, FG_BACK_K)):
+            if rows is None:  # no row here: an empty strip, so the meadow's doesn't show
+                out['images'][name] = save(Image.new('RGBA', (64, 8), (0, 0, 0, 0)), f'backgrounds/{name}.png')
+                layers['foreground-back'] = {'key': name, 'height': 8}
+                continue
+            y0, y1 = rows
             row = crossfade_tile(fs.crop((40, y0, fs.width - 42, y1)), 160)
             h = row.height * k
             rel = save(scale(row, k * HI), f'backgrounds/{name}.png')
@@ -219,7 +225,11 @@ def main():
             img = S(name)
             for poi_type, index in picks.items():
                 key = f'{area}-{poi_type}'
+                index, keep_from = index if isinstance(index, tuple) else (index, 0)
                 b = piece(img, box, index, label=label)
+                if keep_from:  # drop clutter on the left of the building
+                    b = b.crop((int(b.width * keep_from), 0, b.width, b.height))
+                    b = b.crop(b.getchannel('A').point(lambda v: 255 if v > 40 else 0).getbbox())
                 out['images'][key] = save(fit(b, 235), f'pois/{key}.png')
                 buildings[poi_type] = [key]
 
