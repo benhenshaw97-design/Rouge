@@ -137,10 +137,18 @@ export const NINE_SLICE = {
 
 /** Background music, played in a shuffled order (streamed, see systems/MusicPlayer.js). */
 export const MUSIC = [
+  'audio/music/marimba-breakbeat-2.mp3',
+  'audio/music/marimba-breakbeat.mp3',
+  'audio/music/snes-dub-dreams-2.mp3',
+  'audio/music/snes-dub-dreams.mp3',
+  'audio/music/steambox-arpeggios.mp3',
+  'audio/music/steamy-pixel-dreams-2.mp3',
+  'audio/music/steamy-pixel-dreams.mp3',
   'audio/music/trains-1.mp3',
   'audio/music/trains-2.mp3',
   'audio/music/trains-3.mp3',
   'audio/music/trains-4.mp3',
+  'audio/music/wandering-pixel-groove.mp3',
 ];
 
 /**
