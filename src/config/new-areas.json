@@ -127,7 +127,8 @@
       "layers": {
         "mountains": {
           "key": "jungle-mountains",
-          "height": 185
+          "height": 259.0,
+          "bottom": 515
         },
         "hills": {
           "key": "jungle-hills",
@@ -157,7 +158,7 @@
         },
         "railgrass": {
           "key": "jungle-railgrass",
-          "height": 34
+          "height": 22
         },
         "foreground-trees": {
           "key": "jungle-fgtrees",

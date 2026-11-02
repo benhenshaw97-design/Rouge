@@ -66,7 +66,7 @@ export const PARALLAX_LAYERS = [
   // The rails, positioned so the rail's top edge is RAIL_Y.
   { key: 'rails', factor: 1, y: RAIL_Y - TRAIN_ART.rails.railTop, height: TRAIN_ART.rails.height, depth: DEPTH.track },
   // Undergrowth just in front of the rails (behind the train); empty unless an area sets it.
-  { key: 'railgrass', factor: 1, y: RAIL_Y + 14 - 8, height: 8, depth: DEPTH.lineside },
+  { key: 'railgrass', factor: 1, y: RAIL_Y + 12 - 8, height: 8, depth: DEPTH.lineside },
   // Big trees sweeping past in front of everything; empty unless an area sets it.
   { key: 'foreground-trees', factor: 1.7, y: 760 - 8, height: 8, depth: DEPTH.foreground + 0.5 },
   // Grass, flowers and bushes along the bottom of the screen, nearer the viewer than the line.

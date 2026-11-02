@@ -27,7 +27,7 @@ HI = 2  # images are written at up to 2x their drawn size
 H_MOUNTAINS, H_HILLS, H_TREES, H_VILLAGE = 185, 120, 190, 150
 HILLS_PAD = 0.6  # hills continue down to the line in their bottom colour, so gaps never show sky
 FG_K, FG_BACK_K, BANK_K = 0.42, 0.36, 0.3
-RAILGRASS_H, FGTREES_H = 34, 440
+RAILGRASS_H, FGTREES_H = 22, 440
 
 
 def S(name, haze=None):
@@ -73,8 +73,27 @@ def scatter(img, boxes, width, spacing, *, overlap=0, grounded=None, min_w=40, s
     return compose(pieces, width, max(p.height for p in pieces), spacing=spacing, overlap=overlap, seed=seed)
 
 
-def pad_bottom(img, frac):
-    out = Image.new('RGBA', (img.width, int(img.height * (1 + frac))), bottom_colour(img))
+def tips(row, keep=0.42):
+    """Just the tops of a plant row (blade tips with gaps), fading out downwards, so it can
+    poke up over the rails without hiding them."""
+    top = row.crop((0, 0, row.width, int(row.height * keep)))
+    a = np.asarray(top).copy()
+    fade = np.clip(np.linspace(1.6, 0, a.shape[0]), 0, 1)[:, None]
+    a[..., 3] = (a[..., 3] * fade).astype(np.uint8)
+    return Image.fromarray(a)
+
+
+def middle_colour(img):
+    """A darkened median of the image's middle rows (for padding below misty strips)."""
+    a = np.asarray(img.convert('RGBA'))
+    h = a.shape[0]
+    rows = a[int(h * 0.45):int(h * 0.8)].reshape(-1, 4)
+    rows = rows[rows[:, 3] > 200]
+    return tuple(int(c * 0.8) for c in np.median(rows[:, :3], axis=0)) + (255,)
+
+
+def pad_bottom(img, frac, colour=None):
+    out = Image.new('RGBA', (img.width, int(img.height * (1 + frac))), colour or bottom_colour(img))
     out.paste(Image.new('RGBA', img.size, (0, 0, 0, 0)), (0, 0))
     out.alpha_composite(img, (0, 0))
     return out
@@ -125,15 +144,17 @@ AREAS = {
         'name': 'The Emerald Jungle',
         'mountains': lambda: strip(S(JUNGLE), (0, 5, 2172, 183)),
         # Misty distant canopy (the jungle-layers panel has a giant tree cut flat at the top).
-        'hills': lambda: strip(S('jungle-kit.png'), (0, 212, 1774, 296)),
+        'hills': lambda: strip(S('jungle-kit.png'), (0, 212, 1774, 289)),
+        'mountains_pad': 0.4,  # the canopy's misty top is see-through; keep sky from showing behind it
+        'hills_pad': 'middle',  # its bottom rows are pale mist; fill below with canopy green
         # Free-standing banyans, palms and bamboo (the close-up panel on jungle-layers is cut flat on top).
-        'trees': lambda: scatter(S('jungle-kit.png'), [(0, 298, 1774, 464)], 2048, (-30, 10), overlap=10, min_w=60),
+        'trees': lambda: scatter(S('jungle-kit.png'), [(0, 290, 1774, 464)], 2048, (-30, 10), overlap=10, min_w=60),
         'village': lambda: scatter(S('jungle-kit.png'), [(0, 485, 1774, 608)], 4096, (140, 420)),
         'bank': lambda: bank(S('jungle-embankment.png'), (0, 225, 2172, 724), solid=False),
         'fg': ('jungle-foreground-rows.png', 200, (8, 199), (208, 370)),
         # Low ferns in front of the rails, and big trees that sweep past in front of the train.
-        'railgrass': lambda: crossfade_tile(S('jungle-foreground-rows.png', 200).crop((40, 540, 2130, 701)), 160),
-        'fgtrees': lambda: scatter(S('jungle-kit.png'), [(0, 298, 1774, 464)], 6144, (700, 1600), min_w=120,
+        'railgrass': lambda: tips(crossfade_tile(S('jungle-foreground-rows.png', 200).crop((40, 540, 2130, 701)), 160)),
+        'fgtrees': lambda: scatter(S('jungle-kit.png'), [(0, 290, 1774, 464)], 6144, (700, 1600), min_w=120,
                                    keep=lambda p: p.height > 120, seed=4),
         'stops': [
             ('jungle-stops.png', (0, 0, 2172, 268), {'waterTower': 0, 'workshop': 3}),
@@ -195,12 +216,16 @@ def main():
 
     for area, a in AREAS.items():
         layers = {}
-        layers['mountains'] = layer(f'{area}-mountains', a['mountains'](), H_MOUNTAINS)
+        mpad = a.get('mountains_pad', 0)  # continue the mountains down in their bottom colour
+        layers['mountains'] = layer(f'{area}-mountains', pad_bottom(a['mountains'](), mpad) if mpad else a['mountains'](), H_MOUNTAINS * (1 + mpad))
+        if mpad:
+            layers['mountains']['bottom'] = round(441 + H_MOUNTAINS * mpad)
         hills = a['hills']()
         if 'hills_height' in a:
             layers['hills'] = {**layer(f'{area}-hills', hills, a['hills_height']), 'bottom': 590}
         else:
-            layers['hills'] = {**layer(f'{area}-hills', pad_bottom(hills, HILLS_PAD), H_HILLS * (1 + HILLS_PAD)), 'bottom': 590}
+            colour = middle_colour(hills) if a.get('hills_pad') == 'middle' else None
+            layers['hills'] = {**layer(f'{area}-hills', pad_bottom(hills, HILLS_PAD, colour), H_HILLS * (1 + HILLS_PAD)), 'bottom': 590}
         layers['trees'] = layer(f'{area}-trees', a['trees'](), H_TREES)
         layers['village'] = layer(f'{area}-village', a['village'](), H_VILLAGE)
 
