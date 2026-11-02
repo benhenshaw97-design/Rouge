@@ -123,7 +123,8 @@ AREAS = {
     'jungle': {
         'name': 'The Emerald Jungle',
         'mountains': lambda: strip(S(JUNGLE), (0, 5, 2172, 183)),
-        'hills': lambda: strip(S(JUNGLE), (0, 188, 2172, 360)),
+        # Misty distant canopy (the jungle-layers panel has a giant tree cut flat at the top).
+        'hills': lambda: strip(S('jungle-kit.png'), (0, 212, 1774, 296)),
         # Free-standing banyans, palms and bamboo (the close-up panel on jungle-layers is cut flat on top).
         'trees': lambda: scatter(S('jungle-kit.png'), [(0, 298, 1774, 464)], 2048, (-30, 10), overlap=10, min_w=60),
         'village': lambda: scatter(S('jungle-kit.png'), [(0, 485, 1774, 608)], 4096, (140, 420)),
