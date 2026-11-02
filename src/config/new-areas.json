@@ -1,0 +1,337 @@
+{
+  "images": {
+    "snow-mountains": "backgrounds/snow-mountains.png",
+    "snow-hills": "backgrounds/snow-hills.png",
+    "snow-trees": "backgrounds/snow-trees.png",
+    "snow-village": "backgrounds/snow-village.png",
+    "snow-ground": "backgrounds/snow-ground.png",
+    "snow-foreground": "backgrounds/snow-foreground.png",
+    "snow-foreground-back": "backgrounds/snow-foreground-back.png",
+    "snow-coalDepot": "pois/snow-coalDepot.png",
+    "snow-town": "pois/snow-town.png",
+    "snow-mine": "pois/snow-mine.png",
+    "snow-workshop": "pois/snow-workshop.png",
+    "snow-waterTower": "pois/snow-waterTower.png",
+    "snow-platform": "sprites/snow-platform.png",
+    "jungle-mountains": "backgrounds/jungle-mountains.png",
+    "jungle-hills": "backgrounds/jungle-hills.png",
+    "jungle-trees": "backgrounds/jungle-trees.png",
+    "jungle-village": "backgrounds/jungle-village.png",
+    "jungle-ground": "backgrounds/jungle-ground.png",
+    "jungle-foreground": "backgrounds/jungle-foreground.png",
+    "jungle-foreground-back": "backgrounds/jungle-foreground-back.png",
+    "jungle-waterTower": "pois/jungle-waterTower.png",
+    "jungle-workshop": "pois/jungle-workshop.png",
+    "jungle-town": "pois/jungle-town.png",
+    "jungle-coalDepot": "pois/jungle-coalDepot.png",
+    "jungle-mine": "pois/jungle-mine.png",
+    "marsh-mountains": "backgrounds/marsh-mountains.png",
+    "marsh-hills": "backgrounds/marsh-hills.png",
+    "marsh-trees": "backgrounds/marsh-trees.png",
+    "marsh-village": "backgrounds/marsh-village.png",
+    "marsh-ground": "backgrounds/marsh-ground.png",
+    "marsh-foreground": "backgrounds/marsh-foreground.png",
+    "marsh-foreground-back": "backgrounds/marsh-foreground-back.png",
+    "marsh-coalDepot": "pois/marsh-coalDepot.png",
+    "marsh-mine": "pois/marsh-mine.png",
+    "marsh-workshop": "pois/marsh-workshop.png",
+    "marsh-town": "pois/marsh-town.png",
+    "marsh-waterTower": "pois/marsh-waterTower.png",
+    "coast-mountains": "backgrounds/coast-mountains.png",
+    "coast-hills": "backgrounds/coast-hills.png",
+    "coast-trees": "backgrounds/coast-trees.png",
+    "coast-village": "backgrounds/coast-village.png",
+    "coast-ground": "backgrounds/coast-ground.png",
+    "coast-foreground": "backgrounds/coast-foreground.png",
+    "coast-foreground-back": "backgrounds/coast-foreground-back.png",
+    "coast-coalDepot": "pois/coast-coalDepot.png",
+    "coast-town": "pois/coast-town.png",
+    "coast-workshop": "pois/coast-workshop.png",
+    "coast-waterTower": "pois/coast-waterTower.png",
+    "coast-mine": "pois/coast-mine.png",
+    "town-mountains": "backgrounds/town-mountains.png",
+    "town-hills": "backgrounds/town-hills.png",
+    "town-trees": "backgrounds/town-trees.png",
+    "town-village": "backgrounds/town-village.png",
+    "town-ground": "backgrounds/town-ground.png",
+    "town-foreground": "backgrounds/town-foreground.png",
+    "town-foreground-back": "backgrounds/town-foreground-back.png",
+    "town-town": "pois/town-town.png",
+    "town-workshop": "pois/town-workshop.png",
+    "town-coalDepot": "pois/town-coalDepot.png",
+    "town-waterTower": "pois/town-waterTower.png",
+    "town-mine": "pois/town-mine.png",
+    "town-platform": "sprites/town-platform.png"
+  },
+  "areas": [
+    {
+      "id": "snow",
+      "name": "The Frozen Peaks",
+      "layers": {
+        "mountains": {
+          "key": "snow-mountains",
+          "height": 185
+        },
+        "hills": {
+          "key": "snow-hills",
+          "height": 192.0,
+          "bottom": 590
+        },
+        "trees": {
+          "key": "snow-trees",
+          "height": 190
+        },
+        "village": {
+          "key": "snow-village",
+          "height": 150
+        },
+        "ground": {
+          "key": "snow-ground",
+          "height": 1500,
+          "tileHeight": 161.4
+        },
+        "foreground": {
+          "key": "snow-foreground",
+          "height": 76.9
+        },
+        "foreground-back": {
+          "key": "snow-foreground-back",
+          "height": 64.4
+        }
+      },
+      "buildings": {
+        "coalDepot": [
+          "snow-coalDepot"
+        ],
+        "town": [
+          "snow-town"
+        ],
+        "mine": [
+          "snow-mine"
+        ],
+        "workshop": [
+          "snow-workshop"
+        ],
+        "waterTower": [
+          "snow-waterTower"
+        ]
+      },
+      "platform": "snow-platform",
+      "platformHeight": 110
+    },
+    {
+      "id": "jungle",
+      "name": "The Emerald Jungle",
+      "layers": {
+        "mountains": {
+          "key": "jungle-mountains",
+          "height": 185
+        },
+        "hills": {
+          "key": "jungle-hills",
+          "height": 192.0,
+          "bottom": 590
+        },
+        "trees": {
+          "key": "jungle-trees",
+          "height": 190
+        },
+        "village": {
+          "key": "jungle-village",
+          "height": 150
+        },
+        "ground": {
+          "key": "jungle-ground",
+          "height": 1500,
+          "tileHeight": 209.7
+        },
+        "foreground": {
+          "key": "jungle-foreground",
+          "height": 80.2
+        },
+        "foreground-back": {
+          "key": "jungle-foreground-back",
+          "height": 58.3
+        }
+      },
+      "buildings": {
+        "waterTower": [
+          "jungle-waterTower"
+        ],
+        "workshop": [
+          "jungle-workshop"
+        ],
+        "town": [
+          "jungle-town"
+        ],
+        "coalDepot": [
+          "jungle-coalDepot"
+        ],
+        "mine": [
+          "jungle-mine"
+        ]
+      }
+    },
+    {
+      "id": "marsh",
+      "name": "The Mistbound Marshes",
+      "layers": {
+        "mountains": {
+          "key": "marsh-mountains",
+          "height": 185
+        },
+        "hills": {
+          "key": "marsh-hills",
+          "height": 192.0,
+          "bottom": 590
+        },
+        "trees": {
+          "key": "marsh-trees",
+          "height": 190
+        },
+        "village": {
+          "key": "marsh-village",
+          "height": 150
+        },
+        "ground": {
+          "key": "marsh-ground",
+          "height": 1500,
+          "tileHeight": 210.0
+        },
+        "foreground": {
+          "key": "marsh-foreground",
+          "height": 68.5
+        },
+        "foreground-back": {
+          "key": "marsh-foreground-back",
+          "height": 44.6
+        }
+      },
+      "buildings": {
+        "coalDepot": [
+          "marsh-coalDepot"
+        ],
+        "mine": [
+          "marsh-mine"
+        ],
+        "workshop": [
+          "marsh-workshop"
+        ],
+        "town": [
+          "marsh-town"
+        ],
+        "waterTower": [
+          "marsh-waterTower"
+        ]
+      }
+    },
+    {
+      "id": "coast",
+      "name": "The Saltwind Coast",
+      "layers": {
+        "mountains": {
+          "key": "coast-mountains",
+          "height": 185
+        },
+        "hills": {
+          "key": "coast-hills",
+          "height": 200,
+          "bottom": 590
+        },
+        "trees": {
+          "key": "coast-trees",
+          "height": 190
+        },
+        "village": {
+          "key": "coast-village",
+          "height": 150
+        },
+        "ground": {
+          "key": "coast-ground",
+          "height": 1500,
+          "tileHeight": 161.7
+        },
+        "foreground": {
+          "key": "coast-foreground",
+          "height": 69.3
+        },
+        "foreground-back": {
+          "key": "coast-foreground-back",
+          "height": 58.3
+        }
+      },
+      "buildings": {
+        "coalDepot": [
+          "coast-coalDepot"
+        ],
+        "town": [
+          "coast-town"
+        ],
+        "workshop": [
+          "coast-workshop"
+        ],
+        "waterTower": [
+          "coast-waterTower"
+        ],
+        "mine": [
+          "coast-mine"
+        ]
+      }
+    },
+    {
+      "id": "town",
+      "name": "Brasswick",
+      "layers": {
+        "mountains": {
+          "key": "town-mountains",
+          "height": 185
+        },
+        "hills": {
+          "key": "town-hills",
+          "height": 192.0,
+          "bottom": 590
+        },
+        "trees": {
+          "key": "town-trees",
+          "height": 190
+        },
+        "village": {
+          "key": "town-village",
+          "height": 150
+        },
+        "ground": {
+          "key": "town-ground",
+          "height": 1500,
+          "tileHeight": 158.7
+        },
+        "foreground": {
+          "key": "town-foreground",
+          "height": 80.6
+        },
+        "foreground-back": {
+          "key": "town-foreground-back",
+          "height": 63.7
+        }
+      },
+      "buildings": {
+        "town": [
+          "town-town"
+        ],
+        "workshop": [
+          "town-workshop"
+        ],
+        "coalDepot": [
+          "town-coalDepot"
+        ],
+        "waterTower": [
+          "town-waterTower"
+        ],
+        "mine": [
+          "town-mine"
+        ]
+      },
+      "platform": "town-platform",
+      "platformHeight": 125
+    }
+  ]
+}

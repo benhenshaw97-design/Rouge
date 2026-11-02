@@ -38,9 +38,11 @@ Tick items off as you upload them (GitHub: Add file → Upload files).
 Each area needs: sky or clouds strip, far mountains, mid hills or dunes, a scatter of props
 (like the desert props sheet), a ground bank under the rails, 1–2 foreground rows, and the five stop
 buildings (coal depot, town, mine, workshop, water tower) plus a platform.
-- [ ] Snow / mountains (you already have a snow track piece)
-- [ ] Coast / harbour
-- [ ] Industrial town
+- [x] Snow (The Frozen Peaks)
+- [x] Coast (The Saltwind Coast)
+- [x] Victorian town (Brasswick)
+- [x] Jungle (The Emerald Jungle)
+- [x] Marsh (The Mistbound Marshes)
 - [ ] Night or sunset version of the meadow (sunset sky and mountain strips are already uploaded)
 
 ## 5. Future features

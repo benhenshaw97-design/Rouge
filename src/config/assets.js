@@ -1,3 +1,5 @@
+import NEW_AREAS from './new-areas.json' with { type: 'json' };
+
 // Every file the game loads, by key. Paths are relative to the /assets folder.
 //
 // Most images are cut from the sheets in /art/sheets by scripts/slice-art.py.
@@ -5,6 +7,9 @@
 // new file here. SVG, PNG, JPG and WebP all work for images; WAV, MP3 and OGG for audio.
 
 export const IMAGES = {
+  // Snow, jungle, marsh, coast and town areas (written by scripts/slice-areas.py)
+  ...NEW_AREAS.images,
+
   // Parallax background layers (see PARALLAX_LAYERS in display.js)
   sky: 'backgrounds/sky.png',
   clouds: 'backgrounds/clouds.png',

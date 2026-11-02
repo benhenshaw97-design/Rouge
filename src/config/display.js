@@ -1,4 +1,5 @@
 import AREA_ART from './area-art.json';
+import NEW_AREAS from './new-areas.json';
 import TRAIN_ART from './train-art.json';
 
 // Layout and "feel" settings. Gameplay/balance numbers live in balance.js instead.
@@ -101,6 +102,8 @@ export const AREAS = [
     },
     platform: 'desert-platform',
   },
+  // Snow, jungle, marsh, coast and town: built by scripts/slice-areas.py (see new-areas.json).
+  ...NEW_AREAS.areas,
 ];
 
 /**
@@ -155,7 +158,10 @@ export const TRAIN_LAYOUT = {
 export const POINTS = TRAIN_ART.points;
 
 /** Platforms drawn at a set height (design px); others stretch to the building's width. */
-export const PLATFORM_HEIGHT = { 'desert-platform': 105 };
+export const PLATFORM_HEIGHT = {
+  'desert-platform': 105,
+  ...Object.fromEntries(NEW_AREAS.areas.filter((a) => a.platform).map((a) => [a.platform, a.platformHeight])),
+};
 
 /** POI buildings are scaled to this height (design px). */
 export const POI_BUILDING_HEIGHT = 235;

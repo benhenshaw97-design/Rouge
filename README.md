@@ -21,6 +21,8 @@ npm run dev        # http://localhost:5173
 | `npm run preview`      | Serve the production build locally                              |
 | `npm run placeholders` | Recreate any missing placeholder sounds (never overwrites)      |
 | `python3 scripts/slice-art.py` | Re-cut the game's art from the sheets in `art/sheets/`  |
+| `python3 scripts/slice-areas.py` | Re-cut the snow, jungle, marsh, coast and town areas     |
+| `npm run check:assets` | Check every file the game loads exists                          |
 
 Add `?timescale=4` to the URL to run the simulation 4× faster when testing balance.
 
@@ -115,7 +117,8 @@ scripts/generate-placeholders.mjs   Makes placeholder files for anything without
   Pin things to the line with `WorldLayer.add(metres, gameObject)`.
 - **Passenger requests**: passengers are stored as groups with where and when they boarded
   (`TrainState.passengers`), so a destination field slots in naturally.
-- **New areas**: add an entry to `AREAS` in `display.js` listing the layer art it swaps in. The line runs through
+- **New areas**: add an entry to `AREAS` in `scripts/slice-areas.py` (where each piece is on its sheets) and
+  run it; or hand-write one in `AREAS` in `display.js` listing the layer art it swaps in. The line runs through
   the areas in turn, with a tunnel between each (`route.areaLength` in `balance.js` sets how long each lasts).
 
 ## Deploying to GitHub Pages
