@@ -20,6 +20,8 @@
     "jungle-ground": "backgrounds/jungle-ground.png",
     "jungle-foreground": "backgrounds/jungle-foreground.png",
     "jungle-foreground-back": "backgrounds/jungle-foreground-back.png",
+    "jungle-railgrass": "backgrounds/jungle-railgrass.png",
+    "jungle-fgtrees": "backgrounds/jungle-fgtrees.png",
     "jungle-waterTower": "pois/jungle-waterTower.png",
     "jungle-workshop": "pois/jungle-workshop.png",
     "jungle-town": "pois/jungle-town.png",
@@ -152,6 +154,14 @@
         "foreground-back": {
           "key": "jungle-foreground-back",
           "height": 58.3
+        },
+        "railgrass": {
+          "key": "jungle-railgrass",
+          "height": 34
+        },
+        "foreground-trees": {
+          "key": "jungle-fgtrees",
+          "height": 440
         }
       },
       "buildings": {

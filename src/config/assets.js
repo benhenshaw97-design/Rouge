@@ -19,6 +19,9 @@ export const IMAGES = {
   village: 'backgrounds/village.png',
   ground: 'backgrounds/ground.png',
   rails: 'backgrounds/rails.png',
+  // Layers only some areas use (e.g. the jungle); empty everywhere else.
+  railgrass: 'sprites/blank.png',
+  'foreground-trees': 'sprites/blank.png',
   'foreground-back': 'backgrounds/foreground-back.png',
   foreground: 'backgrounds/foreground.png',
 
@@ -129,7 +132,7 @@ export const IMAGES = {
 };
 
 /** Images drawn with hard pixel edges when enlarged (the 9-slice frames). */
-export const PIXEL_PERFECT = Object.keys(IMAGES).filter((k) => k.startsWith('button-'));
+export const PIXEL_PERFECT = Object.keys(IMAGES).filter((k) => k.startsWith('button-') || k.endsWith('-fgtrees'));
 
 /**
  * 9-slice frames: how many pixels from each edge of the image are border (kept unstretched).

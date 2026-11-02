@@ -179,7 +179,9 @@ export class GameScene extends Phaser.Scene {
     // The scenery changes along a boundary hidden behind the peak (and, for the layers in front
     // of it, behind the rocks), so it's meadow before the mountain and desert after.
     const next = AREAS[(this.areaIndex + 1) % AREAS.length];
-    const split = this.parallax.beginSplit(next, ['ground', 'foreground-back', 'foreground']);
+    const split = this.parallax.beginSplit(next, ['ground', 'railgrass', 'foreground-back', 'foreground', 'foreground-trees']);
+    // Tall foreground trees would show the scenery switch above the rock bank, so they step aside.
+    this.parallax.fadeLayer('foreground-trees', 0, 500);
     this.tunnel = { at, parts, swapped: false, split, peakMid };
   }
 
@@ -212,6 +214,7 @@ export class GameScene extends Phaser.Scene {
       const left = this.cameras.main.worldView.x - 50;
       if (backX < left && frontX < left) {
         this.parallax.endSplit();
+        this.parallax.fadeLayer('foreground-trees', 1, 800);
         t.split = false;
       }
     }

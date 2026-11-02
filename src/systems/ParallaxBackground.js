@@ -114,6 +114,7 @@ export class ParallaxBackground {
       const { obj, scale } = this.makeObject(cfg, old.tilePositionX * oldScale);
       old.setMask(side.hide);
       obj.setMask(side.show);
+      obj.setAlpha(layer.alpha ?? 1);
       layer.cfg = cfg;
       layer.obj = obj;
       layer.scale = scale;
@@ -144,6 +145,15 @@ export class ParallaxBackground {
       side.g.destroy();
     }
     this.split = null;
+  }
+
+  /** Fades a layer (by its base key) in or out, including its art after any area change. */
+  fadeLayer(key, alpha, duration) {
+    const layer = this.layers.find((l) => l.base.key === key);
+    if (!layer) return;
+    layer.alpha = alpha;
+    const targets = [layer.obj, layer.fading?.obj].filter((o) => o?.active);
+    this.scene.tweens.add({ targets, alpha, duration });
   }
 
   /**

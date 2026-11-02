@@ -27,6 +27,7 @@ HI = 2  # images are written at up to 2x their drawn size
 H_MOUNTAINS, H_HILLS, H_TREES, H_VILLAGE = 185, 120, 190, 150
 HILLS_PAD = 0.6  # hills continue down to the line in their bottom colour, so gaps never show sky
 FG_K, FG_BACK_K, BANK_K = 0.42, 0.36, 0.3
+RAILGRASS_H, FGTREES_H = 34, 440
 
 
 def S(name, haze=None):
@@ -130,6 +131,10 @@ AREAS = {
         'village': lambda: scatter(S('jungle-kit.png'), [(0, 485, 1774, 608)], 4096, (140, 420)),
         'bank': lambda: bank(S('jungle-embankment.png'), (0, 225, 2172, 724), solid=False),
         'fg': ('jungle-foreground-rows.png', 200, (8, 199), (208, 370)),
+        # Low ferns in front of the rails, and big trees that sweep past in front of the train.
+        'railgrass': lambda: crossfade_tile(S('jungle-foreground-rows.png', 200).crop((40, 540, 2130, 701)), 160),
+        'fgtrees': lambda: scatter(S('jungle-kit.png'), [(0, 298, 1774, 464)], 6144, (700, 1600), min_w=120,
+                                   keep=lambda p: p.height > 120, seed=4),
         'stops': [
             ('jungle-stops.png', (0, 0, 2172, 268), {'waterTower': 0, 'workshop': 3}),
             ('jungle-stops.png', (0, 268, 2172, 500), {'town': 0, 'coalDepot': 6}),
@@ -218,6 +223,11 @@ def main():
             rel = save(scale(row, k * HI), f'backgrounds/{name}.png')
             out['images'][name] = rel
             layers['foreground' if name.endswith('foreground') else 'foreground-back'] = {'key': name, 'height': round(h, 1)}
+
+        if 'railgrass' in a:
+            g = a['railgrass']()
+            layers['railgrass'] = layer(f'{area}-railgrass', g, RAILGRASS_H)
+            layers['foreground-trees'] = layer(f'{area}-fgtrees', a['fgtrees'](), FGTREES_H)
 
         buildings = {}
         for stop in a['stops']:
