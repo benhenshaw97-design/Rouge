@@ -1,3 +1,5 @@
+import { STOP_NAMES } from '../config/balance.js';
+
 /**
  * Plans the line ahead: after each stop, a junction with two signposted branches, then the
  * POI down whichever branch the points are set to.
@@ -31,6 +33,7 @@ export class RouteManager {
     // Pick which look each destination has now, so the signpost can show the real building.
     // (Using the area the stops will be in, which may differ from the current one after a tunnel.)
     this.junction.buildings = this.junction.options.map((type) => this.buildingFor(type, area));
+    this.junction.area = area;
     return this.junction;
   }
 
@@ -47,7 +50,7 @@ export class RouteManager {
     this.poi = {
       id: this.nextId++,
       type,
-      name: this.pick(def.names),
+      name: this.pick(STOP_NAMES[j.area?.id]?.[type] ?? def.names),
       building: j.buildings[j.selected],
       at: j.at + this.range(this.b.route.branchDistance),
       visited: false,
@@ -91,7 +94,9 @@ export class RouteManager {
 
   /** Re-picks the pending junction's buildings for an area (after going through a tunnel). */
   restyleJunction(area) {
-    if (this.junction) this.junction.buildings = this.junction.options.map((type) => this.buildingFor(type, area));
+    if (!this.junction) return;
+    this.junction.buildings = this.junction.options.map((type) => this.buildingFor(type, area));
+    this.junction.area = area;
   }
 
     pick(list) {

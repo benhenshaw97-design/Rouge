@@ -120,6 +120,13 @@ def fog(width, height, *, seed, wisps, opacity, colour=(206, 218, 210)):
     return out
 
 
+def solid(img, cut=150):
+    """Hard edges: each pixel fully opaque or gone (drops painted mist round sprites)."""
+    a = np.asarray(img).copy()
+    a[..., 3] = np.where(a[..., 3] >= cut, 255, 0)
+    return Image.fromarray(a)
+
+
 def drop_columns(img, ranges, blend=40):
     """Cuts out x ranges (e.g. fence posts), blending each join so it doesn't show."""
     keep, x = [], 0
@@ -217,8 +224,8 @@ AREAS = {
         'fg_drop': {'front': [(775, 862)], 'back': [(1495, 1995)]},  # wooden posts and fences
         # Big trees that sweep past in front of the train.
         'bank_over_rails': 8,  # the jungle bank's plants grow up in front of the track
-        'fgtrees': lambda: scatter(S('jungle-kit.png'), [(0, 290, 1774, 464)], 6144, (700, 1600), min_w=120,
-                                   keep=lambda p: p.height > 120, seed=4),
+        'fgtrees': lambda: solid(scatter(S('jungle-kit.png'), [(0, 290, 1774, 464)], 6144, (700, 1600), min_w=120,
+                                         keep=lambda p: p.height > 120, seed=4)),
         'stops': [
             ('jungle-stops.png', (0, 0, 2172, 268), {'waterTower': 0, 'workshop': 3}),
             ('jungle-stops.png', (0, 268, 2172, 500), {'town': 0, 'coalDepot': 6}),

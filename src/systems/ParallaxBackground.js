@@ -153,6 +153,7 @@ export class ParallaxBackground {
     if (!layer) return;
     layer.alpha = alpha;
     const targets = [layer.obj, layer.fading?.obj].filter((o) => o?.active);
+    this.scene.tweens.killTweensOf(targets);
     this.scene.tweens.add({ targets, alpha, duration });
   }
 

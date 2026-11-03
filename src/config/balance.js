@@ -172,6 +172,55 @@ export const POI_TYPES = {
   },
 };
 
+/**
+ * Place names for stops in each area, by POI type (areas or types not listed use the names in
+ * POI_TYPES above, which suit the meadows).
+ */
+export const STOP_NAMES = {
+  desert: {
+    coalDepot: ['Dustbowl Bunkers', 'Scorch Siding', 'Cinderflat Yard'],
+    town: ['Mirage Wells', 'Sandhollow', 'Red Mesa', 'Oasis Junction', 'Dry Gulch'],
+    mine: ['Sunstone Dig', 'Rattlesnake Pit', 'Copper Butte Mine'],
+    workshop: ['Sandblast Works', 'Gearwind Forge'],
+    waterTower: ['Last Drop Tank', 'Cactus Spring', 'Dune Cistern'],
+  },
+  snow: {
+    coalDepot: ['Frostcoal Yard', 'Icebox Bunkers', 'Hearthstone Siding'],
+    town: ['Whitepeak', 'Frostholm', 'Pinecrest', 'Hollowfrost', 'Glacier Bay'],
+    mine: ['Rimeheart Mine', 'Crystal Hollow', 'Glacier Vein'],
+    workshop: ['Sleighbell Works', 'Thawforge'],
+    waterTower: ['Snowmelt Tank', 'Icicle Tower', 'Frostwell'],
+  },
+  jungle: {
+    coalDepot: ['Vinecoal Depot', 'Mossy Bunkers', 'Canopy Yard'],
+    town: ['Emerald Falls', 'Parrot Cove', 'Templeton', 'Vinewood', 'Monkey Bridge'],
+    mine: ['Idol’s Eye Mine', 'Jade Hollow', 'Serpent Cave'],
+    workshop: ['Rootbound Works', 'Tangleworks'],
+    waterTower: ['Rainfall Tank', 'Waterfall Halt', 'Monsoon Tower'],
+  },
+  marsh: {
+    coalDepot: ['Peat Cut Yard', 'Bogside Bunkers', 'Mudlark Siding'],
+    town: ['Mistmoor', 'Fenwick', 'Willowmere', 'Bogsworth', 'Reedby'],
+    mine: ['Sunken Shaft', 'Bogiron Pit', 'Murkwater Mine'],
+    workshop: ['Rustwater Works', 'Lantern Sheds'],
+    waterTower: ['Mill Wheel', 'Fen Pump', 'Reedwater Tank'],
+  },
+  coast: {
+    coalDepot: ['Harbour Coal Stage', 'Anchor Yard', 'Tidecoal Siding'],
+    town: ['Saltwind', 'Gullhaven', 'Port Mallow', 'Lighthouse Point', 'Crabbe Bay'],
+    mine: ['Seacliff Mine', 'Pearl Grotto', 'Smugglers’ Cave'],
+    workshop: ['Dockside Works', 'Shipwright Sheds'],
+    waterTower: ['Rainbarrel Tank', 'Cliffspring', 'Harbour Tower'],
+  },
+  town: {
+    coalDepot: ['Gasworks Sidings', 'Coalhouse Yard', 'Soot Lane'],
+    town: ['Brasswick Central', 'Kingsgate', 'Clocktower Square', 'Victoria Road', 'Foundry Row'],
+    mine: ['Underworks Mine', 'Sewer Shaft', 'Old Cellar Pit'],
+    workshop: ['Brasswick Foundry', 'Cogsworth & Co'],
+    waterTower: ['Waterworks', 'Pumphouse Halt', 'Reservoir Tower'],
+  },
+};
+
 /** The station you start each run from (uses the town building art). */
 export const START_STATION = {
   name: 'Rouge Central',

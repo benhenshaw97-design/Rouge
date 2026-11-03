@@ -132,6 +132,7 @@ export class GameScene extends Phaser.Scene {
     this.world.update(state.distance);
     this.train.update(motion.speed, px, time, state, BALANCE.train.maxSpeed);
     this.playMotionSounds(px);
+    this.updateForegroundTrees();
 
     if (this.phase === 'running') {
       this.updateTunnel();
@@ -180,8 +181,6 @@ export class GameScene extends Phaser.Scene {
     // of it, behind the rocks), so it's meadow before the mountain and desert after.
     const next = AREAS[(this.areaIndex + 1) % AREAS.length];
     const split = this.parallax.beginSplit(next, ['ground', 'railgrass', 'fog-front', 'foreground-back', 'foreground', 'foreground-trees']);
-    // Tall foreground trees would show the scenery switch above the rock bank, so they step aside.
-    this.parallax.fadeLayer('foreground-trees', 0, 500);
     this.tunnel = { at, parts, swapped: false, split, peakMid };
   }
 
@@ -214,12 +213,28 @@ export class GameScene extends Phaser.Scene {
       const left = this.cameras.main.worldView.x - 50;
       if (backX < left && frontX < left) {
         this.parallax.endSplit();
-        this.parallax.fadeLayer('foreground-trees', 1, 800);
         t.split = false;
       }
     }
     // Forget it once it has scrolled away (WorldLayer destroys the objects).
     if (t.swapped && !t.split && !t.parts.front.active && !t.parts.bank.active) this.tunnel = null;
+  }
+
+  /**
+   * Big trees that sweep past in front of the train (where an area has them) step aside near
+   * stops and signposts, so they never hide a building, and through tunnels, where they would
+   * show the scenery switching above the rock bank.
+   */
+  updateForegroundTrees() {
+    const d = this.state.distance;
+    const poi = this.route.poi;
+    if (poi) this.lastStopAt = poi.at;
+    const j = this.route.junction;
+    const near = (at, ahead, behind) => at != null && at - d < ahead && d - at < behind;
+    const hide = !!this.tunnel?.split || near(this.lastStopAt, 170, 150) || near(j?.at, 110, 60);
+    if (hide === this.treesHidden) return;
+    this.treesHidden = hide;
+    this.parallax.fadeLayer('foreground-trees', hide ? 0 : 1, hide ? 500 : 800);
   }
 
   /** God mode: head into the next area (a tunnel just ahead, or straight after the next stop). */
