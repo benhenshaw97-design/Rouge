@@ -185,3 +185,9 @@ export const AUDIO_VOLUME = {
   switch: 0.45,
   warning: 0.35,
 };
+
+/**
+ * Art only needed once the line reaches other areas. It isn't waited for at start-up: it loads in
+ * the background while you play the meadows (see systems/BackgroundLoader.js).
+ */
+export const LATER_IMAGES = Object.keys(IMAGES).filter((k) => /^(desert|snow|jungle|marsh|coast|town)-/.test(k));

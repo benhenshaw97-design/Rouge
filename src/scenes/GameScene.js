@@ -9,6 +9,7 @@ import { TrainState } from '../state/TrainState.js';
 import { AudioManager } from '../systems/AudioManager.js';
 import { ParallaxBackground } from '../systems/ParallaxBackground.js';
 import { Weather } from '../systems/Weather.js';
+import { areaLoaded, loadLaterImages } from '../systems/BackgroundLoader.js';
 import { RouteManager } from '../systems/RouteManager.js';
 import { TrainMotion } from '../systems/TrainMotion.js';
 import { computeLayout, cssSize, uiScale } from '../systems/Viewport.js';
@@ -48,6 +49,9 @@ export class GameScene extends Phaser.Scene {
     this.train = new Train(this);
     this.weather = new Weather(this);
     this.weather.setArea(this.area);
+    // Whatever the title screen didn't finish (after a moment, so files it still has on the way
+    // aren't asked for twice).
+    this.time.delayedCall(3000, () => loadLaterImages(this));
 
     // The station we start from, centred behind the train.
     this.world.add(
@@ -175,6 +179,7 @@ export class GameScene extends Phaser.Scene {
   planScenery() {
     const d = this.state.distance;
     if (this.tunnel || d < this.nextAreaAt || AREAS.length < 2) return;
+    if (!areaLoaded(this, AREAS[(this.areaIndex + 1) % AREAS.length])) return; // still downloading
     const at = d + BALANCE.route.tunnelAfterDepart;
     const parts = createTunnel(this);
     this.world.add(at, parts.back, { cullMargin: 2400 });

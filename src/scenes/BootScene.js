@@ -1,12 +1,16 @@
 import Phaser from 'phaser';
-import { AUDIO, IMAGES, PIXEL_PERFECT } from '../config/assets.js';
+import { AUDIO, IMAGES, LATER_IMAGES, PIXEL_PERFECT } from '../config/assets.js';
+import { loadLaterImages } from '../systems/BackgroundLoader.js';
 import { COLORS, PARALLAX_LAYERS, RAIL_Y, TRAIN_LAYOUT } from '../config/display.js';
 import { AudioManager } from '../systems/AudioManager.js';
 import { music } from '../systems/MusicPlayer.js';
 import { cssSize, isTouch, uiScale } from '../systems/Viewport.js';
 import { text } from '../ui/kit.js';
 
-/** Loads every asset listed in config/assets.js, then shows the title screen. */
+/**
+ * Loads the assets listed in config/assets.js that the start needs, then shows the title screen
+ * (other areas' art carries on loading in the background).
+ */
 export class BootScene extends Phaser.Scene {
   constructor() {
     super('Boot');
@@ -23,6 +27,7 @@ export class BootScene extends Phaser.Scene {
     this.load.on('loaderror', (file) => console.warn(`[assets] Could not load "${file.key}" from ${file.url}`));
 
     for (const [key, path] of Object.entries(IMAGES)) {
+      if (LATER_IMAGES.includes(key)) continue;
       if (path.toLowerCase().endsWith('.svg')) this.load.svg(key, path);
       else this.load.image(key, path);
     }
@@ -33,6 +38,9 @@ export class BootScene extends Phaser.Scene {
     for (const key of PIXEL_PERFECT) {
       if (this.textures.exists(key)) this.textures.get(key).setFilter(Phaser.Textures.FilterMode.NEAREST);
     }
+
+    this.load.off('progress'); // (the bar is gone once the title shows)
+    loadLaterImages(this);
 
     this.started = false;
     const start = () => {
