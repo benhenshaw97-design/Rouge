@@ -95,6 +95,31 @@ def clear_fringe(img, haze=200):
     return Image.fromarray(a)
 
 
+def fog(width, height, *, seed, wisps, opacity, colour=(206, 218, 210)):
+    """A soft band of mist that tiles left to right: blurred noise, thickest in the middle."""
+    rng = np.random.default_rng(seed)
+    w, h = width // 8, height // 8
+    n = rng.random((h, w))
+    n[:, :] *= rng.random((1, w)) ** 0.5  # some columns thinner than others
+    # Blur, wrapping round horizontally so the band tiles.
+    for _ in range(wisps):
+        n = (np.roll(n, 1, 1) + n + np.roll(n, -1, 1)) / 3
+        n[1:-1] = (n[:-2] + n[1:-1] + n[2:]) / 3
+    n = (n - n.min()) / (n.max() - n.min())
+    env = np.sin(np.linspace(0, np.pi, h)) ** 1.5
+    a = np.clip(n * 1.6 - 0.15, 0, 1) * env[:, None]
+    small = Image.fromarray((a * 255).astype(np.uint8))
+    # Stretch with the left column repeated at the right, so the bilinear edge wraps too.
+    wrapped = Image.fromarray(np.concatenate([np.asarray(small), np.asarray(small)[:, :1]], axis=1))
+    big = wrapped.resize((width + width // w, height), Image.BILINEAR).crop((0, 0, width, height))
+    # One colour at 256 strengths: a palette image whose entries differ only in transparency,
+    # so it stays smooth and small (compress-images.py leaves palette images alone).
+    out = Image.fromarray((np.asarray(big) * opacity).astype(np.uint8), 'P')
+    out.putpalette(list(colour) * 256)
+    out.info['transparency'] = bytes(range(256))
+    return out
+
+
 def drop_columns(img, ranges, blend=40):
     """Cuts out x ranges (e.g. fence posts), blending each join so it doesn't show."""
     keep, x = [], 0
@@ -202,6 +227,7 @@ AREAS = {
     },
     'marsh': {
         'name': 'The Mistbound Marshes',
+        'fog': True,
         'mountains': lambda: scatter(S(MARSH, 150), [(0, 6, 1774, 267)], 2048, (0, 40), grounded=14, min_w=200),
         'hills': lambda: strip(S(MARSH, 150), (0, 274, 1774, 369)),
         'trees': lambda: scatter(S(MARSH, 150), [(0, 371, 1774, 507)], 2048, (-20, 20)),
@@ -300,6 +326,11 @@ def main():
             layers['railgrass'] = layer(f'{area}-railgrass', a['railgrass'](), RAILGRASS_H)
         if 'fgtrees' in a:
             layers['foreground-trees'] = layer(f'{area}-fgtrees', a['fgtrees'](), FGTREES_H)
+        if a.get('fog'):
+            # Drifting mist: a band among the trees behind the line, and a thinner one low
+            # over the track, in front of the train.
+            layers['fog-back'] = layer(f'{area}-fog-back', fog(2048, 256, seed=1, wisps=40, opacity=0.95), 230)
+            layers['fog-front'] = layer(f'{area}-fog-front', fog(2048, 192, seed=2, wisps=30, opacity=0.7), 150)
 
         buildings = {}
         for stop in a['stops']:

@@ -22,6 +22,8 @@ export const IMAGES = {
   // Layers only some areas use (e.g. the jungle); empty everywhere else.
   railgrass: 'sprites/blank.png',
   'foreground-trees': 'sprites/blank.png',
+  'fog-back': 'sprites/blank.png',
+  'fog-front': 'sprites/blank.png',
   'foreground-back': 'backgrounds/foreground-back.png',
   foreground: 'backgrounds/foreground.png',
 

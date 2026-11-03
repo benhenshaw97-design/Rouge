@@ -33,6 +33,8 @@
     "marsh-ground": "backgrounds/marsh-ground.png",
     "marsh-foreground": "backgrounds/marsh-foreground.png",
     "marsh-foreground-back": "backgrounds/marsh-foreground-back.png",
+    "marsh-fog-back": "backgrounds/marsh-fog-back.png",
+    "marsh-fog-front": "backgrounds/marsh-fog-front.png",
     "marsh-coalDepot": "pois/marsh-coalDepot.png",
     "marsh-mine": "pois/marsh-mine.png",
     "marsh-workshop": "pois/marsh-workshop.png",
@@ -213,6 +215,14 @@
         "foreground-back": {
           "key": "marsh-foreground-back",
           "height": 44.6
+        },
+        "fog-back": {
+          "key": "marsh-fog-back",
+          "height": 230
+        },
+        "fog-front": {
+          "key": "marsh-fog-front",
+          "height": 150
         }
       },
       "buildings": {

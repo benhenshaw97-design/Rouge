@@ -65,6 +65,9 @@ export const PARALLAX_LAYERS = [
   { key: 'ground', factor: 1, y: RAIL_Y + 6, height: 1500, tileHeight: 168.6, depth: DEPTH.ground },
   // The rails, positioned so the rail's top edge is RAIL_Y.
   { key: 'rails', factor: 1, y: RAIL_Y - TRAIN_ART.rails.railTop, height: TRAIN_ART.rails.height, depth: DEPTH.track },
+  // Drifting mist (empty unless an area sets it): among the trees, and low over the line.
+  { key: 'fog-back', factor: 0.4, drift: 7, y: 575 - 8, height: 8, depth: DEPTH.village + 0.1 },
+  { key: 'fog-front', factor: 1.2, drift: 16, y: 640 - 8, height: 8, depth: DEPTH.smoke + 0.5 },
   // Undergrowth just in front of the rails (behind the train); empty unless an area sets it.
   { key: 'railgrass', factor: 1, y: RAIL_Y + 8 - 8, height: 8, depth: DEPTH.lineside },
   // Big trees sweeping past in front of everything; empty unless an area sets it.
