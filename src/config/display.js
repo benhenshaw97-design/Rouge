@@ -83,6 +83,9 @@ export const PARALLAX_LAYERS = [
  * PARALLAX_LAYERS puts it (or at `bottom` if given). Layers not listed keep the default art.
  * buildings: stop buildings per POI type (else POI_TYPES' own); platform: platform image for towns.
  */
+/** Areas with weather (see systems/Weather.js). */
+const WEATHER = { snow: 'snow' };
+
 const areaLayer = (key) => ({ key, height: AREA_ART[key].height });
 export const AREAS = [
   { id: 'meadow', name: 'The Meadows', layers: {}, platform: 'platform' },
@@ -111,7 +114,7 @@ export const AREAS = [
   },
   // Snow, jungle, marsh, coast and town: built by scripts/slice-areas.py (see new-areas.json).
   ...NEW_AREAS.areas,
-];
+].map((a) => ({ ...a, weather: WEATHER[a.id] }));
 
 /**
  * Tunnels between areas: the line runs through a towering peak, with a tunnel mouth at each foot,
