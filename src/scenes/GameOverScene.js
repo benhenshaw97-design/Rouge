@@ -38,8 +38,10 @@ export class GameOverScene extends Phaser.Scene {
     const { w, h } = cssSize(this);
     const { distance, reason, stats } = this.result;
 
-    this.add.image(0, 0, 'sky').setOrigin(0).setDisplaySize(w, h);
-    this.add.rectangle(0, 0, w, h, 0x15110d, 0.72).setOrigin(0);
+    // Where the run ended (snapshot taken by GameScene), or just the sky.
+    const shot = this.textures.exists('run-end');
+    this.add.image(0, 0, shot ? 'run-end' : 'sky').setOrigin(0).setDisplaySize(w, h);
+    this.add.rectangle(0, 0, w, h, 0x15110d, shot ? 0.6 : 0.72).setOrigin(0);
 
     const cardW = Math.min(w - 32, 520);
     const cardH = Math.min(h - 32, 440);

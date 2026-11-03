@@ -327,8 +327,20 @@ export class GameScene extends Phaser.Scene {
     this.ui.hideJunction();
     const result = { distance: this.state.distance, reason, stats: { ...this.state.stats } };
     this.time.delayedCall(900, () => {
-      this.cameras.main.fadeOut(600, 21, 17, 13);
-      this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start('GameOver', result));
+      const fade = () => {
+        this.cameras.main.fadeOut(600, 21, 17, 13);
+        this.cameras.main.once('camerafadeoutcomplete', () => this.scene.start('GameOver', result));
+      };
+      // A picture of where the run ended, shown dimmed behind the results.
+      try {
+        this.game.renderer.snapshot((image) => {
+          if (this.textures.exists('run-end')) this.textures.remove('run-end');
+          if (image instanceof HTMLImageElement) this.textures.addImage('run-end', image);
+          fade();
+        });
+      } catch {
+        fade();
+      }
     });
   }
 
