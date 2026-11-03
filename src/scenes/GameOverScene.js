@@ -3,8 +3,8 @@ import { COLORS } from '../config/display.js';
 import { cssSize, isTouch, uiScale } from '../systems/Viewport.js';
 import { Button } from '../ui/Button.js';
 import { frame, text } from '../ui/kit.js';
+import { readBest, writeBest } from '../state/best.js';
 
-const BEST_KEY = 'rouge.bestDistance';
 
 /** Shows how far the run got, and a restart button. */
 export class GameOverScene extends Phaser.Scene {
@@ -77,20 +77,5 @@ export class GameOverScene extends Phaser.Scene {
       onClick: () => this.scene.start('Game'),
     });
     if (!isTouch(this)) text(this, cx, btnY + 36, 'or press Space / Enter', 12, COLORS.textDim).setOrigin(0.5, 0);
-  }
-}
-
-function readBest() {
-  try {
-    return Number(localStorage.getItem(BEST_KEY)) || 0;
-  } catch {
-    return 0;
-  }
-}
-function writeBest(v) {
-  try {
-    localStorage.setItem(BEST_KEY, String(v));
-  } catch {
-    /* storage unavailable */
   }
 }

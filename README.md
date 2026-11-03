@@ -70,6 +70,12 @@ Boiler heat climbs with speed and climbs fast when the water runs dry. If it max
 train is limited to 40% speed until it cools. Condition wears down with distance; below 50%
 your top speed drops.
 
+The line runs through seven areas (the meadows, the Red Desert, the Frozen Peaks, the Emerald
+Jungle, the Mistbound Marshes, the Saltwind Coast and the town of Brasswick), with a tunnel between
+each. Each area has its own scenery, stop buildings and place names (`STOP_NAMES` in `balance.js`);
+it snows in the Frozen Peaks and fog drifts through the marshes. Only the meadows' art is loaded
+before the title screen; the rest downloads in the background while you play.
+
 ## Project layout
 
 ```
@@ -83,13 +89,14 @@ src/
     display.js             Design-stage layout, parallax layers, train composition, colours
     train-art.json         Car sizes and wheel/rail positions measured from the art (generated)
     assets.js              Every asset file the game loads, by key
-    debug.js               URL-driven dev helpers (?timescale=)
+    debug.js               Dev helpers: god mode, ?timescale=
   scenes/
     BootScene.js           Loads assets, title screen
     GameScene.js           The run: world, train and rules
     UIScene.js             HUD, signposts, stop menus and messages, drawn on top
     GameOverScene.js       Distance travelled + restart
   state/TrainState.js      Fuel, water, heat, money, passengers, cargo… (no Phaser)
+  state/best.js            Best distance, remembered per device
   systems/
     TrainMotion.js         Acceleration, planned braking, coasting (no Phaser)
     RouteManager.js        Plans junctions and which POIs sit down each branch
@@ -98,12 +105,16 @@ src/
     Viewport.js            Screen sizing and the phone / desktop layouts
     AudioManager.js        Sound effects that tolerate missing files
     MusicPlayer.js         Streams the music playlist (light on phone memory)
+    Weather.js             Falling snow (areas with weather: 'snow')
+    BackgroundLoader.js    Loads other areas' art in the background
   objects/
     Train.js               Train visuals: cars, wheels, rods, smoke, cargo heap
     worldObjects.js        Station buildings and junction graphics
   poi/poiActions.js        What each POI lets you do
   ui/                      HUD, junction picker, stop menu, status card, 9-slice buttons
 scripts/slice-art.py       Cuts the sprites and builds the scrolling layers from art/sheets
+scripts/slice-areas.py     Same for the desert-onward areas (writes src/config/new-areas.json)
+scripts/compress-images.py Shrinks every PNG to a 256-colour palette (run after slicing)
 scripts/generate-placeholders.mjs   Makes placeholder files for anything without real art
 ```
 

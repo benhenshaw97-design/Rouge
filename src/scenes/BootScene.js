@@ -6,6 +6,7 @@ import { AudioManager } from '../systems/AudioManager.js';
 import { music } from '../systems/MusicPlayer.js';
 import { cssSize, isTouch, uiScale } from '../systems/Viewport.js';
 import { text } from '../ui/kit.js';
+import { readBest } from '../state/best.js';
 
 /**
  * Loads the assets listed in config/assets.js that the start needs, then shows the title screen
@@ -119,14 +120,23 @@ export class BootScene extends Phaser.Scene {
       .setShadow(2, 2, '#000000', 2, false, true);
 
     const touch = isTouch(this);
-    const prompt = text(this, w / 2, h * 0.44, touch ? 'Tap to start' : 'Click or press any key to start', Math.min(28, w / 14), '#ffffff', {
+    const prompt = text(this, w / 2, h * 0.44, touch ? 'Tap to start' : 'Click or press any key to start', Math.min(28, touch ? w / 14 : w / 24), '#ffffff', {
       fontStyle: 'bold',
       backgroundColor: '#1d1612cc',
       padding: { x: 16, y: 8 },
     }).setOrigin(0.5);
     this.tweens.add({ targets: prompt, alpha: 0.45, duration: 700, yoyo: true, repeat: -1 });
 
-    if (!touch && h > 520) {
+    const best = readBest();
+    const hints = !touch && h > 520 && w > 760;
+    if (best > 0) {
+      text(this, w / 2, h * 0.44 + Math.min(28, touch ? w / 14 : w / 24) + (hints ? 62 : 22), `Best run: ${(best / 1000).toFixed(2)} km`, Math.min(18, w / 22), COLORS.gold, {
+        backgroundColor: '#1d1612aa',
+        padding: { x: 10, y: 4 },
+      }).setOrigin(0.5);
+    }
+
+    if (hints) {
       text(this, w / 2, h * 0.44 + 46, 'At junctions, click a signpost or press 1 / 2.   Space: depart.   M: mute', 14, COLORS.text, {
         backgroundColor: '#1d1612aa',
         padding: { x: 10, y: 4 },

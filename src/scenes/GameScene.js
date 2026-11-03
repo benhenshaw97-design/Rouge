@@ -256,6 +256,10 @@ export class GameScene extends Phaser.Scene {
       this.ui.toast('Tunnel after the next departure');
       return;
     }
+    if (!areaLoaded(this, AREAS[(this.areaIndex + 1) % AREAS.length])) {
+      this.ui.toast('The next area is still downloading; tunnel soon');
+      return;
+    }
     const before = BALANCE.route.tunnelAfterDepart;
     BALANCE.route.tunnelAfterDepart = 160;
     this.planScenery();
