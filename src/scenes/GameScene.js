@@ -33,6 +33,7 @@ export class GameScene extends Phaser.Scene {
     this.phase = 'waiting';
     // Areas: the line runs through AREAS in turn, with a tunnel between each.
     this.areaIndex = 0;
+    this.leg = 0; // areas passed through this run (keeps counting when the line loops round)
     this.nextAreaAt = this.range(BALANCE.route.areaLength);
     this.tunnel = null; // { at, parts, swapped }
     this.signpostsShown = false;
@@ -118,11 +119,14 @@ export class GameScene extends Phaser.Scene {
 
     let metres = 0;
     if (this.phase === 'running') {
+      // A breakdown brings the train to a halt a little way on (as well as any planned stop).
+      const stops = [route.stopIn(state.distance), this.breakdown ? this.breakdown.stopAt - state.distance : null].filter((v) => v != null);
       metres = motion.step(dt, {
         maxSpeed: BALANCE.train.maxSpeed * state.speedFactor,
         powered: !state.isOutOfFuel,
-        stopIn: route.stopIn(state.distance),
+        stopIn: stops.length ? Math.min(...stops) : null,
       });
+      this.updateBreakdown(dt, metres);
     }
 
     const underSteam = this.phase === 'running' && !state.isOutOfFuel && motion.speed > 0.01;
@@ -204,6 +208,7 @@ export class GameScene extends Phaser.Scene {
     if (!t.swapped && inside > this.train.length + 10) {
       t.swapped = true;
       this.areaIndex = (this.areaIndex + 1) % AREAS.length;
+      this.leg++;
       this.nextAreaAt = this.state.distance + this.range(BALANCE.route.areaLength);
       // Stops planned before the tunnel take the new area's buildings.
       const j = this.route.junction;
@@ -321,8 +326,45 @@ export class GameScene extends Phaser.Scene {
       poi.visited = true;
       this.phase = 'stopped';
       this.state.stats.stops++;
-      this.ui.openPanel({ state: this.state, visit: createVisit(poi) });
+      const next = AREAS[(this.areaIndex + 1) % AREAS.length];
+      const where = { leg: this.leg, next: AREAS.length > 1 ? { leg: this.leg + 1, name: next.name } : null };
+      this.ui.openPanel({ state: this.state, visit: createVisit(poi, where) });
     }
+  }
+
+  // --- Breakdowns -----------------------------------------------------------------------------
+
+  /**
+   * A worn train (see condition.breakdownBelow in balance.js) may break down: it brakes to a
+   * halt, the crew patch it up for a few seconds, and it sets off again a little less worn.
+   * Never in a tunnel or just before a stop, where it would look odd or spoil the stop.
+   */
+  updateBreakdown(dt, metres) {
+    const { state, motion } = this;
+    const c = BALANCE.condition;
+    const b = this.breakdown;
+    if (!b) {
+      const stopIn = this.route.stopIn(state.distance);
+      const clear = !this.tunnel && (stopIn == null || stopIn > 300);
+      if (clear && !state.isOutOfFuel && state.rollBreakdown(metres)) {
+        const v = motion.speed;
+        const brakeDist = (v * v) / (2 * BALANCE.train.brakeDeceleration);
+        this.breakdown = { stopAt: state.distance + Math.max(brakeDist * 1.4, 20), repairLeft: c.breakdownRepairSeconds };
+        state.brokenDown = true;
+        this.audio.play('warning');
+        this.ui.toast('Something’s gone bang! Pulling up…', COLORS.bad);
+      }
+      return;
+    }
+    if (motion.speed > 0 || state.distance < b.stopAt - 0.5) return;
+    if (b.repairLeft === c.breakdownRepairSeconds) this.audio.play('brake');
+    b.repairLeft -= dt;
+    if (b.repairLeft > 0) return;
+    this.breakdown = null;
+    state.brokenDown = false;
+    state.repair(c.breakdownPatch);
+    motion.resetThrottle();
+    this.ui.toast('Patched up. A Workshop would do a proper job.', COLORS.good);
   }
 
   // --- Running out of fuel -------------------------------------------------------------------

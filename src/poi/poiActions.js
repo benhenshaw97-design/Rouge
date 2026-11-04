@@ -18,11 +18,16 @@ import { BALANCE, POI_TYPES } from '../config/balance.js';
  * same key.
  */
 
-/** Per-stop data that lasts while you're parked (e.g. a town's waiting passengers). */
-export function createVisit(poi) {
+/**
+ * Per-stop data that lasts while you're parked (e.g. a town's waiting passengers).
+ * where: { leg, next: { leg, name } }: which area of the run this stop is in (counted from
+ * the start) and the area the line runs to next (through passengers are booked there).
+ */
+export function createVisit(poi, where = { leg: 0, next: null }) {
   const def = POI_TYPES[poi.type];
-  const visit = { poi, def };
+  const visit = { poi, def, leg: where.leg, next: where.next };
   if (def.waitingPassengers) visit.waitingPassengers = randInt(...def.waitingPassengers);
+  if (def.throughPassengers && where.next) visit.throughPassengers = randInt(...def.throughPassengers);
   if (def.ores) visit.ore = def.ores[randInt(0, def.ores.length - 1)];
   return visit;
 }
@@ -70,21 +75,45 @@ const BUILDERS = {
 
   town(state, visit, def) {
     const stopId = visit.poi.id;
-    const leaving = state.passengersForDropOff(stopId);
+    const leaving = state.passengersForDropOff(stopId, visit.leg);
     const leavingCount = leaving.reduce((n, g) => n + g.count, 0);
-    const fare = state.fareFor(leaving);
+    const fare = state.fareFor(leaving, stopId, visit.leg);
     const cargoValue = state.cargo * def.prices.cargoSellPerUnit;
-    const boardable = Math.min(visit.waitingPassengers, state.freeSeats);
+    // Aboard but booked further on (shown so you know why they stay).
+    const onward = state.passengers.filter((g) => g.dest && state.dropOffKind(g, stopId, visit.leg) === 'stay' && g.boardedStop !== stopId);
+    const onwardCount = onward.reduce((n, g) => n + g.count, 0);
 
-    return [
+    const pickUp = (key, dest, label) => {
+      const waiting = visit[key] ?? 0;
+      const n = Math.min(waiting, state.freeSeats);
+      return {
+        label: waiting > 0 ? `${label}: pick up ${n || waiting} (${waiting} waiting)` : `${label}: nobody waiting`,
+        disabledReason: waiting <= 0 ? 'The platform is empty' : state.freeSeats <= 0 ? 'Carriage is full' : null,
+        sound: 'click',
+        run: () => {
+          state.boardPassengers(n, stopId, dest);
+          visit[key] -= n;
+          return dest
+            ? `${plural(n, 'passenger')} booked through to ${dest.name}. They pay extra, but only get off at a town there.`
+            : `${plural(n, 'passenger')} climbed aboard. They pay on arrival at another town.`;
+        },
+      };
+    };
+
+    const options = [
       {
         label: leavingCount ? `Drop off ${plural(leavingCount, 'passenger')}` : 'Drop off passengers',
         gain: leavingCount ? fare : undefined,
-        disabledReason: leavingCount ? null : 'No passengers to drop off',
+        disabledReason: leavingCount
+          ? null
+          : onwardCount
+            ? `${onwardCount} aboard are bound for ${onward[0].dest.name}`
+            : 'No passengers to drop off',
         sound: 'coins',
         run: () => {
-          const { count, fare: paid } = state.dropOffPassengers(stopId);
-          return `${plural(count, 'passenger')} paid ${money(paid)} in fares.`;
+          const { count, fare: paid, missed } = state.dropOffPassengers(stopId, visit.leg);
+          const note = missed ? ` (${missed} were carried past their stop and paid half.)` : '';
+          return `${plural(count, 'passenger')} paid ${money(paid)} in fares.${note}`;
         },
       },
       {
@@ -98,21 +127,10 @@ const BUILDERS = {
           return `Sold ${n} cargo for ${money(n * def.prices.cargoSellPerUnit)}.`;
         },
       },
-      {
-        label:
-          visit.waitingPassengers > 0
-            ? `Pick up ${plural(boardable || visit.waitingPassengers, 'passenger')} (${visit.waitingPassengers} waiting)`
-            : 'Pick up passengers',
-        disabledReason:
-          visit.waitingPassengers <= 0 ? 'The platform is empty' : state.freeSeats <= 0 ? 'Carriage is full' : null,
-        sound: 'click',
-        run: () => {
-          state.boardPassengers(boardable, stopId);
-          visit.waitingPassengers -= boardable;
-          return `${plural(boardable, 'passenger')} climbed aboard. They pay on arrival at another town.`;
-        },
-      },
+      pickUp('waitingPassengers', null, 'Any town'),
     ];
+    if (visit.next) options.push(pickUp('throughPassengers', visit.next, `To ${visit.next.name} (×${BALANCE.passengers.throughFareMultiplier} fare)`));
+    return options;
   },
 
   mine(state, visit, def) {

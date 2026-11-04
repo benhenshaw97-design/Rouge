@@ -54,11 +54,21 @@ export const BALANCE = {
     wearPerMetre: 0.0033, // 0.33% per 100 m
     slowBelow: 50, // below this, top speed starts dropping...
     minSpeedFactor: 0.6, // ...down to 60% of top speed at 0 condition
+    // Breakdowns: below breakdownBelow, the train may break down and stop on the line while the
+    // crew patch it up. The chance rises as condition falls (breakdownsPerKmAtZero at 0%).
+    breakdownBelow: 60,
+    breakdownsPerKmAtZero: 0.5,
+    breakdownRepairSeconds: 6,
+    breakdownPatch: 6, // condition the crew's patch-up restores
   },
 
   passengers: {
     baseFare: 5, // paid per passenger on drop-off
     farePerKm: 2, // plus this per passenger per km carried (trips are long, so this is modest)
+    // Some passengers book through to the next area: they only get off at a town there, and pay
+    // this multiple of the normal fare. Carried past it, they get off at the next town for half.
+    throughFareMultiplier: 1.8,
+    missedStopFareMultiplier: 0.5,
   },
 
   // Stops are spaced well apart; fuel, water and wear per metre are set so each run between
@@ -127,7 +137,8 @@ export const POI_TYPES = {
     icon: 'icon-passengers',
     names: ['Millbrook', 'Hartwell', 'Kingsferry', 'Little Rouge', 'Oakham Cross', 'Stourby'],
     prices: { cargoSellPerUnit: 7 },
-    waitingPassengers: [3, 10], // [min, max] passengers on the platform
+    waitingPassengers: [2, 6], // [min, max] passengers waiting for any town
+    throughPassengers: [2, 6], // [min, max] passengers booked through to the next area
   },
 
   mine: {

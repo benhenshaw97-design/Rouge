@@ -61,14 +61,16 @@ at the phone's pixel density, so text and art stay sharp.
 | Stop        | What you can do                                                  |
 | ----------- | ---------------------------------------------------------------- |
 | Coal Depot  | Buy fuel                                                         |
-| Town        | Drop off passengers for fares, sell cargo, pick up passengers    |
+| Town        | Drop off passengers for fares, sell cargo, pick up passengers (for any town, or booked through to the next area for a bigger fare) |
 | Mine        | Load cargo (sell it at a Town; each unit adds 3% fuel burn)      |
 | Workshop    | Repair wear, upgrade the fuel tank or boiler                     |
 | Water Tower | Cheap water refill that lowers boiler heat                       |
 
 Boiler heat climbs with speed and climbs fast when the water runs dry. If it maxes out, the
 train is limited to 40% speed until it cools. Condition wears down with distance; below 50%
-your top speed drops.
+your top speed drops, and below 60% the train may break down: it pulls up on the line while the
+crew patch it for a few seconds. Passengers booked through to the next area only get off at a
+town there; carry them past it and they pay half at the next town.
 
 The line runs through seven areas (the meadows, the Red Desert, the Frozen Peaks, the Emerald
 Jungle, the Mistbound Marshes, the Saltwind Coast and the town of Brasswick), with a tunnel between

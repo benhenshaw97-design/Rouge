@@ -113,6 +113,7 @@ export class Hud {
 
 /** The most urgent warning to show, or null. */
 export function currentWarning(state) {
+  if (state.brokenDown) return 'BROKEN DOWN: crew patching her up';
   if (state.isOutOfFuel) return 'OUT OF FUEL: coasting';
   if (state.isLowFuel) return 'LOW FUEL';
   if (state.overheated) return 'OVERHEATED: speed limited';

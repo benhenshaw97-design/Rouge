@@ -19,13 +19,18 @@ export class TrainState {
     this.condition = s.condition;
     this.cargo = 0;
     this.cargoKind = null; // which load the wagon shows, e.g. 'gold'
-    /** Passenger groups: { count, boardedAt (metres), boardedStop (stop id) } */
+    /**
+     * Passenger groups: { count, boardedAt (metres), boardedStop (stop id), dest }.
+     * dest is null (any other town) or { leg, name }: an area they're booked to, where `leg`
+     * counts areas from the start of the run (so it still works when the line loops round).
+     */
     this.passengers = [];
     this.upgrades = { fuelTank: 0, boiler: 0 };
 
     this.distance = 0; // metres travelled this run
     this.overheated = false;
     this.lowFuelWarned = false;
+    this.brokenDown = false;
 
     this.stats = { earned: 0, stops: 0, passengersDelivered: 0 };
   }
@@ -165,35 +170,62 @@ export class TrainState {
     return n;
   }
 
-  boardPassengers(count, stopId) {
+  boardPassengers(count, stopId, dest = null) {
     if (count <= 0) return;
-    this.passengers.push({ count, boardedAt: this.distance, boardedStop: stopId });
+    this.passengers.push({ count, boardedAt: this.distance, boardedStop: stopId, dest });
   }
 
-  /** Passengers who boarded somewhere other than this stop (so you can't board and drop instantly). */
-  passengersForDropOff(stopId) {
-    return this.passengers.filter((g) => g.boardedStop !== stopId);
+  /**
+   * How a group fares at a town (stop `stopId`, in area leg `leg`):
+   *   'off'    gets off and pays the normal fare (or the through fare, at their area)
+   *   'missed' carried past their area: gets off for a reduced fare
+   *   'stay'   stays aboard (boarded here, or booked to an area further on)
+   */
+  dropOffKind(g, stopId, leg) {
+    if (g.boardedStop === stopId) return 'stay';
+    if (!g.dest || g.dest.leg === leg) return 'off';
+    return g.dest.leg < leg ? 'missed' : 'stay';
   }
 
-  fareFor(groups) {
+  /** Passengers who get off at this town (so you can't board and drop instantly). */
+  passengersForDropOff(stopId, leg = 0) {
+    return this.passengers.filter((g) => this.dropOffKind(g, stopId, leg) !== 'stay');
+  }
+
+  fareFor(groups, stopId, leg = 0) {
     const p = this.b.passengers;
     return Math.round(
       groups.reduce((sum, g) => {
         const km = Math.max(0, this.distance - g.boardedAt) / 1000;
-        return sum + g.count * (p.baseFare + p.farePerKm * km);
+        const kind = this.dropOffKind(g, stopId, leg);
+        const k = kind === 'missed' ? p.missedStopFareMultiplier : g.dest ? p.throughFareMultiplier : 1;
+        return sum + g.count * (p.baseFare + p.farePerKm * km) * k;
       }, 0),
     );
   }
 
-  /** Drops off every eligible passenger. Returns { count, fare }. */
-  dropOffPassengers(stopId) {
-    const leaving = this.passengersForDropOff(stopId);
+  /** Drops off every eligible passenger. Returns { count, fare, missed }. */
+  dropOffPassengers(stopId, leg = 0) {
+    const leaving = this.passengersForDropOff(stopId, leg);
     const count = leaving.reduce((n, g) => n + g.count, 0);
-    const fare = this.fareFor(leaving);
-    this.passengers = this.passengers.filter((g) => g.boardedStop === stopId);
+    const missed = leaving.filter((g) => this.dropOffKind(g, stopId, leg) === 'missed').reduce((n, g) => n + g.count, 0);
+    const fare = this.fareFor(leaving, stopId, leg);
+    this.passengers = this.passengers.filter((g) => !leaving.includes(g));
     this.earn(fare);
     this.stats.passengersDelivered += count;
-    return { count, fare };
+    return { count, fare, missed };
+  }
+
+  /**
+   * Breakdown check for a stretch of line (wear makes them likelier).
+   * @param {number} metres distance covered under steam this frame
+   * @param {() => number} random 0..1
+   */
+  rollBreakdown(metres, random = Math.random) {
+    const c = this.b.condition;
+    if (this.brokenDown || this.condition >= c.breakdownBelow || metres <= 0) return false;
+    const perKm = c.breakdownsPerKmAtZero * (1 - this.condition / c.breakdownBelow);
+    return random() < (perKm * metres) / 1000;
   }
 
   upgradeLevel(id) {
