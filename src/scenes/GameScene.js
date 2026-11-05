@@ -373,6 +373,37 @@ export class GameScene extends Phaser.Scene {
       this.world.add(ev.at, img, { offsetX: -(widthOf('locomotive') + widthOf('tender') + widthOf('wagon') * 0.5) });
     }
     ev.prop = img;
+    this.addEventEffect(ev, img);
+  }
+
+  /**
+   * A little life around an event's prop (the `effect` named in content/events.js): steam,
+   * glowing motes, drifting sparks or blowing sand. Made with generated dots, so no art needed.
+   */
+  addEventEffect(ev, img) {
+    const effect = ev.def.effect;
+    if (!effect) return;
+    if (!this.textures.exists('fx-dot')) {
+      const g = this.make.graphics({}, false);
+      g.fillStyle(0xffffff, 1).fillCircle(8, 8, 8);
+      g.generateTexture('fx-dot', 16, 16);
+      g.destroy();
+    }
+    const top = img.y - img.displayHeight;
+    const w = img.displayWidth;
+    const configs = {
+      steam: { y: top + 10, x: { min: -w * 0.35, max: w * 0.35 }, speedY: { min: -40, max: -20 }, speedX: { min: -8, max: 8 }, scale: { start: 1.6, end: 5 }, alpha: { start: 0.6, end: 0 }, tint: 0xf4f1ec, lifespan: 2800, frequency: 90 },
+      glow: { y: top + img.displayHeight * 0.4, x: { min: -w * 0.5, max: w * 0.5 }, speedY: { min: -18, max: -6 }, speedX: { min: -10, max: 10 }, scale: { start: 0.75, end: 0.25 }, alpha: { start: 1, end: 0 }, tint: [0x9ff3ff, 0x7fe8d0, 0xe8fffa], lifespan: 2600, frequency: 110 },
+      sparks: { y: top + 8, x: { min: -12, max: 12 }, speedY: { min: -70, max: -35 }, speedX: { min: -25, max: 25 }, gravityY: 40, scale: { start: 0.45, end: 0.1 }, alpha: { start: 1, end: 0 }, tint: [0xffc04a, 0xff7a2a], lifespan: 1400, frequency: 90 },
+      sand: { y: { min: RAIL_Y - 220, max: RAIL_Y + 30 }, x: { min: 200, max: 700 }, speedX: { min: -420, max: -260 }, speedY: { min: -20, max: 25 }, scale: { min: 0.5, max: 1.6 }, alpha: { start: 0.75, end: 0 }, tint: [0xc98a45, 0xe0a865, 0xa9672d], lifespan: 1800, frequency: 12, quantity: 3 },
+    };
+    const cfg = configs[effect];
+    if (!cfg) return;
+    const fx = this.add.particles(0, 0, 'fx-dot', cfg).setDepth(effect === 'sand' ? DEPTH.foreground + 2 : img.depth + 0.01);
+    // Rides along with the prop (WorldLayer moves it), and goes when the prop does.
+    const offset = (this.world.items.find((i) => i.obj === img)?.offsetX ?? 0);
+    this.world.add(ev.at, fx, { offsetX: offset });
+    img.once('destroy', () => fx.destroy());
   }
 
   /** Builds a stop's building (and platform) on the line at its spot. */

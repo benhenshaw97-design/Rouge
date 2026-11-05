@@ -6,6 +6,7 @@
  *   title    heading on the panel
  *   text     what's happening
  *   icon     image key for the panel (an icon-… for now; see ASSETS-TODO.md for event art)
+ *   effect   optional animation at the prop: 'steam', 'glow', 'sparks' or 'sand'
  *   prop     image shown beside the line where the train stops (default: event-<id>, cut by
  *            scripts/slice-events.py; leave both out for none)
  *   areas    area ids it can happen in (leave out for anywhere)
@@ -149,6 +150,7 @@ export const EVENTS = [
   },
   {
     id: 'hot-spring',
+    effect: 'steam',
     title: 'Hot spring',
     text: 'Steam rises from a spring beside the line. The water is warm and clean.',
     icon: 'icon-water',
@@ -166,6 +168,7 @@ export const EVENTS = [
   },
   {
     id: 'sandstorm',
+    effect: 'sand',
     title: 'Sandstorm',
     text: 'A wall of red sand rolls towards the line. Sand in the works is bad news.',
     icon: 'icon-heat',
@@ -235,6 +238,7 @@ export const EVENTS = [
   },
   {
     id: 'marsh-lights',
+    effect: 'glow',
     title: 'Lights in the mist',
     text: 'Pale lights bob out in the marsh. The fireman swears they’re lanterns; the driver isn’t so sure.',
     icon: 'icon-heat',
