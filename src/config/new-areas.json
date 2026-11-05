@@ -20,6 +20,8 @@
     "jungle-ground": "backgrounds/jungle-ground.png",
     "jungle-foreground": "backgrounds/jungle-foreground.png",
     "jungle-foreground-back": "backgrounds/jungle-foreground-back.png",
+    "jungle-thicket": "backgrounds/jungle-thicket.png",
+    "jungle-undergrowth": "backgrounds/jungle-undergrowth.png",
     "jungle-fgtrees": "backgrounds/jungle-fgtrees.png",
     "jungle-waterTower": "pois/jungle-waterTower.png",
     "jungle-workshop": "pois/jungle-workshop.png",
@@ -33,6 +35,8 @@
     "marsh-ground": "backgrounds/marsh-ground.png",
     "marsh-foreground": "backgrounds/marsh-foreground.png",
     "marsh-foreground-back": "backgrounds/marsh-foreground-back.png",
+    "marsh-thicket": "backgrounds/marsh-thicket.png",
+    "marsh-undergrowth": "backgrounds/marsh-undergrowth.png",
     "marsh-fog-back": "backgrounds/marsh-fog-back.png",
     "marsh-fog-front": "backgrounds/marsh-fog-front.png",
     "marsh-coalDepot": "pois/marsh-coalDepot.png",
@@ -159,6 +163,14 @@
           "key": "jungle-foreground-back",
           "height": 58.3
         },
+        "thicket": {
+          "key": "jungle-thicket",
+          "height": 165
+        },
+        "undergrowth": {
+          "key": "jungle-undergrowth",
+          "height": 70
+        },
         "foreground-trees": {
           "key": "jungle-fgtrees",
           "height": 440
@@ -215,6 +227,14 @@
         "foreground-back": {
           "key": "marsh-foreground-back",
           "height": 44.6
+        },
+        "thicket": {
+          "key": "marsh-thicket",
+          "height": 165
+        },
+        "undergrowth": {
+          "key": "marsh-undergrowth",
+          "height": 70
         },
         "fog-back": {
           "key": "marsh-fog-back",
@@ -302,7 +322,8 @@
       "layers": {
         "mountains": {
           "key": "town-mountains",
-          "height": 185
+          "height": 296.0,
+          "bottom": 552
         },
         "hills": {
           "key": "town-hills",

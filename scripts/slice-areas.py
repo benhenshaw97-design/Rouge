@@ -28,6 +28,7 @@ H_MOUNTAINS, H_HILLS, H_TREES, H_VILLAGE = 185, 120, 190, 150
 HILLS_PAD = 0.6  # hills continue down to the line in their bottom colour, so gaps never show sky
 FG_K, FG_BACK_K, BANK_K = 0.42, 0.36, 0.3
 RAILGRASS_H, FGTREES_H = 30, 440
+THICKET_H, UNDERGROWTH_H = 165, 70  # optional mid-distance layers (see display.js)
 RAIL_Y = 560  # design y of the rail top (src/config/display.js)
 
 
@@ -222,6 +223,10 @@ AREAS = {
         'fg': ('jungle-foreground-rows.png', 200, (8, 199), (208, 370)),
         'fg_clear': True,  # the sheet's white backdrop clings round the leaves
         'fg_drop': {'front': [(775, 862)], 'back': [(1495, 1995)]},  # wooden posts and fences
+        # Dense jungle: tree-line clumps packed edge to edge behind the trees, and ferns,
+        # bushes and flowers crowding the line.
+        'thicket': lambda: scatter(S('jungle-kit-d.png'), [(0, 305, 1774, 439)], 3072, (-90, -40), grounded=14, min_w=80),
+        'undergrowth': lambda: scatter(S('jungle-trees.png'), [(0, 494, 2172, 701)], 4096, (-40, 10), min_w=60, seed=3),
         # Big trees that sweep past in front of the train.
         'bank_over_rails': 8,  # the jungle bank's plants grow up in front of the track
         'fgtrees': lambda: solid(scatter(S('jungle-kit.png'), [(0, 290, 1774, 464)], 6144, (700, 1600), min_w=120,
@@ -237,9 +242,13 @@ AREAS = {
         'fog': True,
         'mountains': lambda: scatter(S(MARSH, 150), [(0, 6, 1774, 267)], 2048, (0, 40), grounded=14, min_w=200),
         'hills': lambda: strip(S(MARSH, 150), (0, 274, 1774, 369)),
+        'hills_pad': 'middle',  # fill below the tree line with its own green, not the pale water edge
         'trees': lambda: scatter(S(MARSH, 150), [(0, 371, 1774, 507)], 2048, (-20, 20)),
         'village': lambda: scatter(S(MARSH, 150), [(0, 512, 1774, 659)], 4096, (160, 520)),
         'bank': lambda: bank(S('marsh-embankment.png'), (0, 165, 2172, 706)),
+        # A second, denser row of willows behind the first, and reeds along the line.
+        'thicket': lambda: scatter(S('marsh-kit-b.png', 150), [(0, 345, 1774, 452)], 3072, (-70, -30), min_w=60, seed=2),
+        'undergrowth': lambda: scatter(S('marsh-kit-b.png', 150), [(0, 630, 1060, 701)], 4096, (-10, 40), min_w=40, seed=5),
         'fg': ('marsh-foreground-rows.png', None, (6, 169), (184, 308)),
         'stops': [('marsh-train-kit.png', (270, 367, 1536, 853),
                    {'coalDepot': 3, 'mine': 4, 'workshop': 8, 'town': 9, 'waterTower': 16}, 'label')],
@@ -262,6 +271,7 @@ AREAS = {
     },
     'town': {
         'name': 'Brasswick',
+        'mountains_pad': 0.6,  # continue the skyline down so no sky shows through arches and gaps
         'mountains': lambda: strip(S(TOWN), (0, 123, 2172, 231)),
         'hills': lambda: scatter(S(TOWN), [(0, 250, 2172, 326)], 2048, (-30, 0), overlap=10),
         'trees': lambda: strip(S(TOWN), (0, 331, 2172, 503)),
@@ -331,6 +341,12 @@ def main():
 
         if 'railgrass' in a:
             layers['railgrass'] = layer(f'{area}-railgrass', a['railgrass'](), RAILGRASS_H)
+        # Dense mid-distance layers: a thicket behind the trees (no gaps down to the line) and
+        # undergrowth along the line in front of the village.
+        if 'thicket' in a:
+            layers['thicket'] = layer(f'{area}-thicket', a['thicket'](), THICKET_H)
+        if 'undergrowth' in a:
+            layers['undergrowth'] = layer(f'{area}-undergrowth', a['undergrowth'](), UNDERGROWTH_H)
         if 'fgtrees' in a:
             layers['foreground-trees'] = layer(f'{area}-fgtrees', a['fgtrees'](), FGTREES_H)
         if a.get('fog'):

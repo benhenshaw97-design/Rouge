@@ -23,6 +23,8 @@ export const IMAGES = {
   railgrass: 'sprites/blank.png',
   'foreground-trees': 'sprites/blank.png',
   'fog-back': 'sprites/blank.png',
+  thicket: 'sprites/blank.png',
+  undergrowth: 'sprites/blank.png',
   'fog-front': 'sprites/blank.png',
   'foreground-back': 'backgrounds/foreground-back.png',
   foreground: 'backgrounds/foreground.png',

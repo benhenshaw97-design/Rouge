@@ -59,12 +59,15 @@ export const PARALLAX_LAYERS = [
   { key: 'clouds', factor: 0.04, drift: 8, y: 20, height: 270, depth: DEPTH.clouds },
   { key: 'mountains', factor: 0.08, y: 226, height: 215, depth: DEPTH.mountains },
   { key: 'hills', factor: 0.16, y: 330, height: 150, depth: DEPTH.hills },
+  // Dense mid-distance layers, empty unless an area sets them (e.g. the jungle).
+  { key: 'thicket', factor: 0.22, y: 575 - 8, height: 8, depth: DEPTH.hills + 0.25 },
   { key: 'trees', factor: 0.3, y: 376, height: 198, depth: DEPTH.trees },
   { key: 'village', factor: 0.5, y: 372, height: 207, depth: DEPTH.village },
   // Grass bank under the line (its top sits just below the rail so the sleepers rest in the grass).
   { key: 'ground', factor: 1, y: RAIL_Y + 6, height: 1500, tileHeight: 168.6, depth: DEPTH.ground },
   // The rails, positioned so the rail's top edge is RAIL_Y.
   { key: 'rails', factor: 1, y: RAIL_Y - TRAIN_ART.rails.railTop, height: TRAIN_ART.rails.height, depth: DEPTH.track },
+  { key: 'undergrowth', factor: 0.62, y: 568 - 8, height: 8, depth: DEPTH.village + 0.05 },
   // Drifting mist (empty unless an area sets it): among the trees, and low over the line.
   { key: 'fog-back', factor: 0.4, drift: 7, y: 575 - 8, height: 8, depth: DEPTH.village + 0.1 },
   { key: 'fog-front', factor: 1.2, drift: 16, y: 640 - 8, height: 8, depth: DEPTH.smoke + 0.5 },
