@@ -79,7 +79,7 @@ export class UIScene extends Phaser.Scene {
     this.addRadioButton(L, slot + 2);
     if (this.mapOpen) this.showMap();
 
-    if (this.junction) this.picker = new JunctionPicker(this, L.picker, this.junction, (i) => this.main.selectBranch(i), animate);
+    if (this.junction && !this.panelArgs) this.picker = new JunctionPicker(this, L.picker, this.junction, (i) => this.main.selectBranch(i), animate);
     if (this.panelArgs) this.panel = new PoiPanel(this, L.panel, this.panelArgs);
   }
 
@@ -307,7 +307,7 @@ export class UIScene extends Phaser.Scene {
     if (!this.L) return; // not built yet
     this.junction = junction;
     this.picker?.destroy(false);
-    this.picker = new JunctionPicker(this, this.L.picker, junction, (i) => this.main.selectBranch(i), true);
+    this.picker = this.panelArgs ? null : new JunctionPicker(this, this.L.picker, junction, (i) => this.main.selectBranch(i), true);
   }
 
   setJunctionSelected(index) {
@@ -333,6 +333,10 @@ export class UIScene extends Phaser.Scene {
         saveRun(this.main); // (whatever was bought or sold at the stop is kept)
       },
     };
+    // (Signposts share the space; they step aside while the menu is open, e.g. when stranded
+    // just short of a junction, and come back when it closes.)
+    this.picker?.destroy(false);
+    this.picker = null;
     this.panel = new PoiPanel(this, this.L.panel, this.panelArgs);
   }
 
@@ -340,6 +344,9 @@ export class UIScene extends Phaser.Scene {
     this.panelArgs = null;
     this.panel?.destroy();
     this.panel = null;
+    if (this.junction && !this.picker && this.L) {
+      this.picker = new JunctionPicker(this, this.L.picker, this.junction, (i) => this.main.selectBranch(i), true);
+    }
   }
 
   toast(message, color = COLORS.text) {

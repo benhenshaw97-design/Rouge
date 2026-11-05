@@ -93,6 +93,10 @@ ambience volumes. It's all remembered on the device. Stations are `RADIO_STATION
 coast, birds and insects in the jungle, frogs in the marsh). For now these are made on the fly
 (`src/systems/Ambience.js`); add real loops to `AMBIENCE_FILES` in `assets.js` to replace them.
 
+**Saving**: the run is saved whenever you're at a stop (on arrival and after anything you buy or
+sell there). Continue on the title screen takes you back to that stop. Ending a run deletes the save.
+`src/state/save.js` says what's kept.
+
 **Running out of fuel** isn't the end: a relief engine can bring fuel out (free the first time,
 then more each call; if you're broke they take what you have). Or you can end the run.
 
@@ -137,6 +141,7 @@ src/
     GameOverScene.js       Distance travelled + restart
   state/TrainState.js      Fuel, water, heat, money, passengers, cargo… (no Phaser)
   state/best.js            Best distance, remembered per device
+  state/save.js            Saving a run at stops, and Continue
   systems/
     TrainMotion.js         Acceleration, planned braking, coasting (no Phaser)
     RouteManager.js        Plans junctions, stops and events along the line
