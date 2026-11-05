@@ -434,8 +434,6 @@ AREAS = {
         'trees': lambda: strip(S(TOWN), (0, 331, 2172, 503)),
         'village': lambda: scatter(S('town-kit.png'), [(0, 327, 2172, 464)], 4096, (160, 520)),
         'bank': lambda: bank(S('town-embankment.png'), (0, 354, 2172, 715)),
-        # Hedges, planters and bushes along the line.
-        'undergrowth': lambda: scatter(S('town-kit.png'), [(0, 591, 2172, 706)], 4096, (-20, 15), min_w=40, seed=8),
         'fg': ('town-foreground-rows.png', None, (4, 196), None),  # the bank is already a wall
         'stops': [
             ('town-kit.png', (0, 159, 2172, 322), {'town': 0, 'workshop': 5, 'coalDepot': 8, 'waterTower': 9}),

@@ -78,7 +78,6 @@
     "town-ground": "backgrounds/town-ground.png",
     "town-foreground": "backgrounds/town-foreground.png",
     "town-foreground-back": "backgrounds/town-foreground-back.png",
-    "town-undergrowth": "backgrounds/town-undergrowth.png",
     "town-town": "pois/town-town.png",
     "town-workshop": "pois/town-workshop.png",
     "town-coalDepot": "pois/town-coalDepot.png",
@@ -426,10 +425,6 @@
         "foreground-back": {
           "key": "town-foreground-back",
           "height": 8
-        },
-        "undergrowth": {
-          "key": "town-undergrowth",
-          "height": 70
         }
       },
       "buildings": {
