@@ -1,5 +1,6 @@
 {
   "images": {
+    "desert-undergrowth": "backgrounds/desert-undergrowth.png",
     "snow-mountains": "backgrounds/snow-mountains.png",
     "snow-hills": "backgrounds/snow-hills.png",
     "snow-trees": "backgrounds/snow-trees.png",
@@ -7,6 +8,7 @@
     "snow-ground": "backgrounds/snow-ground.png",
     "snow-foreground": "backgrounds/snow-foreground.png",
     "snow-foreground-back": "backgrounds/snow-foreground-back.png",
+    "snow-undergrowth": "backgrounds/snow-undergrowth.png",
     "snow-coalDepot": "pois/snow-coalDepot.png",
     "snow-town": "pois/snow-town.png",
     "snow-mine": "pois/snow-mine.png",
@@ -63,6 +65,7 @@
     "town-ground": "backgrounds/town-ground.png",
     "town-foreground": "backgrounds/town-foreground.png",
     "town-foreground-back": "backgrounds/town-foreground-back.png",
+    "town-undergrowth": "backgrounds/town-undergrowth.png",
     "town-town": "pois/town-town.png",
     "town-workshop": "pois/town-workshop.png",
     "town-coalDepot": "pois/town-coalDepot.png",
@@ -104,6 +107,10 @@
         "foreground-back": {
           "key": "snow-foreground-back",
           "height": 64.4
+        },
+        "undergrowth": {
+          "key": "snow-undergrowth",
+          "height": 70
         }
       },
       "buildings": {
@@ -146,7 +153,7 @@
         },
         "village": {
           "key": "jungle-village",
-          "height": 150
+          "height": 205
         },
         "ground": {
           "key": "jungle-ground",
@@ -350,6 +357,10 @@
         "foreground-back": {
           "key": "town-foreground-back",
           "height": 8
+        },
+        "undergrowth": {
+          "key": "town-undergrowth",
+          "height": 70
         }
       },
       "buildings": {
@@ -372,5 +383,13 @@
       "platform": "town-platform",
       "platformHeight": 125
     }
-  ]
+  ],
+  "extraLayers": {
+    "desert": {
+      "undergrowth": {
+        "key": "desert-undergrowth",
+        "height": 70
+      }
+    }
+  }
 }

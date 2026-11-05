@@ -195,3 +195,23 @@ def remove_painted_background(img):
     return Image.fromarray(a.astype(np.uint8))
 
 
+
+
+def continue_down(img, extra, body=(0.3, 0.92), blend=24):
+    """Extends a bank downwards by `extra` px with copies of its own middle rows (blended at
+    each join), so what shows below the art is more of the same ground, not a flat colour."""
+    import numpy as np
+    a = np.asarray(img.convert('RGBA')).astype(float)
+    a = a[:int(a.shape[0] * 0.9)]  # drop the art's own bottom edge (often a ledge or shadow)
+    h = a.shape[0]
+    extra += img.height - h  # (keep the same overall height)
+    src = a[int(h * body[0]):int(h * body[1])]
+    out = a.copy()
+    while out.shape[0] < h + extra:
+        n = min(blend, out.shape[0], src.shape[0])
+        t = np.linspace(0, 1, n)[:, None, None]
+        joined = out[-n:] * (1 - t) + src[:n] * t
+        out = np.concatenate([out[:-n], joined, src[n:]], axis=0)
+    out = out[:h + extra]
+    out[..., 3] = np.where(np.arange(out.shape[0])[:, None] >= h, 255, out[..., 3])
+    return Image.fromarray(np.clip(out, 0, 255).astype(np.uint8))

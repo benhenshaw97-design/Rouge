@@ -104,6 +104,7 @@ export const AREAS = [
       ground: { key: 'desert-ground', height: 1500, tileHeight: AREA_ART['desert-ground'].height },
       'foreground-back': areaLayer('desert-foreground-back'),
       foreground: areaLayer('desert-foreground'),
+      ...NEW_AREAS.extraLayers?.desert,
     },
     // Stops here use desert buildings (one look picked at random) and the desert platform.
     buildings: {

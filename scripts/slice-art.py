@@ -17,7 +17,7 @@ from pathlib import Path
 import numpy as np
 from PIL import Image, ImageDraw
 
-from artlib import (compose, crop, crossfade_tile, find_pieces, objects_in, paste_wrap, pieces_in,
+from artlib import (compose, continue_down, crop, crossfade_tile, find_pieces, objects_in, paste_wrap, pieces_in,
                     remove_painted_background, scale, sheet, tight)
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -411,8 +411,12 @@ report['desert-props'] = [len(props), len(villages)]
 # Sand bank under the rails (cut below its sleeper tops), like the grass one.
 dbank = S('desert-embankment.png').crop((0, 398, 2170, 725)).convert('RGBA')
 dbottom = np.median(np.asarray(dbank.convert('RGB'))[-20:].reshape(-1, 3), axis=0)
-dground = Image.new('RGBA', (dbank.width, dbank.height + 200), tuple(int(c) for c in dbottom) + (255,))
-dground.alpha_composite(dbank, (0, 0))
+dsolid = Image.new('RGBA', dbank.size, tuple(int(c) for c in dbottom) + (255,))
+dsolid.alpha_composite(dbank)
+dground = continue_down(dsolid, 200)  # more sand below, not a flat band
+dtop = dbank.height // 3
+dground.paste(Image.new('RGBA', (dbank.width, dtop), (0, 0, 0, 0)), (0, 0))
+dground.alpha_composite(dbank.crop((0, 0, dbank.width, dtop)), (0, 0))
 save(scale(crossfade_tile(dground, 120), 0.3 * HI), 'backgrounds/desert-ground.png')
 area_art['desert-ground'] = {'height': round(dground.height * 0.3, 1)}
 

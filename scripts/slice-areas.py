@@ -16,7 +16,7 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 
-from artlib import compose, crop, crossfade_tile, objects_in, scale, sheet, tight
+from artlib import compose, continue_down, paste_wrap, crop, crossfade_tile, objects_in, scale, sheet, tight
 
 ROOT = Path(__file__).resolve().parent.parent
 SHEETS = ROOT / 'art' / 'sheets'
@@ -128,6 +128,29 @@ def solid(img, cut=150):
     return Image.fromarray(a)
 
 
+def jungle_village():
+    kit = S('jungle-kit.png')
+    huts = objects_in(kit, (0, 485, 1774, 608), min_w=60, grow=3)
+    trees = [p for p in objects_in(kit, (0, 290, 1774, 464), min_w=60, grow=3) if p.height > 120]
+    plants = [p for p in objects_in(kit, (0, 290, 1774, 464), min_w=50, grow=3) if p.height <= 120]
+    rng = __import__('random').Random(11)
+    seq = []
+    for hut in huts:  # each hut, then two or three trees and a bush
+        seq.append(hut)
+        seq += rng.sample(trees, 2 + rng.randint(0, 1))
+        if plants:
+            seq.append(rng.choice(plants))
+    height = max(p.height for p in seq)
+    tile = Image.new('RGBA', (8192, height), (0, 0, 0, 0))
+    x = 0
+    for p in seq:
+        if x >= tile.width:
+            break
+        paste_wrap(tile, p, x, height - p.height)
+        x += p.width - rng.randint(25, 60)
+    return tile
+
+
 def drop_columns(img, ranges, blend=40):
     """Cuts out x ranges (e.g. fence posts), blending each join so it doesn't show."""
     keep, x = [], 0
@@ -175,9 +198,14 @@ def bank(img, box, solid=True):
         cov = (np.asarray(img.crop(box).getchannel('A')) > 128).mean(axis=1)
         y0 += int(np.argmax(cov > 0.97)) + 2
     b = img.crop((x0, y0, x1, y1))
-    g = Image.new('RGBA', (b.width, b.height + 200), bottom_colour(b))
-    g.paste(Image.new('RGBA', b.size, (0, 0, 0, 0)), (0, 0))
-    g.alpha_composite(b, (0, 0))
+    # Below the art, more of the same ground (not a flat colour band behind the foreground).
+    solid_bg = Image.new('RGBA', b.size, bottom_colour(b))
+    solid_bg.alpha_composite(b)
+    filled = continue_down(solid_bg, 200)
+    top = b.height // 3  # keep the original (transparent) top edge where the plants poke up
+    g = filled.copy()
+    g.paste(Image.new('RGBA', (b.width, top), (0, 0, 0, 0)), (0, 0))
+    g.alpha_composite(b.crop((0, 0, b.width, top)), (0, 0))
     return crossfade_tile(g, 120)
 
 
@@ -205,6 +233,8 @@ AREAS = {
         'trees': lambda: scatter(S(SNOW), [(0, 351, 1774, 470)], 2048, (-10, 30), overlap=10),
         'village': lambda: scatter(S('snow-village-strip.png'), [(0, 225, 2172, 472)], 4096, (90, 380)),
         'bank': lambda: bank(S('snow-embankment.png'), (0, 345, 2170, 720)),
+        # Snowy bushes, rocks and little pines along the line (no gaps down to it).
+        'undergrowth': lambda: scatter(S('snow-props.png'), [(0, 162, 2172, 305)], 4096, (-30, 10), min_w=40, seed=6),
         'fg': ('snow-foreground-rows.png', None, (10, 193), (208, 387)),
         'stops': [('snow-stops.png', (0, 0, 2172, 390), {'coalDepot': 0, 'town': 1, 'mine': 2, 'workshop': 3, 'waterTower': 4})],
         'platform': ('snow-stops.png', (0, 395, 2172, 700), 4, 110),
@@ -218,7 +248,9 @@ AREAS = {
         'hills_pad': 'middle',  # its bottom rows are pale mist; fill below with canopy green
         # Free-standing banyans, palms and bamboo (the close-up panel on jungle-layers is cut flat on top).
         'trees': lambda: scatter(S('jungle-kit.png'), [(0, 290, 1774, 464)], 2048, (-30, 10), overlap=10, min_w=60),
-        'village': lambda: scatter(S('jungle-kit.png'), [(0, 485, 1774, 608)], 4096, (140, 420)),
+        # Huts with jungle trees crowded between them (trees are taller, so the layer is too).
+        'village': lambda: jungle_village(),
+        'village_height': 205,
         'bank': lambda: bank(S('jungle-embankment.png'), (0, 225, 2172, 724), solid=False),
         'fg': ('jungle-foreground-rows.png', 200, (8, 199), (208, 370)),
         'fg_clear': True,  # the sheet's white backdrop clings round the leaves
@@ -277,6 +309,8 @@ AREAS = {
         'trees': lambda: strip(S(TOWN), (0, 331, 2172, 503)),
         'village': lambda: scatter(S('town-kit.png'), [(0, 327, 2172, 464)], 4096, (160, 520)),
         'bank': lambda: bank(S('town-embankment.png'), (0, 354, 2172, 715)),
+        # Hedges, planters and bushes along the line.
+        'undergrowth': lambda: scatter(S('town-kit.png'), [(0, 591, 2172, 706)], 4096, (-20, 15), min_w=40, seed=8),
         'fg': ('town-foreground-rows.png', None, (4, 196), None),  # the bank is already a wall
         'stops': [
             ('town-kit.png', (0, 159, 2172, 322), {'town': 0, 'workshop': 5, 'coalDepot': 8, 'waterTower': 9}),
@@ -295,6 +329,13 @@ def main():
         out['images'][key] = rel
         return {'key': key, 'height': round(height, 1)}
 
+    # Extra layers for areas built by slice-art.py (merged in display.js).
+    out['extraLayers'] = {
+        'desert': {
+            'undergrowth': layer('desert-undergrowth', scatter(S('desert-props.png'), [(0, 523, 1225, 676), (1580, 523, 2172, 676)], 4096, (-25, 15), min_w=40, seed=7), UNDERGROWTH_H),
+        },
+    }
+
     for area, a in AREAS.items():
         layers = {}
         mpad = a.get('mountains_pad', 0)  # continue the mountains down in their bottom colour
@@ -308,7 +349,7 @@ def main():
             colour = middle_colour(hills) if a.get('hills_pad') == 'middle' else None
             layers['hills'] = {**layer(f'{area}-hills', pad_bottom(hills, HILLS_PAD, colour), H_HILLS * (1 + HILLS_PAD)), 'bottom': 590}
         layers['trees'] = layer(f'{area}-trees', a['trees'](), H_TREES)
-        layers['village'] = layer(f'{area}-village', a['village'](), H_VILLAGE)
+        layers['village'] = layer(f'{area}-village', a['village'](), a.get('village_height', H_VILLAGE))
 
         b = a['bank']()
         bh = b.height * BANK_K
