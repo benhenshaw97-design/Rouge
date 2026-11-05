@@ -1,4 +1,4 @@
-import { DEPTH, FONT, PLATFORM_HEIGHT, POI_BUILDING_HEIGHT, POI_BUILDING_MAX_WIDTH, POINTS, RAIL_Y, TUNNEL } from '../config/display.js';
+import { BUILDING_MAX_WIDTH, DEPTH, FONT, PLATFORM_HEIGHT, POI_BUILDING_HEIGHT, POI_BUILDING_MAX_WIDTH, POINTS, RAIL_Y, TUNNEL } from '../config/display.js';
 
 /**
  * A stop beside the line: building, optional station platform and a name board.
@@ -10,7 +10,7 @@ export function createStop(scene, { buildingKey, title, subtitle, platform }) {
 
   const img = scene.add.image(0, groundY, buildingKey).setOrigin(0.5, 1);
   // Wide buildings are capped by width, so they don't tower over the train.
-  img.setScale(Math.min(POI_BUILDING_HEIGHT / img.height, POI_BUILDING_MAX_WIDTH / img.width));
+  img.setScale(Math.min(POI_BUILDING_HEIGHT / img.height, (BUILDING_MAX_WIDTH[buildingKey] ?? POI_BUILDING_MAX_WIDTH) / img.width));
   c.add(img);
 
   if (platform) {

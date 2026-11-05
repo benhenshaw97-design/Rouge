@@ -179,6 +179,8 @@ export const PLATFORM_HEIGHT = {
 
 /** POI buildings are scaled to this height (design px), but never wider than POI_BUILDING_MAX_WIDTH. */
 export const POI_BUILDING_MAX_WIDTH = 340;
+/** Wider limits for particular buildings that are long and low (e.g. a big station hall). */
+export const BUILDING_MAX_WIDTH = { 'badlands-town': 620 };
 
 export const POI_BUILDING_HEIGHT = 235;
 

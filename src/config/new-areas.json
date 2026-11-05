@@ -107,7 +107,7 @@
         },
         "village": {
           "key": "badlands-village",
-          "height": 8
+          "height": 140
         },
         "ground": {
           "key": "badlands-ground",

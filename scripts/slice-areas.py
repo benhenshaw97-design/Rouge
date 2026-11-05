@@ -335,8 +335,10 @@ AREAS = {
         'hills_height': 8,
         'trees': lambda: Image.new('RGBA', (64, 8), (0, 0, 0, 0)),
         'trees_height': 8,
-        'village': lambda: Image.new('RGBA', (64, 8), (0, 0, 0, 0)),
-        'village_height': 8,
+        # Midground: the odd water tank, gantry, derrick or engine house in front of the fog,
+        # well spaced so the painting still shows through.
+        'village': lambda: dusk(scatter(S('badlands-kit.png'), [(0, 255, 2172, 394)], 6144, (500, 1100), min_w=60, seed=12), amount=0.15, light=0.95),
+        'village_height': 140,
         'bank': lambda: bank(opaque(S('badlands-scene.png')), (0, 452, 2172, 724), solid=False),
         'bank_scale': 0.735,
         'fg': ('badlands-scene.png', None, None, None),  # the junk is part of the viaduct panel
