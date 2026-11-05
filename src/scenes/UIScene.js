@@ -8,6 +8,8 @@ import { PoiPanel } from '../ui/PoiPanel.js';
 import { StatusCard } from '../ui/StatusCard.js';
 import { GodPanel } from '../ui/GodPanel.js';
 import { MapView } from '../ui/MapView.js';
+import { RadioPanel } from '../ui/RadioPanel.js';
+import { music } from '../systems/MusicPlayer.js';
 import { BALANCE, POI_TYPES, START_STATION } from '../config/balance.js';
 
 /**
@@ -27,6 +29,11 @@ export class UIScene extends Phaser.Scene {
   }
 
   create() {
+    // (Keyboard listeners go when the scene restarts, so they're added again.)
+    this.mapKeys = false;
+    this.radioKeys = false;
+    this.mapOpen = false;
+    this.radioOpen = false;
     this.junction = null;
     this.picker = null;
     this.panelArgs = null;
@@ -68,10 +75,51 @@ export class UIScene extends Phaser.Scene {
     const slot = this.scale.fullscreen.available ? 2 : 1;
     this.god = new GodPanel(this, L, slot);
     this.addMapButton(L, slot + 1);
+    this.addRadioButton(L, slot + 2);
     if (this.mapOpen) this.showMap();
 
     if (this.junction) this.picker = new JunctionPicker(this, L.picker, this.junction, (i) => this.main.selectBranch(i), animate);
     if (this.panelArgs) this.panel = new PoiPanel(this, L.panel, this.panelArgs);
+  }
+
+  // --- Radio -----------------------------------------------------------------------------------
+
+  addRadioButton(L, slot) {
+    const step = 46 * L.controls.dir;
+    const draw = (g) => {
+      // A little wireless set: body, speaker grille, dial and aerial.
+      g.clear();
+      g.lineStyle(2, 0xf6ead2, 1).lineBetween(4, -6, 9, -12);
+      g.fillStyle(0xf6ead2, 1).fillRoundedRect(-11, -6, 22, 15, 3);
+      g.fillStyle(COLORS.panel, 1).fillCircle(-4, 1.5, 4.5).fillRect(4, -2, 4, 2).fillRect(4, 2, 4, 2).fillRect(4, 6, 4, 1.5);
+      g.fillStyle(music.playing ? 0xa8f0a0 : 0x8a6a48, 1).fillCircle(-4, 1.5, 2);
+    };
+    this.radioButton = roundButton(this, L.controls.x + step * slot, L.controls.y, draw, () => this.toggleRadio());
+    this.radioAnchor = { x: L.controls.x + step * slot, y: L.controls.y, dir: L.controls.dir };
+    this.radioDraw = draw;
+    if (!this.radioKeys) {
+      this.radioKeys = true;
+      this.input.keyboard?.on('keydown-R', () => this.toggleRadio());
+      this.unsubscribeRadio = music.onChange(() => this.radioButton?.active && this.radioDraw(this.radioButton.list[1]));
+      this.events.once('shutdown', () => this.unsubscribeRadio?.());
+    }
+    if (this.radioOpen) this.showRadio();
+  }
+
+  toggleRadio() {
+    this.radioOpen = !this.radioOpen;
+    if (this.radioOpen) this.showRadio();
+    else this.hideRadio();
+  }
+
+  showRadio() {
+    this.radio?.destroy();
+    this.radio = new RadioPanel(this, this.radioAnchor, { onClose: () => this.toggleRadio() });
+  }
+
+  hideRadio() {
+    this.radio?.destroy();
+    this.radio = null;
   }
 
   // --- Route map -----------------------------------------------------------------------------

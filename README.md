@@ -85,6 +85,14 @@ They're listed in `src/content/events.js`, and many only happen in certain areas
 each paying a reward when done and replaced with a new one. They're on the map screen
 (`src/content/objectives.js`).
 
+**The radio** (radio button, or R): tune between stations (Rouge Radio, Steam FM, Pixel Dreams,
+Marimba Junction), skip or go back a track, switch the music off, and set music, effects and
+ambience volumes. It's all remembered on the device. Stations are `RADIO_STATIONS` in `assets.js`.
+
+**Ambience**: each area has its own background sound (wind in the snow and desert, waves on the
+coast, birds and insects in the jungle, frogs in the marsh). For now these are made on the fly
+(`src/systems/Ambience.js`); add real loops to `AMBIENCE_FILES` in `assets.js` to replace them.
+
 **Running out of fuel** isn't the end: a relief engine can bring fuel out (free the first time,
 then more each call; if you're broke they take what you have). Or you can end the run.
 
@@ -138,7 +146,8 @@ src/
     WorldLayer.js          Moves objects pinned to a spot on the line
     Viewport.js            Screen sizing and the phone / desktop layouts
     AudioManager.js        Sound effects that tolerate missing files
-    MusicPlayer.js         Streams the music playlist (light on phone memory)
+    MusicPlayer.js         The radio: stations, skipping, volumes (streams, light on phone memory)
+    Ambience.js            Area background sound (real loops, or made on the fly)
     Weather.js             Falling snow (areas with weather: 'snow')
     BackgroundLoader.js    Loads other areas' art in the background
   objects/
@@ -148,7 +157,7 @@ src/
   content/events.js        ★ Line events and their choices. Add new ones here.
   content/objectives.js    ★ Objective types and rewards
   debug/                   The debug panel (DebugPanel.js) and what its controls do (debugActions.js)
-  ui/                      HUD, junction picker, stop menu, status card, map screen, 9-slice buttons
+  ui/                      HUD, junction picker, stop menu, status card, map screen, radio, 9-slice buttons
 scripts/slice-art.py       Cuts the sprites and builds the scrolling layers from art/sheets
 scripts/slice-areas.py     Same for the desert-onward areas (writes src/config/new-areas.json)
 scripts/compress-images.py Shrinks every PNG to a 256-colour palette (run after slicing)

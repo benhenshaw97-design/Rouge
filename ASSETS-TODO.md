@@ -90,8 +90,11 @@ Improvements to current areas:
 - [ ] **Junction signposts** to match each area (only the meadow's exists)
 - [ ] Night or sunset meadow (the sunset sky and mountain strips are already uploaded)
 - [ ] Passengers on platforms: 3–6 small people in each area's clothes
-- [ ] Area sounds: wind (snow, desert), birds and insects (jungle), frogs (marsh), gulls and waves
-      (coast), street bustle (Brasswick)
+- [ ] **Area ambience loops** (30–60 s, seamless, MP3): meadow birdsong, desert wind, snow wind,
+      jungle birds and insects, marsh frogs, coast waves and gulls, Brasswick street bustle.
+      Stand-ins are synthesised for now; drop a file in `assets/audio/ambience/` and list it in
+      `AMBIENCE_FILES` (assets.js). CC0 recordings from freesound.org work well.
+- [ ] More radio music: a station of slower tracks, or one per area
 
 ## 8. Still wanted from earlier
 - [ ] Branch line: track continuing off the end of the points piece, so junctions don't stop short

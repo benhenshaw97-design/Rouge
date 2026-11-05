@@ -58,6 +58,7 @@ export function goToArea(g, index) {
   g.leg++;
   g.parallax.setArea(area);
   g.weather.setArea(area);
+  g.ambience.setArea(area);
   g.route.map.replanAreas(g.route.map.current.col + 1, index);
   const j = g.route.junction;
   if (j && !j.resolved) {

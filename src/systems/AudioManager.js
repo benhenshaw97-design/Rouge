@@ -22,7 +22,8 @@ export class AudioManager {
   play(key, config = {}) {
     // While the browser hasn't unlocked audio yet, skip one-shots instead of queueing them up.
     if (!this.has(key) || this.sound.locked) return;
-    this.sound.play(key, { volume: AUDIO_VOLUME[key] ?? 0.5, ...config });
+    // (The radio's Effects slider scales every sound effect.)
+    this.sound.play(key, { volume: (AUDIO_VOLUME[key] ?? 0.5) * music.effectsVolume, ...config });
   }
 
   /** Starts the music playlist (call from a tap/click the first time, for mobile browsers). */

@@ -162,6 +162,33 @@ export const MUSIC = [
 ];
 
 /**
+ * The in-game radio's stations (see systems/MusicPlayer.js and ui/RadioPanel.js): each plays its
+ * tracks shuffled. Track titles come from the file names ("trains-3" → "Trains 3") unless given in
+ * TRACK_TITLES. The first station is what plays on a first visit.
+ */
+const track = (name) => `audio/music/${name}.mp3`;
+export const RADIO_STATIONS = [
+  { id: 'all', name: 'Rouge Radio', blurb: 'A bit of everything', tracks: MUSIC },
+  { id: 'steam', name: 'Steam FM', blurb: 'Songs of the line', tracks: ['trains-1', 'trains-2', 'trains-3', 'trains-4', 'steambox-arpeggios'].map(track) },
+  { id: 'dreams', name: 'Pixel Dreams', blurb: 'Late-night chiptune', tracks: ['steamy-pixel-dreams', 'steamy-pixel-dreams-2', 'snes-dub-dreams', 'snes-dub-dreams-2'].map(track) },
+  { id: 'groove', name: 'Marimba Junction', blurb: 'Breakbeats and grooves', tracks: ['marimba-breakbeat', 'marimba-breakbeat-2', 'wandering-pixel-groove'].map(track) },
+];
+
+/**
+ * Ambience loops per area (streamed, looping). Areas not listed get a stand-in made on the fly
+ * (see systems/Ambience.js). e.g. coast: 'audio/ambience/coast.mp3'
+ */
+export const AMBIENCE_FILES = {};
+
+/** Nicer titles for particular tracks (by file name without the extension). */
+export const TRACK_TITLES = {
+  'snes-dub-dreams': 'SNES Dub Dreams',
+  'snes-dub-dreams-2': 'SNES Dub Dreams II',
+  'steamy-pixel-dreams-2': 'Steamy Pixel Dreams II',
+  'marimba-breakbeat-2': 'Marimba Breakbeat II',
+};
+
+/**
  * Sound effects. Originals are in art/sfx (Kenney packs are CC0; see art/sfx/README.md).
  */
 export const AUDIO = {

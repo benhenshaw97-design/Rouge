@@ -9,6 +9,7 @@ import { TrainState } from '../state/TrainState.js';
 import { AudioManager } from '../systems/AudioManager.js';
 import { ParallaxBackground } from '../systems/ParallaxBackground.js';
 import { Weather } from '../systems/Weather.js';
+import { Ambience } from '../systems/Ambience.js';
 import { Objectives } from '../systems/Objectives.js';
 import { areaLoaded, loadLaterImages } from '../systems/BackgroundLoader.js';
 import { RouteManager } from '../systems/RouteManager.js';
@@ -51,6 +52,8 @@ export class GameScene extends Phaser.Scene {
     this.objectives = new Objectives({ state: this.state, scene: this });
     this.weather = new Weather(this);
     this.weather.setArea(this.area);
+    this.ambience = new Ambience(this);
+    this.ambience.setArea(this.area);
     // Whatever the title screen didn't finish (after a moment, so files it still has on the way
     // aren't asked for twice).
     this.time.delayedCall(3000, () => loadLaterImages(this));
@@ -231,6 +234,7 @@ export class GameScene extends Phaser.Scene {
       }
       this.ui.toast(`Entering ${this.area.name}`);
       this.weather.setArea(this.area);
+      this.ambience.setArea(this.area);
     }
     if (t.split) {
       const d = this.state.distance;
