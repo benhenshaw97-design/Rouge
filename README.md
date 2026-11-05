@@ -27,9 +27,23 @@ npm run dev        # http://localhost:5173
 
 Add `?timescale=4` to the URL to run the simulation 4× faster when testing balance.
 
-**God mode:** tap the dim **GOD** button by the sound button (or add `#god` to the URL). It
-lights up and opens a panel (or press **G**) with: unlimited fuel and water, +£500, game speed
-1× / 3× / 8×, go to the next area now, full repair, and God mode off. It's remembered on that device.
+**Debug mode:** tap the dim **GOD** button by the sound button (or add `#god` to the URL, or press
+**G** / **`**). It lights up and opens the debug panel (a side panel; the bottom half on an upright
+phone). It's remembered on that device until you press *God mode off* in the panel.
+
+| Section | What's in it |
+| ------- | ------------ |
+| Info    | Live readout: area, distance, speed, next junction and its stops, next stop, next tunnel, passengers, FPS |
+| Travel  | Jump to any area, tunnel to the next one, skip ahead (500 m or to the next junction/stop), game speed 0.25–12× |
+| Stops   | Put any kind of stop just ahead; choose the two stops the next junction offers |
+| Train   | Sliders for fuel, water, heat, condition and money; fill everything, max upgrades, load cargo or passengers |
+| Events  | Break down, overheat, low fuel, out of fuel, dry boiler |
+| Cheats  | Unlimited fuel & water, no breakdowns, no wear |
+| Tuning  | Stop spacing and area length multipliers (until reload) to try out longer journeys |
+| View & run | Hide the game UI for screenshots, corner readout, restart or end the run, reset best |
+
+The panel is built from a list in `src/debug/DebugPanel.js` (`SECTIONS`), with the actions in
+`src/debug/debugActions.js`, so a new feature's debug tool is usually one action plus one line.
 
 ## Controls
 
@@ -91,7 +105,7 @@ src/
     display.js             Design-stage layout, parallax layers, train composition, colours
     train-art.json         Car sizes and wheel/rail positions measured from the art (generated)
     assets.js              Every asset file the game loads, by key
-    debug.js               Dev helpers: god mode, ?timescale=
+    debug.js               Debug-mode switches (god mode, ?timescale=, cheats)
   scenes/
     BootScene.js           Loads assets, title screen
     GameScene.js           The run: world, train and rules
@@ -113,6 +127,7 @@ src/
     Train.js               Train visuals: cars, wheels, rods, smoke, cargo heap
     worldObjects.js        Station buildings and junction graphics
   poi/poiActions.js        What each POI lets you do
+  debug/                   The debug panel (DebugPanel.js) and what its controls do (debugActions.js)
   ui/                      HUD, junction picker, stop menu, status card, 9-slice buttons
 scripts/slice-art.py       Cuts the sprites and builds the scrolling layers from art/sheets
 scripts/slice-areas.py     Same for the desert-onward areas (writes src/config/new-areas.json)

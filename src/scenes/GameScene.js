@@ -82,6 +82,7 @@ export class GameScene extends Phaser.Scene {
     kb?.on('keydown-SPACE', () => this.tryDepart());
     kb?.on('keydown-ENTER', () => this.tryDepart());
     kb?.on('keydown-G', () => this.ui.god?.toggle());
+    kb?.on('keydown-BACKTICK', () => this.ui.god?.toggle());
 
     this.audio.startMusic();
     this.cameras.main.fadeIn(500, 21, 17, 13);
@@ -130,7 +131,9 @@ export class GameScene extends Phaser.Scene {
     }
 
     const underSteam = this.phase === 'running' && !state.isOutOfFuel && motion.speed > 0.01;
+    const conditionBefore = state.condition;
     for (const event of state.update(dt, motion.speed, metres, underSteam)) this.onStateEvent(event);
+    if (DEBUG.god && DEBUG.noWear) state.condition = Math.max(state.condition, conditionBefore);
     if (DEBUG.god && DEBUG.unlimited) {
       state.fuel = state.fuelCapacity;
       state.water = state.waterCapacity;
@@ -296,17 +299,23 @@ export class GameScene extends Phaser.Scene {
       this.ui.hideJunction();
       this.audio.play('switch');
       this.ui.toast(`Points set for ${def.name}`);
-      this.world.add(
-        poi.at,
-        createStop(this, {
-          buildingKey: poi.building,
-          platform: def.platform && this.area.platform,
-          title: def.name,
-          subtitle: poi.name,
-        }),
-        { offsetX: -this.train.length / 2 },
-      );
+      this.addStopToWorld(poi);
     }
+  }
+
+  /** Builds a stop's building (and platform) on the line at its spot. */
+  addStopToWorld(poi) {
+    const def = POI_TYPES[poi.type];
+    this.world.add(
+      poi.at,
+      createStop(this, {
+        buildingKey: poi.building,
+        platform: def.platform && this.area.platform,
+        title: def.name,
+        subtitle: poi.name,
+      }),
+      { offsetX: -this.train.length / 2 },
+    );
   }
 
   selectBranch(index) {
@@ -339,6 +348,18 @@ export class GameScene extends Phaser.Scene {
    * halt, the crew patch it up for a few seconds, and it sets off again a little less worn.
    * Never in a tunnel or just before a stop, where it would look odd or spoil the stop.
    */
+  startBreakdown() {
+    const v = this.motion.speed;
+    const brakeDist = (v * v) / (2 * BALANCE.train.brakeDeceleration);
+    this.breakdown = {
+      stopAt: this.state.distance + Math.max(brakeDist * 1.4, 20),
+      repairLeft: BALANCE.condition.breakdownRepairSeconds,
+    };
+    this.state.brokenDown = true;
+    this.audio.play('warning');
+    this.ui.toast('Something’s gone bang! Pulling up…', COLORS.bad);
+  }
+
   updateBreakdown(dt, metres) {
     const { state, motion } = this;
     const c = BALANCE.condition;
@@ -346,14 +367,7 @@ export class GameScene extends Phaser.Scene {
     if (!b) {
       const stopIn = this.route.stopIn(state.distance);
       const clear = !this.tunnel && (stopIn == null || stopIn > 300);
-      if (clear && !state.isOutOfFuel && state.rollBreakdown(metres)) {
-        const v = motion.speed;
-        const brakeDist = (v * v) / (2 * BALANCE.train.brakeDeceleration);
-        this.breakdown = { stopAt: state.distance + Math.max(brakeDist * 1.4, 20), repairLeft: c.breakdownRepairSeconds };
-        state.brokenDown = true;
-        this.audio.play('warning');
-        this.ui.toast('Something’s gone bang! Pulling up…', COLORS.bad);
-      }
+      if (clear && !state.isOutOfFuel && !DEBUG.noBreakdowns && state.rollBreakdown(metres)) this.startBreakdown();
       return;
     }
     if (motion.speed > 0 || state.distance < b.stopAt - 0.5) return;

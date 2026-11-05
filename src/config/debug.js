@@ -21,11 +21,18 @@ export const DEBUG = {
   god: hash === 'god' || params.has('god') || stored(),
   /** God mode: keep fuel and water full and the boiler cool. */
   unlimited: true,
+  // More god-mode switches (set from the debug panel, see src/debug/):
+  noBreakdowns: false,
+  noWear: false,
+  hideUI: false,
+  /** Small live readout in the corner (area, distance, next stop…) even with the panel shut. */
+  readout: false,
 };
 
 /** Switches god mode on or off and remembers it on this device. */
 export function setGod(on) {
   DEBUG.god = on;
+  if (!on) Object.assign(DEBUG, { unlimited: true, noBreakdowns: false, noWear: false, hideUI: false, readout: false, timeScale: 1 });
   try {
     localStorage.setItem(STORE_KEY, on ? '1' : '0');
   } catch {

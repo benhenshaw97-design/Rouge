@@ -45,14 +45,18 @@ export class RouteManager {
   resolveJunction() {
     const j = this.junction;
     j.resolved = true;
-    const type = j.options[j.selected];
+    return this.placeStop(j.options[j.selected], j.at + this.range(this.b.route.branchDistance), j.area, j.buildings[j.selected]);
+  }
+
+  /** Puts the next stop (a POI of `type`) at `at` metres, in `area`'s style. */
+  placeStop(type, at, area, building = this.buildingFor(type, area)) {
     const def = this.poiTypes[type];
     this.poi = {
       id: this.nextId++,
       type,
-      name: this.pick(STOP_NAMES[j.area?.id]?.[type] ?? def.names),
-      building: j.buildings[j.selected],
-      at: j.at + this.range(this.b.route.branchDistance),
+      name: this.pick(STOP_NAMES[area?.id]?.[type] ?? def.names),
+      building,
+      at,
       visited: false,
     };
     return this.poi;
@@ -64,6 +68,12 @@ export class RouteManager {
   }
 
   pickOptions() {
+    // (The debug panel can choose the next junction's two stops.)
+    if (this.forcedOptions) {
+      const forced = this.forcedOptions;
+      this.forcedOptions = null;
+      return forced;
+    }
     const ids = Object.keys(this.poiTypes);
     const first = this.weightedPick(ids);
     const second = this.weightedPick(ids.filter((id) => id !== first));
