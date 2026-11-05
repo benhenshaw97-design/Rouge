@@ -333,8 +333,11 @@ AREAS = {
         'mountains_bottom': 566,
         'hills': lambda: Image.new('RGBA', (64, 8), (0, 0, 0, 0)),
         'hills_height': 8,
-        'trees': lambda: Image.new('RGBA', (64, 8), (0, 0, 0, 0)),
-        'trees_height': 8,
+        # Mid background (as in the concept): rusted derricks, wheels, cannon and smoking
+        # stacks on mounds, in the fog between the painting and the line. Moves faster than
+        # the painting, so the scene has depth.
+        'trees': lambda: dusk(strip(S('badlands-silhouettes-a.png'), (0, 307, 2172, 426)), amount=0.3, light=0.9),
+        'trees_height': 120,
         # Midground: the odd water tank, gantry, derrick or engine house in front of the fog,
         # well spaced so the painting still shows through.
         'village': lambda: dusk(scatter(S('badlands-kit.png'), [(0, 255, 2172, 394)], 6144, (500, 1100), min_w=60, seed=12), amount=0.15, light=0.95),
