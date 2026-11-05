@@ -26,6 +26,9 @@ import { WorldLayer } from '../systems/WorldLayer.js';
  *   'stopped'  halted at a POI with its menu open
  *   'over'     run finished; handing off to GameOver
  */
+/** Line-event props that lie flat on the ground (drawn on the near bank, not behind the train). */
+const FLAT_EVENT_PROPS = new Set(['fallen-tree', 'hot-spring', 'oasis', 'mail-sack']);
+
 export class GameScene extends Phaser.Scene {
   constructor() {
     super('Game');
@@ -321,13 +324,27 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  /** Puts a line event's prop beside the track, just ahead of where the train will halt. */
+  /**
+   * Puts a line event's prop by the line where the train halts, where it can be seen with the
+   * event's menu open (that covers the line ahead of the engine): low, flat things (a log, a
+   * pool, a snow mound) lie on the near bank in front of the wheels; anything taller stands
+   * behind the low cargo wagon, big enough to show over it, like a stop's building.
+   */
   addEventProp(ev) {
     const key = ev.def.prop ?? `event-${ev.def.id}`;
     if (!this.textures.exists(key)) return;
-    const img = this.add.image(0, RAIL_Y + 14, key).setOrigin(0, 1).setDepth(DEPTH.buildings);
-    img.setScale(Math.min(1, 110 / img.height, 220 / img.width));
-    this.world.add(ev.at, img, { offsetX: 24 });
+    const cars = TRAIN_LAYOUT.cars;
+    const widthOf = (k) => cars.find((c) => c.key === k)?.width ?? 0;
+    const flat = FLAT_EVENT_PROPS.has(ev.def.id);
+    const img = this.add.image(0, flat ? RAIL_Y + 78 : RAIL_Y + 14, key).setOrigin(0.5, 1);
+    if (flat) {
+      img.setScale(Math.min(1.3, 62 / img.height, 230 / img.width)).setDepth(DEPTH.rods + 0.5);
+      this.world.add(ev.at, img, { offsetX: -widthOf('locomotive') * 0.55 });
+    } else {
+      img.setScale(Math.min(1.6, 175 / img.height, 330 / img.width)).setDepth(DEPTH.buildings);
+      this.world.add(ev.at, img, { offsetX: -(widthOf('locomotive') + widthOf('tender') + widthOf('wagon') * 0.5) });
+    }
+    ev.prop = img;
   }
 
   /** Builds a stop's building (and platform) on the line at its spot. */

@@ -105,6 +105,7 @@ function jump(g, metres) {
 
 /** Sets the two stops offered at the next junction (the pending one if it hasn't been reached). */
 export function forceJunction(g, a, b) {
+  if (a === b) return 'Pick two different stops (a junction offers two choices)';
   const j = g.route.junction;
   if (j && !j.resolved) {
     j.options = [a, b];
@@ -140,6 +141,7 @@ export function eventHere(g, id) {
   const at = g.state.distance + Math.max(stoppingDistance(g) * 1.3, 30) + 40;
   const next = g.route.stopIn(g.state.distance);
   if (next != null && next < at - g.state.distance + 20) return 'Something else is just ahead; try after it';
+  g.route.event?.prop?.destroy(); // (the event it replaces never happens)
   g.route.event = { def, at, visited: false, warned: true };
   g.addEventProp(g.route.event);
   return `${def.title} ahead`;

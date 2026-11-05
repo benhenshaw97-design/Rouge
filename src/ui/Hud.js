@@ -68,7 +68,9 @@ export class Hud {
       const cx = x + M.padX + (i % cCols) * cW;
       const cy = top + Math.floor(i / cCols) * cRowH + cRowH / 2;
       scene.add.image(cx + cIcon / 2, cy, c.icon).setDisplaySize(cIcon, cIcon);
-      this.counters[c.id] = text(scene, cx + cIcon + 6, cy, '', panel ? 18 : 15, COLORS.text, { fontStyle: 'bold' }).setOrigin(0, 0.5);
+      const t = text(scene, cx + cIcon + 6, cy, '', panel ? 18 : 15, COLORS.text, { fontStyle: 'bold' }).setOrigin(0, 0.5);
+      t.maxW = cW - cIcon - 8; // (shrunk to fit if the number grows long, e.g. 123.45 km)
+      this.counters[c.id] = t;
     });
 
     if (panel) {
@@ -100,7 +102,8 @@ export class Hud {
     this.counters.money.setText(`£${Math.floor(s.money)}`);
     this.counters.passengers.setText(`${s.passengerCount}/${s.passengerCapacity}`);
     this.counters.cargo.setText(`${s.cargo}/${s.cargoCapacity}`);
-    this.counters.distance.setText(`${(s.distance / 1000).toFixed(2)} km`);
+    this.counters.distance.setText(`${(s.distance / 1000).toFixed(s.distance < 100000 ? 2 : 1)} km`);
+    for (const t of Object.values(this.counters)) t.setScale(Math.min(1, t.maxW / Math.max(1, t.width)));
     this.speedText?.setText(`Speed ${Math.round(speed * 3.6)} km/h  ·  Fuel burn ×${s.burnMultiplier.toFixed(2)}`);
   }
 

@@ -11,7 +11,8 @@
  *
  * Rules (so it always plays fairly):
  *  - a stop in lane L links to two of lanes L-1, L, L+1 (so the middle lane is always reachable)
- *  - neighbouring lanes in a column never have the same kind of stop (the two choices differ)
+ *  - neighbouring lanes in a column never have the same kind of stop (the two choices differ;
+ *    in the first column the outer lanes differ too, as the start offers those two)
  *  - every other column has a Coal Depot in the middle lane (fuel is never far away)
  *
  * Columns are generated as needed, so the line goes on as long as the run does.
@@ -88,6 +89,8 @@ export class RouteMap {
       }
       const avoid = new Set([types[lane - 1]]);
       if (coalHere) avoid.add('coalDepot'); // (already in the middle)
+      // The start's junction offers the two outer lanes, so they must differ too.
+      if (col === 1 && lane === LANES - 1) avoid.add(types[0]);
       types.push(this.weightedPick(ids.filter((id) => !avoid.has(id))));
     }
     return types;
