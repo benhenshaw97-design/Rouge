@@ -151,6 +151,66 @@ def jungle_village():
     return tile
 
 
+def _flood(ok):
+    from collections import deque
+    h, w = ok.shape
+    seen = np.zeros_like(ok)
+    q = deque((0, x) for x in range(w) if ok[0, x])
+    for y, x in q:
+        seen[y, x] = True
+    while q:
+        y, x = q.popleft()
+        for ny, nx in ((y + 1, x), (y - 1, x), (y, x + 1), (y, x - 1)):
+            if 0 <= ny < h and 0 <= nx < w and not seen[ny, nx] and ok[ny, nx]:
+                seen[ny, nx] = True
+                q.append((ny, nx))
+    return seen
+
+
+def key_sky(img):
+    """Cuts the painted sky out of an opaque scene panel (flooding down from the top through
+    bluish, cloud-white and pink-lit pixels), leaving the land and what stands on it."""
+    a = np.asarray(img.convert('RGBA')).astype(int)
+    r, g, b = a[..., 0], a[..., 1], a[..., 2]
+    mx, mn = np.maximum(np.maximum(r, g), b), np.minimum(np.minimum(r, g), b)
+    ok = (b > r + 4) | ((mn > 150) & (mx - mn < 70)) | ((r > 150) & (b > 120) & (g < r) & (b > g))
+    a[..., 3] = np.where(_flood(ok), 0, 255)
+    return Image.fromarray(a.astype(np.uint8))
+
+
+def key_flat(img):
+    """Cuts a flat, pale lavender painted backdrop out of a panel (flooding down from the top)."""
+    a = np.asarray(img.convert('RGBA')).astype(int)
+    r, g, b = a[..., 0], a[..., 1], a[..., 2]
+    mx, mn = np.maximum(np.maximum(r, g), b), np.minimum(np.minimum(r, g), b)
+    ok = (b >= g) & (mn > 110) & (mx - mn < 50)
+    a[..., 3] = np.where(_flood(ok), 0, 255)
+    return Image.fromarray(a.astype(np.uint8))
+
+
+def side_by_side(*imgs):
+    h = max(i.height for i in imgs)
+    out = Image.new('RGBA', (sum(i.width for i in imgs), h), (0, 0, 0, 0))
+    x = 0
+    for i in imgs:
+        out.alpha_composite(i, (x, h - i.height))
+        x += i.width
+    return out
+
+
+def pad_top(img, px):
+    """Continues an opaque backdrop upwards in its top row's colours (for tall screens)."""
+    a = np.asarray(img.convert('RGBA'))
+    colour = np.median(a[:6].reshape(-1, 4), axis=0).astype(np.uint8)
+    top = np.broadcast_to(colour, (px, a.shape[1], 4))
+    # Blend the first rows of the art into the flat colour so there's no hard line.
+    out = np.concatenate([top, a], axis=0).astype(float)
+    n = 40
+    t = np.linspace(0, 1, n)[:, None, None]
+    out[px:px + n] = colour * (1 - t) + out[px:px + n] * t
+    return Image.fromarray(out.astype(np.uint8))
+
+
 def badlands_trees():
     """Closer industrial skyline along the bottom, with a big factory every so often."""
     sky = strip(S('badlands-silhouettes-a.png'), (0, 307, 2172, 426))
@@ -252,16 +312,29 @@ SNOW, JUNGLE, MARSH, COAST, TOWN = (
 AREAS = {
     'badlands': {
         'name': 'The Iron Badlands',
-        'mountains': lambda: strip(S(BAD), (0, 174, 2172, 274)),
-        'mountains_pad': 0.3,
-        'hills': lambda: strip(S(BAD), (0, 288, 2172, 423)),
-        # Open golden plains in front of the mesas, then hazy works and the odd great factory.
-        'thicket': lambda: strip(S(BAD), (0, 441, 2172, 568)),
-        'trees': lambda: badlands_trees(),
-        'village': lambda: scatter(S('badlands-kit.png'), [(0, 255, 2172, 394)], 6144, (350, 900), min_w=60),
-        'undergrowth': lambda: strip(S('badlands-silhouettes-b.png'), (0, 582, 2172, 711)),
-        'bank': lambda: bank(S('badlands-viaduct.png'), (0, 43, 2172, 677)),
-        'fg': ('badlands-foreground-rows.png', 230, (550, 704), (385, 528)),
+        # Backdrop: the painted panorama (dusky sky, snowy peaks, mesas, plains), as one layer.
+        'mountains': lambda: pad_top(crossfade_tile(S('badlands-panorama.png').crop((0, 0, 2172, 360)), 240), 160),
+        'mountains_height': 640,
+        'mountains_bottom': 500,
+        'hills': lambda: Image.new('RGBA', (64, 8), (0, 0, 0, 0)),
+        'hills_height': 8,
+        # Middle distance: the preview panels' golden hills with ruined arches, windmills,
+        # banner poles and the old water tower (their painted sky cut out).
+        'thicket': lambda: crossfade_tile(side_by_side(
+            key_sky(S('badlands-preview-a.png').crop((0, 247, 2172, 512))),
+            key_sky(S('badlands-preview-b.png').crop((0, 247, 2172, 512)))), 160),
+        'thicket_height': 215,
+        'trees': lambda: Image.new('RGBA', (64, 8), (0, 0, 0, 0)),
+        'trees_height': 8,
+        # The odd tank, gantry or water tower nearer the line, well spread out.
+        'village': lambda: scatter(S('badlands-kit.png'), [(0, 255, 2172, 394)], 6144, (1200, 2200), min_w=60),
+        # Rocks, fences, lamps, cartwheels and a skull in dry grass along the line.
+        'undergrowth': lambda: crossfade_tile(side_by_side(
+            key_flat(S('badlands-preview-a.png').crop((0, 523, 2172, 724))),
+            key_flat(S('badlands-preview-b.png').crop((0, 523, 2172, 724)))), 120),
+        'undergrowth_height': 62,
+        'bank_reuse': ('desert-ground', 158.1),  # dry grass and sand, like the previews
+        'fg': ('badlands-layers-a.png', None, (602, 722), None),
         'stops': [
             ('badlands-stops.png', (0, 4, 2172, 304), {'town': 0, 'workshop': 1, 'mine': 2, 'coalDepot': 3}),
             ('badlands-stops.png', (0, 320, 2172, 542), {'waterTower': 0}),
@@ -381,23 +454,29 @@ def main():
     for area, a in AREAS.items():
         layers = {}
         mpad = a.get('mountains_pad', 0)  # continue the mountains down in their bottom colour
-        layers['mountains'] = layer(f'{area}-mountains', pad_bottom(a['mountains'](), mpad) if mpad else a['mountains'](), H_MOUNTAINS * (1 + mpad))
+        layers['mountains'] = layer(f'{area}-mountains', pad_bottom(a['mountains'](), mpad) if mpad else a['mountains'](), a.get('mountains_height', H_MOUNTAINS * (1 + mpad)))
         if mpad:
             layers['mountains']['bottom'] = round(441 + H_MOUNTAINS * mpad)
+        if 'mountains_bottom' in a:
+            layers['mountains']['bottom'] = a['mountains_bottom']
         hills = a['hills']()
         if 'hills_height' in a:
             layers['hills'] = {**layer(f'{area}-hills', hills, a['hills_height']), 'bottom': 590}
         else:
             colour = middle_colour(hills) if a.get('hills_pad') == 'middle' else None
             layers['hills'] = {**layer(f'{area}-hills', pad_bottom(hills, HILLS_PAD, colour), H_HILLS * (1 + HILLS_PAD)), 'bottom': 590}
-        layers['trees'] = layer(f'{area}-trees', a['trees'](), H_TREES)
+        layers['trees'] = layer(f'{area}-trees', a['trees'](), a.get('trees_height', H_TREES))
         layers['village'] = layer(f'{area}-village', a['village'](), a.get('village_height', H_VILLAGE))
 
-        b = a['bank']()
-        bh = b.height * BANK_K
-        rel = save(scale(b, BANK_K * HI), f'backgrounds/{area}-ground.png')
-        out['images'][f'{area}-ground'] = rel
-        layers['ground'] = {'key': f'{area}-ground', 'height': 1500, 'tileHeight': round(bh, 1)}
+        if 'bank_reuse' in a:  # another area's bank (already loaded by the game)
+            key, th = a['bank_reuse']
+            layers['ground'] = {'key': key, 'height': 1500, 'tileHeight': th}
+        else:
+            b = a['bank']()
+            bh = b.height * BANK_K
+            rel = save(scale(b, BANK_K * HI), f'backgrounds/{area}-ground.png')
+            out['images'][f'{area}-ground'] = rel
+            layers['ground'] = {'key': f'{area}-ground', 'height': 1500, 'tileHeight': round(bh, 1)}
         if a.get('bank_over_rails'):
             # The bank's plant tops rise this many px above its usual top (just under the
             # sleepers) and it is drawn in front of the track (still behind the train).
@@ -427,9 +506,9 @@ def main():
         # Dense mid-distance layers: a thicket behind the trees (no gaps down to the line) and
         # undergrowth along the line in front of the village.
         if 'thicket' in a:
-            layers['thicket'] = layer(f'{area}-thicket', a['thicket'](), THICKET_H)
+            layers['thicket'] = layer(f'{area}-thicket', a['thicket'](), a.get('thicket_height', THICKET_H))
         if 'undergrowth' in a:
-            layers['undergrowth'] = layer(f'{area}-undergrowth', a['undergrowth'](), UNDERGROWTH_H)
+            layers['undergrowth'] = layer(f'{area}-undergrowth', a['undergrowth'](), a.get('undergrowth_height', UNDERGROWTH_H))
         if 'fgtrees' in a:
             layers['foreground-trees'] = layer(f'{area}-fgtrees', a['fgtrees'](), FGTREES_H)
         if a.get('fog'):
