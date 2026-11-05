@@ -198,6 +198,12 @@ def side_by_side(*imgs):
     return out
 
 
+def opaque(img):
+    a = np.asarray(img.convert('RGBA')).copy()
+    a[..., 3] = 255
+    return Image.fromarray(a)
+
+
 def pad_top(img, px):
     """Continues an opaque backdrop upwards in its top row's colours (for tall screens)."""
     a = np.asarray(img.convert('RGBA'))
@@ -205,7 +211,7 @@ def pad_top(img, px):
     top = np.broadcast_to(colour, (px, a.shape[1], 4))
     # Blend the first rows of the art into the flat colour so there's no hard line.
     out = np.concatenate([top, a], axis=0).astype(float)
-    n = 40
+    n = 90
     t = np.linspace(0, 1, n)[:, None, None]
     out[px:px + n] = colour * (1 - t) + out[px:px + n] * t
     return Image.fromarray(out.astype(np.uint8))
@@ -319,24 +325,21 @@ SNOW, JUNGLE, MARSH, COAST, TOWN = (
 AREAS = {
     'badlands': {
         'name': 'The Iron Badlands',
-        # Look: badlands-concept.png. Dusky sunset panorama (sky, sun, mesas) as the backdrop.
-        'mountains': lambda: pad_top(crossfade_tile(S('badlands-panorama.png').crop((0, 362, 2172, 700)), 240), 200),
-        'mountains_height': 640,
-        'mountains_bottom': 520,
+        # The whole scene is one painted panel (badlands-scene.png): above the viaduct deck is
+        # the backdrop (sunset, foggy ruins), below it the viaduct the line runs along.
+        # (Drawn large so one sun spans more than a screen width; made fully opaque.)
+        'mountains': lambda: pad_top(crossfade_tile(opaque(S('badlands-scene.png').crop((0, 0, 2172, 452))), 220), 500),
+        'mountains_height': (500 + 452) * 1.0,
+        'mountains_bottom': 566,
         'hills': lambda: Image.new('RGBA', (64, 8), (0, 0, 0, 0)),
         'hills_height': 8,
-        # Far: hazy purple factory skyline (great wheel, chimneys, viaducts).
-        'thicket': lambda: dusk(strip(S('badlands-silhouettes-b.png'), (0, 105, 2172, 250)), amount=0.45),
-        'thicket_height': 150,
-        # Mid: rusted wheels, cannon, derricks and gantries in the haze.
-        'trees': lambda: dusk(strip(S('badlands-silhouettes-a.png'), (0, 307, 2172, 426)), amount=0.3, light=0.95),
-        'trees_height': 120,
+        'trees': lambda: Image.new('RGBA', (64, 8), (0, 0, 0, 0)),
+        'trees_height': 8,
         'village': lambda: Image.new('RGBA', (64, 8), (0, 0, 0, 0)),
         'village_height': 8,
-        # The line runs along the rusted viaduct.
-        'bank': lambda: bank(S('badlands-viaduct.png'), (0, 43, 2172, 677)),
-        # Trackside junk in front.
-        'fg': ('badlands-foreground-rows.png', 230, (550, 704), (385, 528)),
+        'bank': lambda: bank(opaque(S('badlands-scene.png')), (0, 452, 2172, 724), solid=False),
+        'bank_scale': 0.735,
+        'fg': ('badlands-scene.png', None, None, None),  # the junk is part of the viaduct panel
         'stops': [
             ('badlands-stops.png', (0, 4, 2172, 304), {'town': 0, 'workshop': 1, 'mine': 2, 'coalDepot': 3}),
             ('badlands-stops.png', (0, 320, 2172, 542), {'waterTower': 0}),
@@ -475,8 +478,9 @@ def main():
             layers['ground'] = {'key': key, 'height': 1500, 'tileHeight': th}
         else:
             b = a['bank']()
-            bh = b.height * BANK_K
-            rel = save(scale(b, BANK_K * HI), f'backgrounds/{area}-ground.png')
+            bk = a.get('bank_scale', BANK_K)
+            bh = b.height * bk
+            rel = save(scale(b, bk * HI), f'backgrounds/{area}-ground.png')
             out['images'][f'{area}-ground'] = rel
             layers['ground'] = {'key': f'{area}-ground', 'height': 1500, 'tileHeight': round(bh, 1)}
         if a.get('bank_over_rails'):
@@ -490,7 +494,7 @@ def main():
         for name, rows, k in ((f'{area}-foreground', front, FG_K), (f'{area}-foreground-back', back, FG_BACK_K)):
             if rows is None:  # no row here: an empty strip, so the meadow's doesn't show
                 out['images'][name] = save(Image.new('RGBA', (64, 8), (0, 0, 0, 0)), f'backgrounds/{name}.png')
-                layers['foreground-back'] = {'key': name, 'height': 8}
+                layers['foreground' if name.endswith('foreground') else 'foreground-back'] = {'key': name, 'height': 8}
                 continue
             y0, y1 = rows
             row = fs.crop((40, y0, fs.width - 42, y1))
