@@ -200,6 +200,13 @@ export const POI_TYPES = {
  * POI_TYPES above, which suit the meadows).
  */
 export const STOP_NAMES = {
+  badlands: {
+    coalDepot: ['Slagheap Sidings', 'Cokeworks Yard', 'Cinder Flats'],
+    town: ['Ironhold', 'Smelter’s Rest', 'Gearwick', 'Rustgate', 'Boilerton'],
+    mine: ['Great Wheel Pit', 'Ironvein Works', 'Hollow Gear Mine'],
+    workshop: ['Furnace Row Works', 'Cogspire Foundry'],
+    waterTower: ['Rusty Tank', 'Condenser Halt', 'Dry Gulch Tower'],
+  },
   desert: {
     coalDepot: ['Dustbowl Bunkers', 'Scorch Siding', 'Cinderflat Yard'],
     town: ['Mirage Wells', 'Sandhollow', 'Red Mesa', 'Oasis Junction', 'Dry Gulch'],

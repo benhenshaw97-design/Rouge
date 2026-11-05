@@ -151,6 +151,29 @@ def jungle_village():
     return tile
 
 
+def badlands_trees():
+    """Closer industrial skyline along the bottom, with a big factory every so often."""
+    sky = strip(S('badlands-silhouettes-a.png'), (0, 307, 2172, 426))
+    factories = [solid(tight_piece(S(f'badlands-factory-{c}.png'))) for c in 'abc']
+    h = 520
+    tile = Image.new('RGBA', (6144, h), (0, 0, 0, 0))
+    sk = sky.resize((round(sky.width * h * 0.4 / sky.height), round(h * 0.4)), Image.LANCZOS)
+    for x in range(0, tile.width, sk.width):
+        paste_wrap(tile, sk, x, h - sk.height)
+    rng = __import__('random').Random(4)
+    x = 300
+    for i in range(3):
+        f = factories[i % 3]
+        f = f.resize((round(f.width * h / f.height), h), Image.LANCZOS)
+        paste_wrap(tile, f, x, 0)
+        x += f.width + rng.randint(900, 1400)
+    return tile
+
+
+def tight_piece(img):
+    return img.crop(img.getchannel('A').point(lambda v: 255 if v > 100 else 0).getbbox())
+
+
 def drop_columns(img, ranges, blend=40):
     """Cuts out x ranges (e.g. fence posts), blending each join so it doesn't show."""
     keep, x = [], 0
@@ -221,11 +244,30 @@ def piece(img, box, index, *, grow=3, label=False):
     return p
 
 
+BAD = 'badlands-layers-a.png'
 SNOW, JUNGLE, MARSH, COAST, TOWN = (
     'snow-kit.png', 'jungle-layers.png', 'marsh-kit.png', 'coast-kit.png', 'town-layers.png')
 
 # Each area: how to build each layer, the bank, the foreground rows, and its stops.
 AREAS = {
+    'badlands': {
+        'name': 'The Iron Badlands',
+        'mountains': lambda: strip(S(BAD), (0, 174, 2172, 274)),
+        'mountains_pad': 0.3,
+        'hills': lambda: strip(S(BAD), (0, 288, 2172, 423)),
+        # Open golden plains in front of the mesas, then hazy works and the odd great factory.
+        'thicket': lambda: strip(S(BAD), (0, 441, 2172, 568)),
+        'trees': lambda: badlands_trees(),
+        'village': lambda: scatter(S('badlands-kit.png'), [(0, 255, 2172, 394)], 6144, (350, 900), min_w=60),
+        'undergrowth': lambda: strip(S('badlands-silhouettes-b.png'), (0, 582, 2172, 711)),
+        'bank': lambda: bank(S('badlands-viaduct.png'), (0, 43, 2172, 677)),
+        'fg': ('badlands-foreground-rows.png', 230, (550, 704), (385, 528)),
+        'stops': [
+            ('badlands-stops.png', (0, 4, 2172, 304), {'town': 0, 'workshop': 1, 'mine': 2, 'coalDepot': 3}),
+            ('badlands-stops.png', (0, 320, 2172, 542), {'waterTower': 0}),
+        ],
+        'platform': ('badlands-stops.png', (0, 320, 2172, 542), 3, 110),
+    },
     'snow': {
         'name': 'The Frozen Peaks',
         'mountains': lambda: scatter(S(SNOW), [(0, 12, 1774, 251)], 2048, (0, 0), overlap=20, grounded=14),

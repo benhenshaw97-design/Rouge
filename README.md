@@ -110,7 +110,7 @@ your top speed drops, and below 60% the train may break down: it pulls up on the
 crew patch it for a few seconds. Passengers booked through to the next area only get off at a
 town there; carry them past it and they pay half at the next town.
 
-The line runs through seven areas (the meadows, the Red Desert, the Frozen Peaks, the Emerald
+The line runs through eight areas (the meadows, the Red Desert, the Iron Badlands, the Frozen Peaks, the Emerald
 Jungle, the Mistbound Marshes, the Saltwind Coast and the town of Brasswick), with a tunnel between
 each. Each area has its own scenery, stop buildings and place names (`STOP_NAMES` in `balance.js`);
 it snows in the Frozen Peaks and fog drifts through the marshes. Only the meadows' art is loaded

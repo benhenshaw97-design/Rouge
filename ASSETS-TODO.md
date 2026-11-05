@@ -81,6 +81,8 @@ Each needs a building in every area's style (or one general version to start) pl
 ## 7. More areas, and improving the current ones
 A new area needs: far mountains, mid hills, a scatter of trees and props, a village strip, a ground bank
 under the rails, 1–2 foreground rows, the five stop buildings plus a platform, and a signpost.
+- [x] Industrial badlands (The Iron Badlands)
+
 Ideas: **autumn forest** (autumn foreground rows are already uploaded), **canyon badlands**,
 **volcanic ash fields**, **savannah**, **industrial mill town**, **haunted moor**, **cherry-blossom hills**.
 

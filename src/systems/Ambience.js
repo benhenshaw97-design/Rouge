@@ -12,6 +12,7 @@ import { music } from './MusicPlayer.js';
 const RECIPES = {
   meadow: { wind: 0.25, birds: 1 },
   desert: { wind: 0.75 },
+  badlands: { wind: 0.9 },
   snow: { wind: 1 },
   jungle: { birds: 1.4, insects: 0.5, wind: 0.1 },
   marsh: { frogs: 1, insects: 0.3, wind: 0.15 },

@@ -9,6 +9,7 @@ import { frame, text } from './kit.js';
 const AREA_TINT = {
   meadow: 0x5e8f3e,
   desert: 0xc07a3a,
+  badlands: 0x8a5a3a,
   snow: 0x9db8d8,
   jungle: 0x2f7a44,
   marsh: 0x637a52,

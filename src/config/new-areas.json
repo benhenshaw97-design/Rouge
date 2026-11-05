@@ -1,6 +1,21 @@
 {
   "images": {
     "desert-undergrowth": "backgrounds/desert-undergrowth.png",
+    "badlands-mountains": "backgrounds/badlands-mountains.png",
+    "badlands-hills": "backgrounds/badlands-hills.png",
+    "badlands-trees": "backgrounds/badlands-trees.png",
+    "badlands-village": "backgrounds/badlands-village.png",
+    "badlands-ground": "backgrounds/badlands-ground.png",
+    "badlands-foreground": "backgrounds/badlands-foreground.png",
+    "badlands-foreground-back": "backgrounds/badlands-foreground-back.png",
+    "badlands-thicket": "backgrounds/badlands-thicket.png",
+    "badlands-undergrowth": "backgrounds/badlands-undergrowth.png",
+    "badlands-town": "pois/badlands-town.png",
+    "badlands-workshop": "pois/badlands-workshop.png",
+    "badlands-mine": "pois/badlands-mine.png",
+    "badlands-coalDepot": "pois/badlands-coalDepot.png",
+    "badlands-waterTower": "pois/badlands-waterTower.png",
+    "badlands-platform": "sprites/badlands-platform.png",
     "snow-mountains": "backgrounds/snow-mountains.png",
     "snow-hills": "backgrounds/snow-hills.png",
     "snow-trees": "backgrounds/snow-trees.png",
@@ -74,6 +89,70 @@
     "town-platform": "sprites/town-platform.png"
   },
   "areas": [
+    {
+      "id": "badlands",
+      "name": "The Iron Badlands",
+      "layers": {
+        "mountains": {
+          "key": "badlands-mountains",
+          "height": 240.5,
+          "bottom": 496
+        },
+        "hills": {
+          "key": "badlands-hills",
+          "height": 192.0,
+          "bottom": 590
+        },
+        "trees": {
+          "key": "badlands-trees",
+          "height": 190
+        },
+        "village": {
+          "key": "badlands-village",
+          "height": 150
+        },
+        "ground": {
+          "key": "badlands-ground",
+          "height": 1500,
+          "tileHeight": 171.9
+        },
+        "foreground": {
+          "key": "badlands-foreground",
+          "height": 64.7
+        },
+        "foreground-back": {
+          "key": "badlands-foreground-back",
+          "height": 51.5
+        },
+        "thicket": {
+          "key": "badlands-thicket",
+          "height": 165
+        },
+        "undergrowth": {
+          "key": "badlands-undergrowth",
+          "height": 70
+        }
+      },
+      "buildings": {
+        "town": [
+          "badlands-town"
+        ],
+        "workshop": [
+          "badlands-workshop"
+        ],
+        "mine": [
+          "badlands-mine"
+        ],
+        "coalDepot": [
+          "badlands-coalDepot"
+        ],
+        "waterTower": [
+          "badlands-waterTower"
+        ]
+      },
+      "platform": "badlands-platform",
+      "platformHeight": 110
+    },
     {
       "id": "snow",
       "name": "The Frozen Peaks",
