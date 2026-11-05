@@ -7,6 +7,7 @@ import { roundButton, text } from '../ui/kit.js';
 import { PoiPanel } from '../ui/PoiPanel.js';
 import { StatusCard } from '../ui/StatusCard.js';
 import { GodPanel } from '../ui/GodPanel.js';
+import { MapView } from '../ui/MapView.js';
 import { BALANCE, POI_TYPES, START_STATION } from '../config/balance.js';
 
 /**
@@ -64,10 +65,76 @@ export class UIScene extends Phaser.Scene {
 
     this.buildControls(L);
     // Its button sits after the sound (and, where the browser has one, fullscreen) button.
-    this.god = new GodPanel(this, L, this.scale.fullscreen.available ? 2 : 1);
+    const slot = this.scale.fullscreen.available ? 2 : 1;
+    this.god = new GodPanel(this, L, slot);
+    this.addMapButton(L, slot + 1);
+    if (this.mapOpen) this.showMap();
 
     if (this.junction) this.picker = new JunctionPicker(this, L.picker, this.junction, (i) => this.main.selectBranch(i), animate);
     if (this.panelArgs) this.panel = new PoiPanel(this, L.panel, this.panelArgs);
+  }
+
+  // --- Route map -----------------------------------------------------------------------------
+
+  addMapButton(L, slot) {
+    const step = 46 * L.controls.dir;
+    const draw = (g) => {
+      // A little folded map.
+      g.clear().fillStyle(0xf6ead2, 1);
+      g.fillPoints([{ x: -10, y: -7 }, { x: -3, y: -9 }, { x: -3, y: 8 }, { x: -10, y: 10 }], true);
+      g.fillPoints([{ x: -1, y: -9 }, { x: 4, y: -7 }, { x: 4, y: 10 }, { x: -1, y: 8 }], true);
+      g.fillPoints([{ x: 6, y: -7 }, { x: 11, y: -9 }, { x: 11, y: 8 }, { x: 6, y: 10 }], true);
+    };
+    roundButton(this, L.controls.x + step * slot, L.controls.y, draw, () => this.toggleMap());
+    if (!this.mapKeys) {
+      this.mapKeys = true;
+      this.input.keyboard?.on('keydown-TAB', (e) => {
+        e.preventDefault?.();
+        this.toggleMap();
+      });
+    }
+  }
+
+  toggleMap() {
+    if (this.mapOpen) this.closeMap();
+    else this.openMap();
+  }
+
+  openMap() {
+    if (this.main.phase === 'over') return;
+    this.mapOpen = true;
+    if (this.main.scene.isActive()) this.main.scene.pause();
+    this.showMap();
+  }
+
+  showMap() {
+    this.mapView?.destroy();
+    this.mapView = new MapView(this, { onClose: () => this.closeMap(), sidebar: (view, rect) => this.drawMapSidebar(view, rect) });
+    this.mapView.objects.forEach((o) => o.setDepth?.(50 + (o.depth || 0)));
+  }
+
+  closeMap() {
+    this.mapOpen = false;
+    this.mapView?.destroy();
+    this.mapView = null;
+    if (this.main.scene.isPaused()) this.main.scene.resume();
+  }
+
+  /** Beside the map: objectives (see systems/Objectives.js), if the run has them. */
+  drawMapSidebar(view, rect) {
+    const list = this.main.objectives?.list ?? [];
+    let y = rect.y;
+    view.add(text(this, rect.x, y, 'OBJECTIVES', 15, COLORS.gold, { fontStyle: 'bold' }));
+    y += 24;
+    if (!list.length) view.add(text(this, rect.x, y, 'None right now.', 13, COLORS.textDim));
+    for (const o of list) {
+      const t = view.add(
+        text(this, rect.x, y, `${o.done ? '✓' : '•'} ${o.text}`, 13, o.done ? COLORS.good : COLORS.text, { wordWrap: { width: rect.w - 8 } }),
+      );
+      const progress = view.add(text(this, rect.x + 14, y + t.height + 2, o.progressText ?? '', 12, COLORS.textDim));
+      y += t.height + progress.height + 10;
+      if (y > rect.y + rect.h - 20) break;
+    }
   }
 
   buildControls(L) {
@@ -211,7 +278,7 @@ export class UIScene extends Phaser.Scene {
       visit,
       audio: this.main.audio,
       onDepart: () => this.main.depart(),
-      onAbandon: () => this.main.endRun('Stranded without fuel'),
+      onAbandon: () => this.main.endRun(visit.poi.type === 'stranded' ? 'Ran out of fuel between stops' : 'Stranded without fuel'),
       onMessage: (m) => (this.panelArgs.message = m),
     };
     this.panel = new PoiPanel(this, this.L.panel, this.panelArgs);

@@ -34,7 +34,56 @@ export function createVisit(poi, where = { leg: 0, next: null }) {
 
 export function buildOptions(state, visit) {
   const builder = BUILDERS[visit.poi.type];
-  return builder ? builder(state, visit, visit.def) : [];
+  const options = builder ? builder(state, visit, visit.def) : [];
+  // Out of fuel with no coal to be had (or no money for it here): offer the relief engine.
+  const canBuyCoal = visit.poi.type === 'coalDepot' && state.money >= POI_TYPES.coalDepot.prices.fuelPerUnit;
+  if (state.isOutOfFuel && !canBuyCoal) options.push(rescueOption(state));
+  return options;
+}
+
+/** A relief engine brings fuel out to you (see BALANCE.rescue). */
+export function rescueOption(state) {
+  const r = BALANCE.rescue;
+  const price = r.costs[Math.min(state.rescues, r.costs.length - 1)];
+  const cost = Math.min(price, state.money);
+  return {
+    label: price === 0 ? `Call a relief engine (+${r.fuel} fuel, free this once)` : `Call a relief engine (+${r.fuel} fuel)`,
+    cost: cost || undefined,
+    sound: 'whistle',
+    run: () => {
+      state.spend(cost);
+      state.rescues++;
+      state.addFuel(r.fuel);
+      return cost < price
+        ? `The relief crew took all you had (${money(cost)}) and shovelled in ${r.fuel} fuel.`
+        : `A relief engine puffed up and shovelled in ${r.fuel} fuel${cost ? ` for ${money(cost)}` : ''}.`;
+    },
+  };
+}
+
+/** The panel for a line event (see content/events.js). ctx: { area, next }. */
+export function eventVisit(def, ctx) {
+  return {
+    poi: { id: -2, type: 'event', name: def.title },
+    def: { name: 'On the line', icon: def.icon, description: def.text },
+    event: def,
+    ctx: { ...ctx, roll: Math.random },
+    chosen: false,
+    resume: true,
+  };
+}
+
+/** The panel for being stranded between stops (out of fuel). */
+export function strandedVisit() {
+  return {
+    poi: { id: -1, type: 'stranded', name: 'Between stops' },
+    def: {
+      name: 'Stranded',
+      icon: 'icon-fuel',
+      description: 'The fire’s out and the train has rolled to a stop. Send for help, or call it a day.',
+    },
+    resume: true,
+  };
 }
 
 const money = (n) => `£${Math.round(n)}`;
@@ -42,6 +91,20 @@ const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
 const notEnough = (state, cost) => (state.canAfford(cost) ? null : 'Not enough money');
 
 const BUILDERS = {
+  event(state, visit) {
+    return visit.event.choices.map((c) => ({
+      label: c.label,
+      cost: c.cost,
+      gain: c.gain,
+      disabledReason: visit.chosen ? 'Already decided' : (c.disabled?.(state) ?? null),
+      sound: c.cost ? 'coins' : 'click',
+      run: () => {
+        visit.chosen = true;
+        return c.run(state, visit.ctx);
+      },
+    }));
+  },
+
   coalDepot(state, visit, def) {
     const price = def.prices.fuelPerUnit;
     const space = Math.floor(state.fuelCapacity - state.fuel);

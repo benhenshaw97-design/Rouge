@@ -88,6 +88,7 @@ const SECTIONS = [
   {
     title: 'Events',
     controls: [
+      { type: 'select', label: 'Line event just ahead', options: A.eventOptions, button: 'Place', run: (g, v) => A.eventHere(g, v) },
       {
         type: 'buttons',
         items: [
@@ -113,7 +114,7 @@ const SECTIONS = [
     controls: [
       { type: 'note', text: () => `Stop spacing: ${BALANCE.route.junctionDistance.join('–')} m to the junction, then ${BALANCE.route.branchDistance.join('–')} m. Takes effect from the next departure.` },
       { type: 'slider', label: 'Stop spacing', min: 0.25, max: 5, step: 0.05, get: () => A.tuning.spacing, set: (v) => A.setSpacing(v), format: (v) => `${v.toFixed(2)}×` },
-      { type: 'slider', label: 'Area length', min: 0.25, max: 5, step: 0.05, get: () => A.tuning.areaLength, set: (v) => A.setAreaLength(v), format: (v) => `${v.toFixed(2)}×` },
+      { type: 'slider', label: 'Stops per area', min: 1, max: 8, step: 1, get: (g) => g.route.map.stopsPerArea, set: (v, g) => A.setStopsPerArea(g, v), format: (v) => `${v}` },
     ],
   },
   {

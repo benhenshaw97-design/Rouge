@@ -28,15 +28,15 @@ export const BALANCE = {
 
   fuel: {
     tankCapacity: 100,
-    burnPerMetre: 0.0093, // fuel used per metre travelled
-    burnPerSecond: 0.08, // extra fuel used per second while moving under steam
+    burnPerMetre: 0.0055, // fuel used per metre travelled
+    burnPerSecond: 0.05, // extra fuel used per second while moving under steam
     cargoBurnPerUnit: 0.03, // each unit of cargo adds 3% to fuel burn
     lowWarningFraction: 0.25, // show the LOW FUEL warning at or below 25% of the tank
   },
 
   water: {
     capacity: 100,
-    usePerMetre: 0.0133, // the boiler uses water as you travel; empty = heat climbs fast
+    usePerMetre: 0.0066, // the boiler uses water as you travel; empty = heat climbs fast
   },
 
   heat: {
@@ -51,39 +51,51 @@ export const BALANCE = {
 
   condition: {
     max: 100,
-    wearPerMetre: 0.0033, // 0.33% per 100 m
+    wearPerMetre: 0.0016, // 0.16% per 100 m
     slowBelow: 50, // below this, top speed starts dropping...
     minSpeedFactor: 0.6, // ...down to 60% of top speed at 0 condition
     // Breakdowns: below breakdownBelow, the train may break down and stop on the line while the
     // crew patch it up. The chance rises as condition falls (breakdownsPerKmAtZero at 0%).
-    breakdownBelow: 60,
-    breakdownsPerKmAtZero: 0.5,
+    breakdownBelow: 40,
+    breakdownsPerKmAtZero: 0.3,
     breakdownRepairSeconds: 6,
     breakdownPatch: 6, // condition the crew's patch-up restores
   },
 
+  /**
+   * Running out of fuel isn't the end: a relief engine can bring fuel out to you. Each call in
+   * a run costs more (the last price repeats); if you can't pay, they take what money you have.
+   */
+  rescue: {
+    fuel: 25,
+    costs: [0, 30, 60, 100],
+  },
+
+  /** Line events between stops (see src/content/events.js). */
+  events: {
+    chancePerLeg: 0.55, // chance of an event on the way to each junction
+  },
+
   passengers: {
     baseFare: 5, // paid per passenger on drop-off
-    farePerKm: 2, // plus this per passenger per km carried (trips are long, so this is modest)
+    farePerKm: 1.5, // plus this per passenger per km carried (trips are long, so this is modest)
     // Some passengers book through to the next area: they only get off at a town there, and pay
     // this multiple of the normal fare. Carried past it, they get off at the next town for half.
     throughFareMultiplier: 1.8,
     missedStopFareMultiplier: 0.5,
   },
 
-  // Stops are spaced well apart; fuel, water and wear per metre are set so each run between
-  // stops costs (and fares pay) about the same as with the old, closer spacing.
+  // Stops are far apart (about 2–3.5 km, a couple of minutes at full steam) so it feels like a
+  // journey; fuel, water and wear per metre are low to match: a full tank lasts about 4 stops.
   route: {
     /** Distance from a POI to the next junction [min, max]. */
-    junctionDistance: [750, 1200],
+    junctionDistance: [1500, 2400],
     /** Distance from a junction to the POI down the chosen branch [min, max]. */
-    branchDistance: [375, 600],
+    branchDistance: [600, 1000],
     /** Signposts appear when the junction is this close. */
     signpostRevealDistance: 360,
-    /** Force a Coal Depot onto a signpost if none has been offered for this many junctions. */
-    coalDepotGuaranteeEvery: 2,
-    /** How far the line runs through each area before a tunnel leads to the next [min, max]. */
-    areaLength: [3300, 4800],
+    /** Stops in each area before a tunnel leads to the next (see systems/RouteMap.js). */
+    stopsPerArea: 3,
     /** The tunnel comes this far after leaving a stop. */
     tunnelAfterDepart: 130,
   },

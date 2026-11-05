@@ -4,7 +4,7 @@ import { DEBUG } from '../config/debug.js';
 import { AREAS, COLORS, DEPTH, PARALLAX_LAYERS, TUNNEL, PX_PER_METRE, TRAIN_LAYOUT, WORLD_HEIGHT } from '../config/display.js';
 import { Train } from '../objects/Train.js';
 import { createJunction, createStop, createTunnel } from '../objects/worldObjects.js';
-import { createVisit } from '../poi/poiActions.js';
+import { createVisit, eventVisit, strandedVisit } from '../poi/poiActions.js';
 import { TrainState } from '../state/TrainState.js';
 import { AudioManager } from '../systems/AudioManager.js';
 import { ParallaxBackground } from '../systems/ParallaxBackground.js';
@@ -34,7 +34,6 @@ export class GameScene extends Phaser.Scene {
     // Areas: the line runs through AREAS in turn, with a tunnel between each.
     this.areaIndex = 0;
     this.leg = 0; // areas passed through this run (keeps counting when the line loops round)
-    this.nextAreaAt = this.range(BALANCE.route.areaLength);
     this.tunnel = null; // { at, parts, swapped }
     this.signpostsShown = false;
     this.chuffDistancePx = 0;
@@ -42,7 +41,7 @@ export class GameScene extends Phaser.Scene {
 
     this.state = new TrainState(BALANCE);
     this.motion = new TrainMotion(BALANCE.train);
-    this.route = new RouteManager(BALANCE, POI_TYPES);
+    this.route = new RouteManager(BALANCE, POI_TYPES, Math.random, AREAS.length);
     this.audio = new AudioManager(this);
 
     this.parallax = new ParallaxBackground(this, PARALLAX_LAYERS);
@@ -165,13 +164,19 @@ export class GameScene extends Phaser.Scene {
 
   depart() {
     if (this.phase === 'over' || this.state.isOutOfFuel) return;
+    // Halted part-way along (stranded, or a line event): just carry on along the same leg.
+    const resume = this.ui.panelArgs?.visit?.resume;
     this.ui.closePanel();
     this.phase = 'running';
     this.motion.resetThrottle();
+    if (resume) {
+      this.audio.play('whistle');
+      return;
+    }
     this.planScenery();
     // Stops past a tunnel are in the next area.
-    const areaAhead = this.tunnel && !this.tunnel.swapped ? AREAS[(this.areaIndex + 1) % AREAS.length] : this.area;
-    const junction = this.route.planJunction(this.state.distance, areaAhead);
+    const areaAhead = this.tunnel && !this.tunnel.swapped ? AREAS[this.tunnel.to] : this.area;
+    const junction = this.route.planJunction(this.state.distance, areaAhead, this.state);
     this.world.add(junction.at, createJunction(this));
     this.audio.play('whistle');
   }
@@ -182,11 +187,15 @@ export class GameScene extends Phaser.Scene {
     return AREAS[this.areaIndex];
   }
 
-  /** After leaving a stop: when it's time, the line tunnels through a mountain into the next area. */
+  /**
+   * After leaving a stop: if the route map's next stops are in another area, the line tunnels
+   * through a mountain into it.
+   */
   planScenery() {
     const d = this.state.distance;
-    if (this.tunnel || d < this.nextAreaAt || AREAS.length < 2) return;
-    if (!areaLoaded(this, AREAS[(this.areaIndex + 1) % AREAS.length])) return; // still downloading
+    const to = this.route.map.nextArea();
+    if (this.tunnel || to === this.areaIndex || AREAS.length < 2) return;
+    if (!areaLoaded(this, AREAS[to])) return; // still downloading (tunnel at the next stop instead)
     const at = d + BALANCE.route.tunnelAfterDepart;
     const parts = createTunnel(this);
     this.world.add(at, parts.back, { cullMargin: 2400 });
@@ -195,9 +204,8 @@ export class GameScene extends Phaser.Scene {
     const peakMid = at + (parts.enterX + parts.exitX) / 2 / PX_PER_METRE;
     // The scenery changes along a boundary hidden behind the peak (and, for the layers in front
     // of it, behind the rocks), so it's meadow before the mountain and desert after.
-    const next = AREAS[(this.areaIndex + 1) % AREAS.length];
-    const split = this.parallax.beginSplit(next, ['ground', 'railgrass', 'fog-front', 'foreground-back', 'foreground', 'foreground-trees']);
-    this.tunnel = { at, parts, swapped: false, split, peakMid };
+    const split = this.parallax.beginSplit(AREAS[to], ['ground', 'railgrass', 'fog-front', 'foreground-back', 'foreground', 'foreground-trees']);
+    this.tunnel = { at, parts, swapped: false, split, peakMid, to };
   }
 
   /**
@@ -210,9 +218,8 @@ export class GameScene extends Phaser.Scene {
     const inside = (this.state.distance - t.at) * PX_PER_METRE - t.parts.enterX;
     if (!t.swapped && inside > this.train.length + 10) {
       t.swapped = true;
-      this.areaIndex = (this.areaIndex + 1) % AREAS.length;
+      this.areaIndex = t.to;
       this.leg++;
-      this.nextAreaAt = this.state.distance + this.range(BALANCE.route.areaLength);
       // Stops planned before the tunnel take the new area's buildings.
       const j = this.route.junction;
       if (j && !j.resolved) {
@@ -257,17 +264,20 @@ export class GameScene extends Phaser.Scene {
 
   /** God mode: head into the next area (a tunnel just ahead, or straight after the next stop). */
   godNextArea() {
-    this.nextAreaAt = 0;
     const poi = this.route.poi;
     const stopSoon = poi && !poi.visited; // its building is already drawn in this area's style
     if (this.phase !== 'running' || this.tunnel || stopSoon) {
-      this.ui.toast('Tunnel after the next departure');
+      if (!this.tunnel) this.route.map.replanAreas(this.route.map.current.col + 1, (this.areaIndex + 1) % AREAS.length);
+      this.ui.toast('Tunnel after the next stop');
       return;
     }
     if (!areaLoaded(this, AREAS[(this.areaIndex + 1) % AREAS.length])) {
       this.ui.toast('The next area is still downloading; tunnel soon');
       return;
     }
+    // The route map's next stops move into the next area, and the tunnel comes right away.
+    const map = this.route.map;
+    map.replanAreas(map.current.col + 1, (this.areaIndex + 1) % AREAS.length);
     const before = BALANCE.route.tunnelAfterDepart;
     BALANCE.route.tunnelAfterDepart = 160;
     this.planScenery();
@@ -329,16 +339,37 @@ export class GameScene extends Phaser.Scene {
   // --- Stopping at POIs ----------------------------------------------------------------------
 
   checkArrival() {
+    // An event on the line comes first.
+    const ev = this.route.event;
+    if (ev && !ev.visited) {
+      const ahead = ev.at - this.state.distance;
+      if (!ev.warned && ahead < 320) {
+        ev.warned = true;
+        this.ui.toast('Something on the line ahead…');
+      }
+      if (ahead <= 0.01 && this.motion.speed === 0) {
+        ev.visited = true;
+        this.phase = 'stopped';
+        this.audio.play('brake');
+        this.ui.openPanel({ state: this.state, visit: eventVisit(ev.def, { area: this.area, next: this.nextAreaInfo() }) });
+      }
+      return;
+    }
     const poi = this.route.poi;
     if (!poi || poi.visited) return;
     if (this.state.distance >= poi.at - 0.01 && this.motion.speed === 0) {
       poi.visited = true;
       this.phase = 'stopped';
       this.state.stats.stops++;
-      const next = AREAS[(this.areaIndex + 1) % AREAS.length];
-      const where = { leg: this.leg, next: AREAS.length > 1 ? { leg: this.leg + 1, name: next.name } : null };
+      const where = { leg: this.leg, next: this.nextAreaInfo() };
       this.ui.openPanel({ state: this.state, visit: createVisit(poi, where) });
     }
+  }
+
+  /** The next area the line runs to, for passengers booked through: { leg, name }. */
+  nextAreaInfo() {
+    if (AREAS.length < 2) return null;
+    return { leg: this.leg + 1, name: AREAS[(this.areaIndex + 1) % AREAS.length].name };
   }
 
   // --- Breakdowns -----------------------------------------------------------------------------
@@ -386,7 +417,9 @@ export class GameScene extends Phaser.Scene {
   checkStranded() {
     // (checkArrival runs first, so coasting to a halt exactly at a POI still opens its menu.)
     if (this.phase === 'running' && this.state.isOutOfFuel && this.motion.speed === 0) {
-      this.endRun('Ran out of fuel between stops');
+      // Not the end: the stranded panel offers a relief engine (or ending the run).
+      this.phase = 'stopped';
+      this.ui.openPanel({ state: this.state, visit: strandedVisit() });
     }
   }
 

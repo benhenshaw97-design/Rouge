@@ -2,6 +2,7 @@ import { BALANCE, POI_TYPES } from '../config/balance.js';
 import { AREAS, PX_PER_METRE } from '../config/display.js';
 import { areaLoaded } from '../systems/BackgroundLoader.js';
 import { writeBest } from '../state/best.js';
+import { EVENTS } from '../content/events.js';
 
 /**
  * Debug actions: the things the debug panel (DebugPanel.js) can do to a running game.
@@ -14,9 +15,8 @@ import { writeBest } from '../state/best.js';
 const BASE = {
   junctionDistance: [...BALANCE.route.junctionDistance],
   branchDistance: [...BALANCE.route.branchDistance],
-  areaLength: [...BALANCE.route.areaLength],
 };
-export const tuning = { spacing: 1, areaLength: 1 };
+export const tuning = { spacing: 1 };
 
 const stoppingDistance = (g) => (g.motion.speed ** 2) / (2 * BALANCE.train.brakeDeceleration);
 
@@ -35,8 +35,10 @@ export function readout(g) {
     ['Distance', `${(d / 1000).toFixed(2)} km`],
     ['Speed', `${Math.round(g.motion.speed * 3.6)} km/h (limit ${Math.round(s.speedFactor * 100)}%)`],
     ['Junction', j && !j.resolved ? `${m(j.at - d)}: ${j.options.map((t) => POI_TYPES[t].name).join(' / ')}` : '–'],
+    ['Event', g.route.event && !g.route.event.visited ? `${g.route.event.def.title} in ${m(g.route.event.at - d)}` : '–'],
     ['Next stop', poi && !poi.visited ? `${POI_TYPES[poi.type].name} “${poi.name}” in ${m(poi.at - d)}` : '–'],
-    ['Next tunnel', g.tunnel ? 'now' : `after a stop, ${m(Math.max(0, g.nextAreaAt - d))} on`],
+    ['Next tunnel', g.tunnel ? 'now' : tunnelIn(g)],
+    ['Map', `column ${g.route.map.current.col}, lane ${g.route.map.current.lane + 1}; ${g.route.map.stopsPerArea} stops per area`],
     ['Passengers', s.passengers.map((p) => `${p.count}→${p.dest ? p.dest.name : 'any'}`).join(', ') || '–'],
     ['Burn', `×${s.burnMultiplier.toFixed(2)}  · upgrades ${Object.entries(s.upgrades).map(([k, v]) => `${k} ${v}`).join(', ')}`],
     ['FPS', String(Math.round(g.game.loop.actualFps))],
@@ -55,7 +57,7 @@ export function goToArea(g, index) {
   g.leg++;
   g.parallax.setArea(area);
   g.weather.setArea(area);
-  g.nextAreaAt = g.state.distance + g.range(BALANCE.route.areaLength);
+  g.route.map.replanAreas(g.route.map.current.col + 1, index);
   const j = g.route.junction;
   if (j && !j.resolved) {
     g.route.restyleJunction(area);
@@ -128,6 +130,19 @@ export function stopHere(g, type) {
   g.addStopToWorld(g.route.placeStop(type, at, g.area));
   return `${POI_TYPES[type].name} ahead`;
 }
+
+/** Puts a line event just ahead of the train. */
+export function eventHere(g, id) {
+  if (g.phase !== 'running') return 'Only while running';
+  const def = EVENTS.find((e) => e.id === id);
+  const at = g.state.distance + Math.max(stoppingDistance(g) * 1.3, 30) + 40;
+  const next = g.route.stopIn(g.state.distance);
+  if (next != null && next < at - g.state.distance + 20) return 'Something else is just ahead; try after it';
+  g.route.event = { def, at, visited: false, warned: true };
+  return `${def.title} ahead`;
+}
+
+export const eventOptions = () => EVENTS.map((e) => [e.id, `${e.title}${e.areas ? ` (${e.areas.join(', ')})` : ''}`]);
 
 // --- Train -----------------------------------------------------------------------------------
 
@@ -204,10 +219,17 @@ export function setSpacing(k) {
   BALANCE.route.branchDistance = BASE.branchDistance.map((v) => Math.round(v * k));
 }
 
-/** Scales how long each area lasts before a tunnel. */
-export function setAreaLength(k) {
-  tuning.areaLength = k;
-  BALANCE.route.areaLength = BASE.areaLength.map((v) => Math.round(v * k));
+/** How many stops each area has from here on (the current area carries on for that many). */
+export function setStopsPerArea(g, n) {
+  const map = g.route.map;
+  map.replanAreas(map.current.col + 1, g.areaIndex, n);
+}
+
+function tunnelIn(g) {
+  const map = g.route.map;
+  const k = map.stopsUntilNewArea();
+  if (k == null) return '–';
+  return k === 1 ? 'after this stop' : `after ${k} more stops`;
 }
 
 // --- Run -------------------------------------------------------------------------------------

@@ -31,6 +31,7 @@ export class TrainState {
     this.overheated = false;
     this.lowFuelWarned = false;
     this.brokenDown = false;
+    this.rescues = 0; // relief engines called this run
 
     this.stats = { earned: 0, stops: 0, passengersDelivered: 0 };
   }
