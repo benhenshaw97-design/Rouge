@@ -16,7 +16,7 @@ for the features still to come (story, train customisation, new stops, new areas
 - **Icons:** square, transparent, readable at 32 px (draw at 64–128 px).
 - **Sounds:** short WAV or MP3, trimmed with no silence at the start.
 
-## 1. Line events (in the game now, with no picture by the line yet)
+## 1. Line events (in the game now; most show a stand-in prop cut from the prop sheets)
 The train stops for these, but there's nothing to see by the line yet, so each wants a prop
 or small scene drawn beside the track, about train height or less. Also optional: a square
 **vignette** (256×256) for each event's panel, replacing the plain icon.

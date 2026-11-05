@@ -113,11 +113,12 @@ export class MapView {
       const x0 = area.x + (bandStart - first) * (area.w / cols);
       const x1 = area.x + (c - first) * (area.w / cols);
       this.add(scene.add.rectangle(x0 + 1, area.y, x1 - x0 - 2, area.h, AREA_TINT[a.id] ?? 0x666666, 0.3).setOrigin(0));
-      this.add(
-        text(scene, (x0 + x1) / 2, area.y + 3, a.name.replace(/^The /, ''), 12, COLORS.text, { fontStyle: 'bold' })
-          .setOrigin(0.5, 0)
-          .setCrop(0, 0, Math.max(0, x1 - x0 - 6), 20),
-      );
+      // Area name, shrunk (or shortened to its last word) to fit the band, never cut off.
+      const room = x1 - x0 - 8;
+      const label = this.add(text(scene, (x0 + x1) / 2, area.y + 3, a.name.replace(/^The /, ''), 12, COLORS.text, { fontStyle: 'bold' }).setOrigin(0.5, 0));
+      if (label.width > room) label.setText(a.name.split(' ').pop());
+      if (label.width > room) label.setScale(Math.max(0.55, room / label.width));
+      if (label.displayWidth > room) label.setVisible(false);
       bandStart = c;
     }
 
