@@ -187,6 +187,7 @@ const BUILDERS = {
         run: () => {
           const n = state.removeAllCargo();
           state.earn(n * def.prices.cargoSellPerUnit);
+          state.stats.cargoSold += n;
           return `Sold ${n} cargo for ${money(n * def.prices.cargoSellPerUnit)}.`;
         },
       },

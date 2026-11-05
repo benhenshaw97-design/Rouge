@@ -90,7 +90,9 @@ export class MapView {
 
   drawMap(map, r) {
     const { scene } = this;
-    const legendH = 26;
+    const types = Object.entries(POI_TYPES);
+    const perRow = r.w / types.length >= 96 ? types.length : Math.ceil(types.length / 2);
+    const legendH = perRow === types.length ? 26 : 46;
     const area = { x: r.x, y: r.y, w: r.w, h: r.h - legendH };
     const colW = Math.max(66, Math.min(110, area.w / 6));
     const cols = Math.max(3, Math.floor(area.w / colW));
@@ -177,11 +179,11 @@ export class MapView {
     }
 
     // Legend
-    const types = Object.entries(POI_TYPES);
-    const lw = r.w / types.length;
+    const lw = r.w / perRow;
     types.forEach(([, def], i) => {
-      const x = r.x + i * lw + 4;
-      const y = r.y + r.h - legendH / 2;
+      const row = Math.floor(i / perRow);
+      const x = r.x + (i % perRow) * lw + 4;
+      const y = r.y + r.h - legendH + 13 + row * 20;
       this.add(scene.add.image(x + 9, y, def.icon).setDisplaySize(16, 16));
       this.add(text(scene, x + 21, y, def.name, 11, COLORS.textDim).setOrigin(0, 0.5).setCrop(0, 0, lw - 26, 20));
     });

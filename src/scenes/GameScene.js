@@ -9,6 +9,7 @@ import { TrainState } from '../state/TrainState.js';
 import { AudioManager } from '../systems/AudioManager.js';
 import { ParallaxBackground } from '../systems/ParallaxBackground.js';
 import { Weather } from '../systems/Weather.js';
+import { Objectives } from '../systems/Objectives.js';
 import { areaLoaded, loadLaterImages } from '../systems/BackgroundLoader.js';
 import { RouteManager } from '../systems/RouteManager.js';
 import { TrainMotion } from '../systems/TrainMotion.js';
@@ -47,6 +48,7 @@ export class GameScene extends Phaser.Scene {
     this.parallax = new ParallaxBackground(this, PARALLAX_LAYERS);
     this.world = new WorldLayer();
     this.train = new Train(this);
+    this.objectives = new Objectives({ state: this.state, scene: this });
     this.weather = new Weather(this);
     this.weather.setArea(this.area);
     // Whatever the title screen didn't finish (after a moment, so files it still has on the way
@@ -147,6 +149,7 @@ export class GameScene extends Phaser.Scene {
     this.train.update(motion.speed, px, time, state, BALANCE.train.maxSpeed);
     this.playMotionSounds(px);
     this.updateForegroundTrees();
+    this.updateObjectives(time);
 
     if (this.phase === 'running') {
       this.updateTunnel();
@@ -361,8 +364,20 @@ export class GameScene extends Phaser.Scene {
       poi.visited = true;
       this.phase = 'stopped';
       this.state.stats.stops++;
+      const byType = this.state.stats.stopsByType;
+      byType[poi.type] = (byType[poi.type] ?? 0) + 1;
       const where = { leg: this.leg, next: this.nextAreaInfo() };
       this.ui.openPanel({ state: this.state, visit: createVisit(poi, where) });
+    }
+  }
+
+  /** Checks objectives a few times a second and celebrates any that are done. */
+  updateObjectives(time) {
+    if (time < (this.nextObjectiveCheck ?? 0)) return;
+    this.nextObjectiveCheck = time + 300;
+    for (const o of this.objectives.update()) {
+      this.audio.play('coins');
+      this.ui.toast(`Objective complete: ${o.text}  (+£${o.reward})`, COLORS.good);
     }
   }
 
@@ -428,7 +443,7 @@ export class GameScene extends Phaser.Scene {
     this.phase = 'over';
     this.ui.closePanel();
     this.ui.hideJunction();
-    const result = { distance: this.state.distance, reason, stats: { ...this.state.stats } };
+    const result = { distance: this.state.distance, reason, stats: { ...this.state.stats, objectives: this.objectives.completed } };
     this.time.delayedCall(900, () => {
       const fade = () => {
         this.cameras.main.fadeOut(600, 21, 17, 13);

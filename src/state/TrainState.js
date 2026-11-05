@@ -33,7 +33,7 @@ export class TrainState {
     this.brokenDown = false;
     this.rescues = 0; // relief engines called this run
 
-    this.stats = { earned: 0, stops: 0, passengersDelivered: 0 };
+    this.stats = { earned: 0, stops: 0, passengersDelivered: 0, cargoSold: 0, stopsByType: {} };
   }
 
   // --- Derived values ------------------------------------------------------------------------

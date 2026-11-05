@@ -63,8 +63,13 @@ export class GameOverScene extends Phaser.Scene {
       fontStyle: 'bold',
     }).setOrigin(0.5, 0);
     y += 32;
-    const lines = [`Stops made: ${stats.stops}`, `Passengers delivered: ${stats.passengersDelivered}`, `Money earned: £${Math.round(stats.earned)}`];
-    text(this, cx, y, cardW > 460 ? lines.join('     ') : lines.join('\n'), 14, COLORS.text, { align: 'center', lineSpacing: 4 }).setOrigin(0.5, 0);
+    const lines = [
+      `Stops made: ${stats.stops}`,
+      `Passengers delivered: ${stats.passengersDelivered}`,
+      `Objectives: ${stats.objectives ?? 0}`,
+      `Money earned: £${Math.round(stats.earned)}`,
+    ];
+    text(this, cx, y, cardW > 600 ? lines.join('     ') : cardW > 380 ? `${lines.slice(0, 2).join('     ')}\n${lines.slice(2).join('     ')}` : lines.join('\n'), 14, COLORS.text, { align: 'center', lineSpacing: 4 }).setOrigin(0.5, 0);
 
     const btnY = top + cardH - 52;
     new Button(this, cx, btnY, {

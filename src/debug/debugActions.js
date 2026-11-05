@@ -41,6 +41,7 @@ export function readout(g) {
     ['Map', `column ${g.route.map.current.col}, lane ${g.route.map.current.lane + 1}; ${g.route.map.stopsPerArea} stops per area`],
     ['Passengers', s.passengers.map((p) => `${p.count}→${p.dest ? p.dest.name : 'any'}`).join(', ') || '–'],
     ['Burn', `×${s.burnMultiplier.toFixed(2)}  · upgrades ${Object.entries(s.upgrades).map(([k, v]) => `${k} ${v}`).join(', ')}`],
+    ['Objectives', g.objectives.list.map((o) => `${o.text} (${Math.floor(o.progress ?? 0)}/${o.target})`).join('; ')],
     ['FPS', String(Math.round(g.game.loop.actualFps))],
   ];
   return rows;
@@ -143,6 +144,16 @@ export function eventHere(g, id) {
 }
 
 export const eventOptions = () => EVENTS.map((e) => [e.id, `${e.title}${e.areas ? ` (${e.areas.join(', ')})` : ''}`]);
+
+export function completeObjectives(g) {
+  const done = g.objectives.completeAll();
+  return `Completed ${done.length} objectives`;
+}
+
+export function newObjectives(g) {
+  g.objectives.reroll();
+  return 'New objectives set';
+}
 
 // --- Train -----------------------------------------------------------------------------------
 

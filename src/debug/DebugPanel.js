@@ -97,6 +97,8 @@ const SECTIONS = [
           ['Low fuel', A.lowFuel],
           ['Out of fuel', A.runOutOfFuel],
           ['Dry boiler', A.dryBoiler],
+          ['Complete objectives', A.completeObjectives],
+          ['New objectives', A.newObjectives],
         ],
       },
     ],

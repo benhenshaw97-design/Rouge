@@ -72,6 +72,22 @@ at the phone's pixel density, so text and art stay sharp.
 3. **Stop**: the train brakes smoothly to a halt at the stop and a panel opens.
 4. **Leave**: depart and the fuel starts draining again.
 
+**The route map** (MAP button, or Tab): each run has its own network of stops, three lanes wide,
+running through the areas in turn. Every stop links to two in the next column, and those are what
+the next junction offers, so you can plan ahead. Tap one of the two next stops on the map to set the
+points. Every other column has a Coal Depot in the middle lane. The game pauses while the map is open.
+
+**Line events**: on about half the stretches something happens between stops (a tree across the line,
+a pedlar, a snowdrift, monkeys after your cargo…). The train pulls up and you choose what to do.
+They're listed in `src/content/events.js`, and many only happen in certain areas.
+
+**Objectives**: three at a time (deliver passengers, sell cargo, reach the next area, travel so far…),
+each paying a reward when done and replaced with a new one. They're on the map screen
+(`src/content/objectives.js`).
+
+**Running out of fuel** isn't the end: a relief engine can bring fuel out (free the first time,
+then more each call; if you're broke they take what you have). Or you can end the run.
+
 | Stop        | What you can do                                                  |
 | ----------- | ---------------------------------------------------------------- |
 | Coal Depot  | Buy fuel                                                         |
@@ -115,7 +131,9 @@ src/
   state/best.js            Best distance, remembered per device
   systems/
     TrainMotion.js         Acceleration, planned braking, coasting (no Phaser)
-    RouteManager.js        Plans junctions and which POIs sit down each branch
+    RouteManager.js        Plans junctions, stops and events along the line
+    RouteMap.js            The run's network of stops (columns × lanes, areas, coal rule)
+    Objectives.js          Tracks objectives and pays out
     ParallaxBackground.js  Scrolls the background layers
     WorldLayer.js          Moves objects pinned to a spot on the line
     Viewport.js            Screen sizing and the phone / desktop layouts
@@ -126,9 +144,11 @@ src/
   objects/
     Train.js               Train visuals: cars, wheels, rods, smoke, cargo heap
     worldObjects.js        Station buildings and junction graphics
-  poi/poiActions.js        What each POI lets you do
+  poi/poiActions.js        What each POI lets you do (and the event / stranded panels)
+  content/events.js        ★ Line events and their choices. Add new ones here.
+  content/objectives.js    ★ Objective types and rewards
   debug/                   The debug panel (DebugPanel.js) and what its controls do (debugActions.js)
-  ui/                      HUD, junction picker, stop menu, status card, 9-slice buttons
+  ui/                      HUD, junction picker, stop menu, status card, map screen, 9-slice buttons
 scripts/slice-art.py       Cuts the sprites and builds the scrolling layers from art/sheets
 scripts/slice-areas.py     Same for the desert-onward areas (writes src/config/new-areas.json)
 scripts/compress-images.py Shrinks every PNG to a 256-colour palette (run after slicing)
@@ -148,7 +168,7 @@ scripts/generate-placeholders.mjs   Makes placeholder files for anything without
   (`TrainState.passengers`), so a destination field slots in naturally.
 - **New areas**: add an entry to `AREAS` in `scripts/slice-areas.py` (where each piece is on its sheets) and
   run it; or hand-write one in `AREAS` in `display.js` listing the layer art it swaps in. The line runs through
-  the areas in turn, with a tunnel between each (`route.areaLength` in `balance.js` sets how long each lasts).
+  the areas in turn, with a tunnel between each (`route.stopsPerArea` in `balance.js` sets how many stops each has).
 
 ## Deploying to GitHub Pages
 
