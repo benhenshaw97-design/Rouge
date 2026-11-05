@@ -383,7 +383,6 @@ AREAS = {
         # Dense jungle: tree-line clumps packed edge to edge behind the trees, and ferns,
         # bushes and flowers crowding the line.
         'thicket': lambda: scatter(S('jungle-kit-d.png'), [(0, 305, 1774, 439)], 3072, (-90, -40), grounded=14, min_w=80),
-        'undergrowth': lambda: scatter(S('jungle-trees.png'), [(0, 494, 2172, 701)], 4096, (-40, 10), min_w=60, seed=3),
         # Big trees that sweep past in front of the train.
         'bank_over_rails': 8,  # the jungle bank's plants grow up in front of the track
         'fgtrees': lambda: solid(scatter(S('jungle-kit.png'), [(0, 290, 1774, 464)], 6144, (700, 1600), min_w=120,

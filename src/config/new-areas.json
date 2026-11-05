@@ -36,7 +36,6 @@
     "jungle-foreground": "backgrounds/jungle-foreground.png",
     "jungle-foreground-back": "backgrounds/jungle-foreground-back.png",
     "jungle-thicket": "backgrounds/jungle-thicket.png",
-    "jungle-undergrowth": "backgrounds/jungle-undergrowth.png",
     "jungle-fgtrees": "backgrounds/jungle-fgtrees.png",
     "jungle-waterTower": "pois/jungle-waterTower.png",
     "jungle-workshop": "pois/jungle-workshop.png",
@@ -241,10 +240,6 @@
         "thicket": {
           "key": "jungle-thicket",
           "height": 165
-        },
-        "undergrowth": {
-          "key": "jungle-undergrowth",
-          "height": 70
         },
         "foreground-trees": {
           "key": "jungle-fgtrees",
