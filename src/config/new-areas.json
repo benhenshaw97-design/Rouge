@@ -5,10 +5,10 @@
     "badlands-hills": "backgrounds/badlands-hills.png",
     "badlands-trees": "backgrounds/badlands-trees.png",
     "badlands-village": "backgrounds/badlands-village.png",
+    "badlands-ground": "backgrounds/badlands-ground.png",
     "badlands-foreground": "backgrounds/badlands-foreground.png",
     "badlands-foreground-back": "backgrounds/badlands-foreground-back.png",
     "badlands-thicket": "backgrounds/badlands-thicket.png",
-    "badlands-undergrowth": "backgrounds/badlands-undergrowth.png",
     "badlands-town": "pois/badlands-town.png",
     "badlands-workshop": "pois/badlands-workshop.png",
     "badlands-mine": "pois/badlands-mine.png",
@@ -95,7 +95,7 @@
         "mountains": {
           "key": "badlands-mountains",
           "height": 640,
-          "bottom": 500
+          "bottom": 520
         },
         "hills": {
           "key": "badlands-hills",
@@ -104,32 +104,28 @@
         },
         "trees": {
           "key": "badlands-trees",
-          "height": 8
+          "height": 120
         },
         "village": {
           "key": "badlands-village",
-          "height": 150
+          "height": 8
         },
         "ground": {
-          "key": "desert-ground",
+          "key": "badlands-ground",
           "height": 1500,
-          "tileHeight": 158.1
+          "tileHeight": 171.9
         },
         "foreground": {
           "key": "badlands-foreground",
-          "height": 50.4
+          "height": 64.7
         },
         "foreground-back": {
           "key": "badlands-foreground-back",
-          "height": 8
+          "height": 51.5
         },
         "thicket": {
           "key": "badlands-thicket",
-          "height": 215
-        },
-        "undergrowth": {
-          "key": "badlands-undergrowth",
-          "height": 62
+          "height": 150
         }
       },
       "buildings": {

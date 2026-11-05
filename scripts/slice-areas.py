@@ -211,6 +211,13 @@ def pad_top(img, px):
     return Image.fromarray(out.astype(np.uint8))
 
 
+def dusk(img, colour=(122, 92, 128), amount=0.35, light=0.9):
+    """Tints a layer towards a sunset purple and darkens it a touch (for hazy distance)."""
+    a = np.asarray(img.convert('RGBA')).astype(float)
+    a[..., :3] = (a[..., :3] * (1 - amount) + np.array(colour) * amount) * light
+    return Image.fromarray(np.clip(a, 0, 255).astype(np.uint8))
+
+
 def badlands_trees():
     """Closer industrial skyline along the bottom, with a big factory every so often."""
     sky = strip(S('badlands-silhouettes-a.png'), (0, 307, 2172, 426))
@@ -312,29 +319,24 @@ SNOW, JUNGLE, MARSH, COAST, TOWN = (
 AREAS = {
     'badlands': {
         'name': 'The Iron Badlands',
-        # Backdrop: the painted panorama (dusky sky, snowy peaks, mesas, plains), as one layer.
-        'mountains': lambda: pad_top(crossfade_tile(S('badlands-panorama.png').crop((0, 0, 2172, 360)), 240), 160),
+        # Look: badlands-concept.png. Dusky sunset panorama (sky, sun, mesas) as the backdrop.
+        'mountains': lambda: pad_top(crossfade_tile(S('badlands-panorama.png').crop((0, 362, 2172, 700)), 240), 200),
         'mountains_height': 640,
-        'mountains_bottom': 500,
+        'mountains_bottom': 520,
         'hills': lambda: Image.new('RGBA', (64, 8), (0, 0, 0, 0)),
         'hills_height': 8,
-        # Middle distance: the preview panels' golden hills with ruined arches, windmills,
-        # banner poles and the old water tower (their painted sky cut out).
-        'thicket': lambda: crossfade_tile(side_by_side(
-            key_sky(S('badlands-preview-a.png').crop((0, 247, 2172, 512))),
-            key_sky(S('badlands-preview-b.png').crop((0, 247, 2172, 512)))), 160),
-        'thicket_height': 215,
-        'trees': lambda: Image.new('RGBA', (64, 8), (0, 0, 0, 0)),
-        'trees_height': 8,
-        # The odd tank, gantry or water tower nearer the line, well spread out.
-        'village': lambda: scatter(S('badlands-kit.png'), [(0, 255, 2172, 394)], 6144, (1200, 2200), min_w=60),
-        # Rocks, fences, lamps, cartwheels and a skull in dry grass along the line.
-        'undergrowth': lambda: crossfade_tile(side_by_side(
-            key_flat(S('badlands-preview-a.png').crop((0, 523, 2172, 724))),
-            key_flat(S('badlands-preview-b.png').crop((0, 523, 2172, 724)))), 120),
-        'undergrowth_height': 62,
-        'bank_reuse': ('desert-ground', 158.1),  # dry grass and sand, like the previews
-        'fg': ('badlands-layers-a.png', None, (602, 722), None),
+        # Far: hazy purple factory skyline (great wheel, chimneys, viaducts).
+        'thicket': lambda: dusk(strip(S('badlands-silhouettes-b.png'), (0, 105, 2172, 250)), amount=0.45),
+        'thicket_height': 150,
+        # Mid: rusted wheels, cannon, derricks and gantries in the haze.
+        'trees': lambda: dusk(strip(S('badlands-silhouettes-a.png'), (0, 307, 2172, 426)), amount=0.3, light=0.95),
+        'trees_height': 120,
+        'village': lambda: Image.new('RGBA', (64, 8), (0, 0, 0, 0)),
+        'village_height': 8,
+        # The line runs along the rusted viaduct.
+        'bank': lambda: bank(S('badlands-viaduct.png'), (0, 43, 2172, 677)),
+        # Trackside junk in front.
+        'fg': ('badlands-foreground-rows.png', 230, (550, 704), (385, 528)),
         'stops': [
             ('badlands-stops.png', (0, 4, 2172, 304), {'town': 0, 'workshop': 1, 'mine': 2, 'coalDepot': 3}),
             ('badlands-stops.png', (0, 320, 2172, 542), {'waterTower': 0}),
