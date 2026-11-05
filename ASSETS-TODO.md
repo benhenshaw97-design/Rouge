@@ -85,6 +85,11 @@ Ideas: **autumn forest** (autumn foreground rows are already uploaded), **canyon
 **volcanic ash fields**, **savannah**, **industrial mill town**, **haunted moor**, **cherry-blossom hills**.
 
 Improvements to current areas:
+- [ ] **Mid-ground strips**, one per area (the best fix for gaps in the scenery): a seamless,
+      left-to-right repeating band about 2048×300 of dense trees/bushes/buildings whose **bottom
+      edge is solid all the way across** (no sky or transparency at the base). It sits between the
+      far hills and the line, so nothing behind it can show through. Jungle and marsh have stand-ins
+      built from the kits; desert, snow, coast and Brasswick would benefit most.
 - [ ] **Tunnel mountain versions**: snowy, sandy and jungle (the red rock clashes beside the snow)
 - [ ] **Platforms** for the jungle, marsh and coast (they have none yet; snow and Brasswick do)
 - [ ] **Junction signposts** to match each area (only the meadow's exists)
