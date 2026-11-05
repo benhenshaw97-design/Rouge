@@ -6,6 +6,8 @@
  *   title    heading on the panel
  *   text     what's happening
  *   icon     image key for the panel (an icon-… for now; see ASSETS-TODO.md for event art)
+ *   prop     image shown beside the line where the train stops (default: event-<id>, cut by
+ *            scripts/slice-events.py; leave both out for none)
  *   areas    area ids it can happen in (leave out for anywhere)
  *   weight   how likely it is compared with the others (default 1)
  *   when(state)  optional: only happens if this returns true
@@ -281,6 +283,7 @@ export const EVENTS = [
   {
     id: 'mail-sack',
     title: 'Lost mail sack',
+    prop: 'cargo-sacks',
     text: 'A mail sack lies by the track, fallen from some other train.',
     icon: 'icon-cargo',
     choices: [

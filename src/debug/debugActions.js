@@ -141,6 +141,7 @@ export function eventHere(g, id) {
   const next = g.route.stopIn(g.state.distance);
   if (next != null && next < at - g.state.distance + 20) return 'Something else is just ahead; try after it';
   g.route.event = { def, at, visited: false, warned: true };
+  g.addEventProp(g.route.event);
   return `${def.title} ahead`;
 }
 

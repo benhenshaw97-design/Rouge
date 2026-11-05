@@ -84,6 +84,21 @@ export const IMAGES = {
   'coupling-rod': 'sprites/coupling-rod.png',
   smoke: 'sprites/smoke.png',
 
+  // Props beside the line for line events (cut by scripts/slice-events.py)
+  'event-stranded-family': 'sprites/event-stranded-family.png',
+  'event-fallen-tree': 'sprites/event-fallen-tree.png',
+  'event-abandoned-coal': 'sprites/event-abandoned-coal.png',
+  'event-pedlar': 'sprites/event-pedlar.png',
+  'event-snowdrift': 'sprites/event-snowdrift.png',
+  'event-hot-spring': 'sprites/event-hot-spring.png',
+  'event-sandstorm': 'sprites/event-sandstorm.png',
+  'event-oasis': 'sprites/event-oasis.png',
+  'event-monkeys': 'sprites/event-monkeys.png',
+  'event-marsh-lights': 'sprites/event-marsh-lights.png',
+  'event-toll-bridge': 'sprites/event-toll-bridge.png',
+  'event-shipwreck': 'sprites/event-shipwreck.png',
+  'event-street-urchins': 'sprites/event-street-urchins.png',
+
   // Line-side
   points: 'sprites/points.png',
   'junction-signpost': 'sprites/junction-signpost.png',

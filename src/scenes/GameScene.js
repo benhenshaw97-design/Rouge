@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { BALANCE, POI_TYPES, START_STATION } from '../config/balance.js';
 import { DEBUG } from '../config/debug.js';
-import { AREAS, COLORS, DEPTH, PARALLAX_LAYERS, TUNNEL, PX_PER_METRE, TRAIN_LAYOUT, WORLD_HEIGHT } from '../config/display.js';
+import { AREAS, COLORS, DEPTH, RAIL_Y, PARALLAX_LAYERS, TUNNEL, PX_PER_METRE, TRAIN_LAYOUT, WORLD_HEIGHT } from '../config/display.js';
 import { Train } from '../objects/Train.js';
 import { createJunction, createStop, createTunnel } from '../objects/worldObjects.js';
 import { createVisit, eventVisit, strandedVisit } from '../poi/poiActions.js';
@@ -183,6 +183,7 @@ export class GameScene extends Phaser.Scene {
     // Stops past a tunnel are in the next area.
     const areaAhead = this.tunnel && !this.tunnel.swapped ? AREAS[this.tunnel.to] : this.area;
     const junction = this.route.planJunction(this.state.distance, areaAhead, this.state);
+    if (this.route.event) this.addEventProp(this.route.event);
     this.world.add(junction.at, createJunction(this));
     this.audio.play('whistle');
   }
@@ -318,6 +319,15 @@ export class GameScene extends Phaser.Scene {
       this.ui.toast(`Points set for ${def.name}`);
       this.addStopToWorld(poi);
     }
+  }
+
+  /** Puts a line event's prop beside the track, just ahead of where the train will halt. */
+  addEventProp(ev) {
+    const key = ev.def.prop ?? `event-${ev.def.id}`;
+    if (!this.textures.exists(key)) return;
+    const img = this.add.image(0, RAIL_Y + 14, key).setOrigin(0, 1).setDepth(DEPTH.buildings);
+    img.setScale(Math.min(1, 110 / img.height, 220 / img.width));
+    this.world.add(ev.at, img, { offsetX: 24 });
   }
 
   /** Builds a stop's building (and platform) on the line at its spot. */
