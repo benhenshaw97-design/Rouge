@@ -68,7 +68,7 @@ export class RadioPanel {
     const st = music.station;
     this.add(text(scene, dispX + dispW / 2, cy + 7, st.name, 15, COLORS.gold, { fontStyle: 'bold' }).setOrigin(0.5, 0));
     this.add(text(scene, dispX + dispW / 2, cy + 26, st.blurb ?? '', 11, COLORS.textDim).setOrigin(0.5, 0));
-    const now = !music.el ? 'Tap to tune in' : music.playing ? `♪ ${music.title}` : 'Off';
+    const now = !music.el ? 'Plays when you start' : music.playing ? `♪ ${music.title}` : 'Off';
     const nowText = this.add(text(scene, dispX + dispW / 2, cy + 44, now, 13, music.playing ? '#a8f0a0' : COLORS.textDim).setOrigin(0.5, 0));
     if (nowText.width > dispW - 10) nowText.setScale((dispW - 10) / nowText.width);
     cy += dispH + 10;

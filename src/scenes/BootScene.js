@@ -7,6 +7,8 @@ import { music } from '../systems/MusicPlayer.js';
 import { cssSize, isTouch, uiScale } from '../systems/Viewport.js';
 import { frame, text } from '../ui/kit.js';
 import { Button } from '../ui/Button.js';
+import { RadioPanel } from '../ui/RadioPanel.js';
+import { describeSave, readSave } from '../state/save.js';
 import { readBest } from '../state/best.js';
 
 /**
@@ -45,18 +47,28 @@ export class BootScene extends Phaser.Scene {
     loadLaterImages(this);
 
     this.started = false;
-    const start = () => {
+    /** Starts a new run, or carries on a saved one (`resume`, from state/save.js). */
+    const start = (resume = null) => {
       if (this.started) return;
       this.started = true;
       // Inside the tap/click, so phones allow the music to start (with the saved mute setting).
       new AudioManager(this);
       music.start();
-      this.scene.start('Game');
+      this.scene.start('Game', { resume });
     };
     this.startRun = start;
-    this.input.keyboard?.on('keydown-ENTER', start);
-    this.input.keyboard?.on('keydown-SPACE', start);
+    // Enter / Space: carry on the saved run if there is one, else a new one.
+    const primary = () => {
+      if (this.help || this.settings) return;
+      start(readSave());
+    };
+    this.input.keyboard?.on('keydown-ENTER', primary);
+    this.input.keyboard?.on('keydown-SPACE', primary);
     this.input.keyboard?.on('keydown-H', () => this.toggleHelp());
+    this.input.keyboard?.on('keydown-ESC', () => {
+      if (this.help) this.toggleHelp();
+      if (this.settings) this.toggleSettings();
+    });
 
     const onResize = () => this.buildTitle();
     this.scale.on('resize', onResize);
@@ -70,6 +82,8 @@ export class BootScene extends Phaser.Scene {
 
   buildTitle() {
     this.tweens.killAll();
+    this.settings?.panel.destroy();
+    this.settings = null;
     this.children.removeAll(true);
     this.help = null;
     const u = uiScale(this);
@@ -151,31 +165,80 @@ export class BootScene extends Phaser.Scene {
       .setOrigin(0.5, 0)
       .setShadow(2, 2, '#000000', 2, false, true);
 
-    // --- Menu panel (buttons stacked; side by side on short, wide screens so the train shows)
+    // --- Menu panel: Continue (if a run is saved), New run, How to play, Settings. Stacked;
+    // in a 2×2 grid on short, wide screens so the train still shows.
     const best = readBest();
+    const save = readSave();
     const wide = !portrait && h < 560;
     const keys = !isTouch(this) && !wide;
+    const cols = wide ? 2 : 1;
     const bw = wide ? Math.min(220, (w - 100) / 2) : Math.min(280, w - 48);
-    const bh = wide ? 46 : 52;
-    const panelW = wide ? bw * 2 + 52 : bw + 40;
-    const panelH = (wide ? 18 + bh + 12 : 24 + bh + 18 + 44 + 12) + (best > 0 ? 24 : 0) + (keys ? 20 : 0) + 12;
-    const panelY = titleY + titleSize * 0.6 + (wide ? 30 : 46);
+    const items = [];
+    if (save) items.push({ label: 'Continue  ▶', sub: describeSave(save), skin: 'green', big: true, run: () => this.startRun(save) });
+    items.push({ label: save ? 'New run' : 'Start  ▶', skin: save ? 'gold' : 'green', big: !save, run: () => this.startRun(null) });
+    items.push({ label: 'How to play', skin: 'gold', run: () => this.toggleHelp() });
+    items.push({ label: 'Settings', skin: 'gold', run: () => this.toggleSettings() });
+    const bigH = wide ? 46 : 54;
+    const smallH = wide ? 40 : 42;
+    const gap = wide ? 8 : 10;
+    const rows = [];
+    for (let i = 0; i < items.length; i += cols) rows.push(items.slice(i, i + cols));
+    const rowH = (row) => (row.some((it) => it.big) ? bigH : smallH);
+    const buttonsH = rows.reduce((n, r) => n + rowH(r), 0) + gap * (rows.length - 1);
+    const panelW = cols * bw + (cols - 1) * 12 + 40;
+    const footer = (best > 0 ? 22 : 0) + (keys ? 18 : 0);
+    const panelH = 20 + buttonsH + (footer ? 10 + footer : 0) + 16;
+    const panelY = titleY + titleSize * 0.6 + (wide ? 28 : 44);
     frame(this, 'button-brown', w / 2, panelY + panelH / 2, panelW, panelH).setAlpha(0.94);
-    let y = panelY + (wide ? 18 : 24) + bh / 2;
-    const startX = wide ? w / 2 - bw / 2 - 6 : w / 2;
-    const startBtn = new Button(this, startX, y, { width: bw, height: bh, fontSize: 22, align: 'center', label: 'Start  ▶', skin: 'green' });
-    // (Started straight from the tap, not a frame later, so phones allow the music to play.)
-    startBtn.on('pointerup', () => this.startRun());
-    this.tweens.add({ targets: startBtn, scale: 1.03, duration: 700, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
-    const helpX = wide ? w / 2 + bw / 2 + 6 : w / 2;
-    const helpY = wide ? y : y + bh / 2 + 18 + 22;
-    new Button(this, helpX, helpY, { width: bw, height: wide ? bh : 44, fontSize: 17, align: 'center', label: 'How to play', skin: 'gold', onClick: () => this.toggleHelp() });
-    y = (wide ? y + bh / 2 : helpY + 22) + 16;
+    let y = panelY + 20;
+    for (const row of rows) {
+      const rh = rowH(row);
+      row.forEach((it, i) => {
+        const x = w / 2 + (i - (row.length - 1) / 2) * (bw + 12);
+        const btn = new Button(this, x, y + rh / 2, {
+          width: bw,
+          height: rh,
+          fontSize: it.big ? 21 : 16,
+          align: 'center',
+          label: it.label,
+          sublabel: it.sub && !wide ? it.sub : undefined,
+          skin: it.skin,
+        });
+        // (Run straight from the tap, not a frame later, so phones allow the music to play.)
+        btn.on('pointerup', () => it.run());
+        if (it.skin === 'green') this.tweens.add({ targets: btn, scale: 1.03, duration: 700, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
+      });
+      y += rh + gap;
+    }
+    y += 6 - gap + 10;
     if (best > 0) {
-      text(this, w / 2, y, `Best run: ${(best / 1000).toFixed(2)} km`, 15, COLORS.gold, { fontStyle: 'bold' }).setOrigin(0.5);
+      text(this, w / 2, y + 8, `Best run: ${(best / 1000).toFixed(2)} km`, 15, COLORS.gold, { fontStyle: 'bold' }).setOrigin(0.5);
       y += 22;
     }
-    if (keys) text(this, w / 2, y, 'Enter: start   ·   H: how to play', 12, COLORS.textDim).setOrigin(0.5);
+    if (keys) text(this, w / 2, y + 6, `Enter: ${save ? 'continue' : 'start'}   ·   H: how to play`, 12, COLORS.textDim).setOrigin(0.5);
+    if (this.settingsOpen) this.toggleSettings(true);
+  }
+
+  /** The radio and volume settings (the in-game radio panel), over the title screen. */
+  toggleSettings(reopen = false) {
+    if (this.started) return;
+    if (this.settings && !reopen) {
+      this.settings.panel.destroy();
+      this.settings.dim.destroy();
+      this.settings = null;
+      this.settingsOpen = false;
+      return;
+    }
+    this.settings?.panel.destroy();
+    this.settings?.dim.destroy();
+    const { w, h } = cssSize(this);
+    const pw = Math.min(330, w - 20);
+    const dim = this.add.rectangle(0, 0, w, h, 0x0d0a08, 0.6).setOrigin(0).setDepth(44).setInteractive();
+    dim.on('pointerup', () => this.toggleSettings());
+    // (RadioPanel opens above-right of its anchor; anchor it so the panel is centred.)
+    const panel = new RadioPanel(this, { x: (w - pw) / 2 + 22, y: Math.min(h - 10, (h + 290) / 2 + 30), dir: 1 }, { onClose: () => this.toggleSettings() });
+    this.settings = { panel, dim };
+    this.settingsOpen = true;
   }
 
   /** A short how-to-play card over the title screen. */

@@ -11,6 +11,7 @@ import { ParallaxBackground } from '../systems/ParallaxBackground.js';
 import { Weather } from '../systems/Weather.js';
 import { Ambience } from '../systems/Ambience.js';
 import { Objectives } from '../systems/Objectives.js';
+import { applySave, clearSave, saveRun } from '../state/save.js';
 import { areaLoaded, loadLaterImages } from '../systems/BackgroundLoader.js';
 import { RouteManager } from '../systems/RouteManager.js';
 import { TrainMotion } from '../systems/TrainMotion.js';
@@ -34,7 +35,9 @@ export class GameScene extends Phaser.Scene {
     super('Game');
   }
 
-  create() {
+  /** @param {{ resume?: object }} data  resume: a saved run (state/save.js) to carry on */
+  create(data = {}) {
+    const resume = data.resume ?? null;
     this.phase = 'waiting';
     // Areas: the line runs through AREAS in turn, with a tunnel between each.
     this.areaIndex = 0;
@@ -54,24 +57,49 @@ export class GameScene extends Phaser.Scene {
     this.train = new Train(this);
     this.objectives = new Objectives({ state: this.state, scene: this });
     this.weather = new Weather(this);
-    this.weather.setArea(this.area);
     this.ambience = new Ambience(this);
-    this.ambience.setArea(this.area);
-    // Whatever the title screen didn't finish (after a moment, so files it still has on the way
-    // aren't asked for twice).
-    this.time.delayedCall(3000, () => loadLaterImages(this));
+    if (resume) applySave(this, resume);
 
-    // The station we start from, centred behind the train.
-    this.world.add(
-      0,
-      createStop(this, {
-        buildingKey: START_STATION.building,
-        platform: START_STATION.platform,
-        title: START_STATION.name,
-        subtitle: 'Departures',
-      }),
-      { offsetX: -this.train.length / 2 },
-    );
+    if (resume) {
+      // Back at the stop the run was saved at (its area's art may still be downloading).
+      this.phase = 'loading';
+      this.world.update(this.state.distance);
+      const arrive = () => {
+        this.parallax.setArea(this.area);
+        this.weather.setArea(this.area);
+        this.ambience.setArea(this.area);
+        this.addStopToWorld(this.route.poi);
+        this.world.update(this.state.distance);
+        this.phase = 'stopped';
+        // (Next frame, once the UI scene has laid itself out.)
+        this.time.delayedCall(30, () => this.ui.openPanel({ state: this.state, visit: createVisit(this.route.poi, { leg: this.leg, next: this.nextAreaInfo() }) }));
+      };
+      if (areaLoaded(this, this.area)) {
+        arrive();
+        this.time.delayedCall(3000, () => loadLaterImages(this));
+      } else {
+        this.load.once('complete', arrive);
+        loadLaterImages(this);
+      }
+    } else {
+      this.weather.setArea(this.area);
+      this.ambience.setArea(this.area);
+      // Whatever the title screen didn't finish (after a moment, so files it still has on the
+      // way aren't asked for twice).
+      this.time.delayedCall(3000, () => loadLaterImages(this));
+
+      // The station we start from, centred behind the train.
+      this.world.add(
+        0,
+        createStop(this, {
+          buildingKey: START_STATION.building,
+          platform: START_STATION.platform,
+          title: START_STATION.name,
+          subtitle: 'Departures',
+        }),
+        { offsetX: -this.train.length / 2 },
+      );
+    }
 
     // UI runs as its own scene on top of this one.
     this.scene.launch('UI', { main: this });
@@ -93,7 +121,7 @@ export class GameScene extends Phaser.Scene {
 
     this.audio.startMusic();
     this.cameras.main.fadeIn(500, 21, 17, 13);
-    this.time.delayedCall(START_STATION.departDelayMs, () => this.depart());
+    if (!resume) this.time.delayedCall(START_STATION.departDelayMs, () => this.depart());
   }
 
   /**
@@ -399,6 +427,7 @@ export class GameScene extends Phaser.Scene {
       byType[poi.type] = (byType[poi.type] ?? 0) + 1;
       const where = { leg: this.leg, next: this.nextAreaInfo() };
       this.ui.openPanel({ state: this.state, visit: createVisit(poi, where) });
+      saveRun(this);
     }
   }
 
@@ -471,6 +500,7 @@ export class GameScene extends Phaser.Scene {
 
   endRun(reason) {
     if (this.phase === 'over') return;
+    clearSave();
     this.phase = 'over';
     this.ui.closePanel();
     this.ui.hideJunction();

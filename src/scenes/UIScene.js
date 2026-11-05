@@ -10,6 +10,7 @@ import { GodPanel } from '../ui/GodPanel.js';
 import { MapView } from '../ui/MapView.js';
 import { RadioPanel } from '../ui/RadioPanel.js';
 import { music } from '../systems/MusicPlayer.js';
+import { saveRun } from '../state/save.js';
 import { BALANCE, POI_TYPES, START_STATION } from '../config/balance.js';
 
 /**
@@ -327,7 +328,10 @@ export class UIScene extends Phaser.Scene {
       audio: this.main.audio,
       onDepart: () => this.main.depart(),
       onAbandon: () => this.main.endRun(visit.poi.type === 'stranded' ? 'Ran out of fuel between stops' : 'Stranded without fuel'),
-      onMessage: (m) => (this.panelArgs.message = m),
+      onMessage: (m) => {
+        this.panelArgs.message = m;
+        saveRun(this.main); // (whatever was bought or sold at the stop is kept)
+      },
     };
     this.panel = new PoiPanel(this, this.L.panel, this.panelArgs);
   }
