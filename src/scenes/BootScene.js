@@ -5,7 +5,8 @@ import { COLORS, PARALLAX_LAYERS, RAIL_Y, TRAIN_LAYOUT } from '../config/display
 import { AudioManager } from '../systems/AudioManager.js';
 import { music } from '../systems/MusicPlayer.js';
 import { cssSize, isTouch, uiScale } from '../systems/Viewport.js';
-import { text } from '../ui/kit.js';
+import { frame, text } from '../ui/kit.js';
+import { Button } from '../ui/Button.js';
 import { readBest } from '../state/best.js';
 
 /**
@@ -52,8 +53,10 @@ export class BootScene extends Phaser.Scene {
       music.start();
       this.scene.start('Game');
     };
-    this.input.on('pointerup', start);
-    this.input.keyboard?.on('keydown', start);
+    this.startRun = start;
+    this.input.keyboard?.on('keydown-ENTER', start);
+    this.input.keyboard?.on('keydown-SPACE', start);
+    this.input.keyboard?.on('keydown-H', () => this.toggleHelp());
 
     const onResize = () => this.buildTitle();
     this.scale.on('resize', onResize);
@@ -68,84 +71,167 @@ export class BootScene extends Phaser.Scene {
   buildTitle() {
     this.tweens.killAll();
     this.children.removeAll(true);
+    this.help = null;
     const u = uiScale(this);
     this.cameras.main.setOrigin(0, 0).setZoom(u).setScroll(0, 0);
     const { w, h } = cssSize(this);
+    const portrait = h > w;
 
-    // Scenery: the game's own layers, scaled to fit the bottom of the screen.
-    this.add.image(0, 0, 'sky').setOrigin(0).setDisplaySize(w, h);
+    // --- Scenery: the game's own layers (sky included, so nothing is stretched), scaled to
+    // fill the screen's height on wide screens; on upright phones it fills the lower half and
+    // the menu sits in the sky above.
     const trainLength = TRAIN_LAYOUT.cars.reduce((n, c) => n + c.width, 0);
-    const s = Math.min(h / 720, (w - 24) / (trainLength + 40));
-    const scenery = this.add.container(w / 2, h * 0.86 - RAIL_Y * s).setScale(s);
+    const s = Math.min(h / 720, Math.max(w / (trainLength + 60), w / 700));
+    const viewW = w / s;
+    const scenery = this.add.container(0, h - 720 * s).setScale(s);
+    this.layers = [];
     for (const cfg of PARALLAX_LAYERS) {
-      if (cfg.tile === false || cfg.key === 'foreground') continue;
+      if (cfg.key === 'foreground') continue;
+      if (cfg.tile === false) {
+        scenery.add(this.add.image(-50, cfg.y, cfg.key).setOrigin(0).setDisplaySize(viewW + 100, cfg.height));
+        continue;
+      }
       const tex = this.textures.get(cfg.key).getSourceImage();
       const ts = (cfg.tileHeight ?? cfg.height) / tex.height;
-      const span = (w / s) * 1.2 + 400;
-      const t = this.add.tileSprite(-span / 2, cfg.y, span, cfg.height, cfg.key).setOrigin(0, 0).setTileScale(ts, ts);
-      t.tilePositionX = 300;
+      const t = this.add.tileSprite(-50, cfg.y, viewW + 100, cfg.height, cfg.key).setOrigin(0, 0).setTileScale(ts, ts);
+      t.tilePositionX = 300 / ts;
       scenery.add(t);
-      if (cfg.key === 'clouds') this.clouds = t;
+      this.layers.push({ t, factor: cfg.factor, drift: cfg.drift ?? 0, ts });
     }
-    // The train standing at the line.
-    let x = -trainLength / 2;
+
+    // The train steaming along (the scenery scrolls past; the wheels turn).
+    const front = Math.min(viewW / 2 + trainLength / 2, viewW - 30);
+    let x = front - trainLength;
+    this.wheels = [];
+    const cars = [];
     for (const car of TRAIN_LAYOUT.cars) {
       const top = RAIL_Y - car.railY;
-      scenery.add(this.add.image(x, top, car.key).setOrigin(0, 0).setDisplaySize(car.width, car.height));
       if (car.heap) {
-        scenery.add(
-          this.add
-            .image(x + car.heap.x, top + car.heap.bottom, car.heap.key)
-            .setOrigin(0, 1)
-            .setDisplaySize(car.heap.w, car.heap.h)
-            .setDepth(-1),
+        cars.push(
+          this.add.image(x + car.heap.x, top + car.heap.bottom, car.heap.key).setOrigin(0, 1).setDisplaySize(car.heap.w, car.heap.h),
         );
       }
-      for (const wl of car.wheels) scenery.add(this.add.image(x + wl.x, top + wl.y, 'wheel').setDisplaySize(wl.r * 2, wl.r * 2));
+      cars.push(this.add.image(x, top, car.key).setOrigin(0, 0).setDisplaySize(car.width, car.height));
+      for (const wl of car.wheels) {
+        const wheel = this.add.image(x + wl.x, top + wl.y, 'wheel').setDisplaySize(wl.r * 2, wl.r * 2);
+        cars.push(wheel);
+        this.wheels.push({ wheel, r: wl.r });
+      }
+      if (car.key === 'locomotive') this.chimney = { x: x + car.width * 0.78, y: top + 6 };
       x += car.width + TRAIN_LAYOUT.gap;
     }
-    scenery.sort('depth');
-    this.add.rectangle(0, 0, w, h, 0x15110d, 0.25).setOrigin(0);
+    scenery.add(cars);
+    // Smoke from the chimney.
+    if (this.chimney && this.textures.exists('smoke')) {
+      const smoke = this.add.particles(this.chimney.x, this.chimney.y, 'smoke', {
+        speedX: { min: -70, max: -40 },
+        speedY: { min: -40, max: -20 },
+        scale: { start: 0.25, end: 0.9 },
+        alpha: { start: 0.7, end: 0 },
+        lifespan: 2200,
+        frequency: 160,
+      });
+      scenery.add(smoke);
+    }
+    // Shade the top so the title reads against bright sky.
+    const shade = this.add.graphics();
+    shade.fillGradientStyle(0x15110d, 0x15110d, 0x15110d, 0x15110d, 0.55, 0.55, 0, 0);
+    shade.fillRect(0, 0, w, h * (portrait ? 0.6 : 0.5));
 
-    // Title
-    const titleSize = Math.round(Math.min(w / 5, h / 5, 120));
-    text(this, w / 2, h * 0.17, 'ROUGE', titleSize, COLORS.gold, { fontStyle: 'bold' })
+    // --- Title
+    const titleSize = Math.round(Math.min(w / 4.6, h / (portrait ? 7 : 5.6), 120));
+    const titleY = portrait ? h * 0.11 : Math.max(titleSize * 0.55 + 8, h * 0.13);
+    text(this, w / 2, titleY, 'ROUGE', titleSize, COLORS.gold, { fontStyle: 'bold' })
       .setOrigin(0.5)
-      .setShadow(4, 4, '#5a1d22', 0, false, true);
-    text(this, w / 2, h * 0.17 + titleSize * 0.62, 'Keep the fire burning. Choose your stops wisely.', Math.min(20, w / 22), COLORS.text, {
+      .setShadow(4, 5, '#5a1d22', 0, false, true);
+    text(this, w / 2, titleY + titleSize * 0.6, 'Keep the fire burning. Choose your stops wisely.', Math.min(19, w / 22), COLORS.text, {
       align: 'center',
-      wordWrap: { width: w - 32 },
+      wordWrap: { width: w - 40 },
     })
       .setOrigin(0.5, 0)
       .setShadow(2, 2, '#000000', 2, false, true);
 
-    const touch = isTouch(this);
-    const prompt = text(this, w / 2, h * 0.44, touch ? 'Tap to start' : 'Click or press any key to start', Math.min(28, touch ? w / 14 : w / 24), '#ffffff', {
-      fontStyle: 'bold',
-      backgroundColor: '#1d1612cc',
-      padding: { x: 16, y: 8 },
-    }).setOrigin(0.5);
-    this.tweens.add({ targets: prompt, alpha: 0.45, duration: 700, yoyo: true, repeat: -1 });
-
+    // --- Menu panel (buttons stacked; side by side on short, wide screens so the train shows)
     const best = readBest();
-    const hints = !touch && h > 520 && w > 760;
+    const wide = !portrait && h < 560;
+    const keys = !isTouch(this) && !wide;
+    const bw = wide ? Math.min(220, (w - 100) / 2) : Math.min(280, w - 48);
+    const bh = wide ? 46 : 52;
+    const panelW = wide ? bw * 2 + 52 : bw + 40;
+    const panelH = (wide ? 18 + bh + 12 : 24 + bh + 18 + 44 + 12) + (best > 0 ? 24 : 0) + (keys ? 20 : 0) + 12;
+    const panelY = titleY + titleSize * 0.6 + (wide ? 30 : 46);
+    frame(this, 'button-brown', w / 2, panelY + panelH / 2, panelW, panelH).setAlpha(0.94);
+    let y = panelY + (wide ? 18 : 24) + bh / 2;
+    const startX = wide ? w / 2 - bw / 2 - 6 : w / 2;
+    const startBtn = new Button(this, startX, y, { width: bw, height: bh, fontSize: 22, align: 'center', label: 'Start  ▶', skin: 'green' });
+    // (Started straight from the tap, not a frame later, so phones allow the music to play.)
+    startBtn.on('pointerup', () => this.startRun());
+    this.tweens.add({ targets: startBtn, scale: 1.03, duration: 700, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
+    const helpX = wide ? w / 2 + bw / 2 + 6 : w / 2;
+    const helpY = wide ? y : y + bh / 2 + 18 + 22;
+    new Button(this, helpX, helpY, { width: bw, height: wide ? bh : 44, fontSize: 17, align: 'center', label: 'How to play', skin: 'gold', onClick: () => this.toggleHelp() });
+    y = (wide ? y + bh / 2 : helpY + 22) + 16;
     if (best > 0) {
-      text(this, w / 2, h * 0.44 + Math.min(28, touch ? w / 14 : w / 24) + (hints ? 62 : 22), `Best run: ${(best / 1000).toFixed(2)} km`, Math.min(18, w / 22), COLORS.gold, {
-        backgroundColor: '#1d1612aa',
-        padding: { x: 10, y: 4 },
-      }).setOrigin(0.5);
+      text(this, w / 2, y, `Best run: ${(best / 1000).toFixed(2)} km`, 15, COLORS.gold, { fontStyle: 'bold' }).setOrigin(0.5);
+      y += 22;
     }
+    if (keys) text(this, w / 2, y, 'Enter: start   ·   H: how to play', 12, COLORS.textDim).setOrigin(0.5);
+  }
 
-    if (hints) {
-      text(this, w / 2, h * 0.44 + 46, 'At junctions, click a signpost or press 1 / 2.   Space: depart.   M: mute', 14, COLORS.text, {
-        backgroundColor: '#1d1612aa',
-        padding: { x: 10, y: 4 },
-      }).setOrigin(0.5);
+  /** A short how-to-play card over the title screen. */
+  toggleHelp() {
+    if (this.started) return;
+    if (this.help) {
+      this.help.forEach((o) => o.destroy());
+      this.help = null;
+      return;
     }
+    const { w, h } = cssSize(this);
+    const touch = isTouch(this);
+    const lines = [
+      ['Keep moving', 'The train burns fuel and water as it goes. Run dry and you’re stranded (a relief engine can help).'],
+      ['Choose your stops', `Signposts rise before each junction. ${touch ? 'Tap' : 'Click (or press 1 / 2)'} the one you want, or plan ahead on the map.`],
+      ['At a stop', 'Buy coal, fill the boiler, pick up passengers and cargo, repair and upgrade. Then depart.'],
+      ['Mind the boiler', 'Heat climbs at speed and fast with no water. Overheat and you crawl until it cools.'],
+      ['Explore', 'Tunnels lead to new lands. Events happen on the line, and objectives pay out.'],
+    ];
+    const cw = Math.min(520, w - 32);
+    const objs = [];
+    objs.push(this.add.rectangle(0, 0, w, h, 0x0d0a08, 0.7).setOrigin(0).setInteractive().on('pointerup', () => this.toggleHelp()));
+    const items = lines.map(([head, body]) => [
+      text(this, 0, 0, head, 17, COLORS.gold, { fontStyle: 'bold' }),
+      text(this, 0, 0, body, 14, COLORS.text, { wordWrap: { width: cw - 40 }, lineSpacing: 2 }),
+    ]);
+    const contentH = items.reduce((n, [a, b]) => n + a.height + b.height + 14, 0);
+    const ch = Math.min(h - 24, contentH + 120);
+    const cy = (h - ch) / 2;
+    objs.push(frame(this, 'button-brown', w / 2, h / 2, cw, ch).setAlpha(0.97));
+    objs.push(text(this, w / 2, cy + 16, 'HOW TO PLAY', 20, COLORS.gold, { fontStyle: 'bold' }).setOrigin(0.5, 0));
+    let y = cy + 52;
+    for (const [a, b] of items) {
+      a.setPosition(w / 2 - cw / 2 + 20, y).setDepth(1);
+      y += a.height + 2;
+      b.setPosition(w / 2 - cw / 2 + 20, y).setDepth(1);
+      y += b.height + 12;
+      objs.push(a, b);
+    }
+    objs.push(new Button(this, w / 2, cy + ch - 34, { width: 180, height: 44, fontSize: 17, align: 'center', label: 'Got it', skin: 'green', onClick: () => this.toggleHelp() }));
+    objs.forEach((o) => o.setDepth(20 + o.depth));
+    for (const [a, b] of items) {
+      a.setDepth(22);
+      b.setDepth(22);
+    }
+    this.help = objs;
   }
 
   update(time, delta) {
-    if (this.clouds?.active) this.clouds.tilePositionX += delta * 0.01;
+    if (!this.layers) return;
+    // Steam along at a gentle pace.
+    const px = delta * 0.12;
+    for (const l of this.layers) {
+      if (l.t.active) l.t.tilePositionX += (px * l.factor + (l.drift * delta) / 1000) / l.ts;
+    }
+    for (const { wheel, r } of this.wheels ?? []) if (wheel.active) wheel.rotation += px / r;
   }
 }
 
