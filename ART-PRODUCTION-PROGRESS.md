@@ -4,7 +4,7 @@ Source queue: ASSETS-TODO.md on train-game. Updated 2026-11-06.
 
 ## Resume here
 
-Next ungenerated item: **Sandstorm strip**, followed by oasis, monkeys, marsh lights, toll barrier/keeper, mail sack, shipwreck, urchins and relief engine. Continue in ASSETS-TODO.md order. Do not generate more family/cart/tree variants unless a specific correction is requested.
+Next ungenerated section: **2. Route map screen**, beginning with parchment/painted map background, then stop badges, start-station badge and train marker, area emblems, and map-button icon. All 15 primary line-event entries in section 1 now have generated source art (17 selected PNGs total, including the three tree versions). Optional panel vignettes have not been produced. Do not regenerate these line-event designs unless a specific correction is requested.
 
 ## Batch 1: generated, not yet integrated
 
@@ -21,11 +21,33 @@ Eight transparent PNG source images were generated in the ChatGPT art-production
 | Snowdrift | exec-c0fdc89a-58dc-4fbb-9b9d-46253517153b.png | Low snowbank overlay |
 | Hot spring | exec-d27d828f-2bd7-4672-b01d-07b383f5a623.png | Biome-neutral pool and two separate steam wisps |
 
+## Batch 2: generated, not yet integrated
+
+Nine additional selected PNGs generated on 2026-11-06, in todo order. All were verified to have genuine alpha transparency and composited over a coloured background for visual review. These PNGs are saved with the art-production conversation, **not uploaded to this repository**. Keep original todo checkboxes unticked until integration is complete.
+
+| Todo entry | Selected generated source | Contents |
+|---|---|---|
+| Sandstorm | exec-46478493-5ba1-491b-8b10-59963e3777a8.png | Red-sand scrolling overlay strip |
+| Oasis | exec-5200bea4-bf0b-4428-b274-80aca15ab860.png | Pool flanked by two palms |
+| Monkeys | exec-5eb56ed9-5cc2-41c9-ac18-5a4209c020dc.png | Four isolated poses, 2 by 2 layout |
+| Marsh lights | exec-9600cdb0-7129-4e6c-affe-b4d343cace19.png | Four wisp animation frames |
+| Toll barrier/keeper | exec-2b845294-6a5b-4471-8496-32d66085e114.png | Separate barrier, keeper and booth |
+| Mail sack | exec-6836e50d-60c4-4c92-9fc7-0fb4051eab34.png | Single dropped mail sack |
+| Shipwreck | exec-0a25a22b-9960-4388-9259-43e5d8a4e074.png | Wreck on rocks, crates, rock/driftwood piece |
+| Coal-thief urchins | exec-f195ebc8-d7c1-427e-9869-d3cff831f15a.png | Three distinct children |
+| Relief engine | exec-415c12e4-7a92-463d-989f-e96e21197af0.png | Separate body, underframe, wheel and connecting rod |
+
+The earlier monkey file exec-09055af6-ef61-42c4-b696-c533893df929.png is superseded by the selected version above; do not treat it as another required asset. Brown halos visible in raw image previews are hidden RGB under alpha zero; the actual composited sprites have clean backgrounds.
+
+Batch 2 integration checks: validate sandstorm repeat seam in motion before calling it seamless; normalize wisp cell alignment and test loop; scale people and engine consistently with existing sprites; test relief-engine body/underframe/wheel alignment. No game code changed.
+
 ## References actually inspected
 
 - art/sheets/master-sheet.png: train, tender, buildings and original palette/texture.
 - art/sheets/jungle-trees.png: tropical tree shapes, bark and foliage.
 - art/sheets/marsh-props.png: marsh palette, willow/moss and decayed wood.
+- art/sheets/desert-props.png: desert ochre palette, palms/material style.
+- art/sheets/coast-props.png: wrecked timber, crates and coastal rock style.
 
 ## Production constraints
 
