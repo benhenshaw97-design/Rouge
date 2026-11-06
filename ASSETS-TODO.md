@@ -70,6 +70,12 @@ The map is ready for these: once uploaded and sliced to the names below, it uses
 - [ ] Sounds: objective-complete jingle, map open/close (paper rustle), event sting (short
       "something's up" phrase), relief-engine whistle in the distance, breakdown bang/hiss
 
+## 3b. Minigames (in the game now, drawn with shapes and HUD icons)
+- [ ] Slot machine cabinet (front view, about 440 × 480, with three reel windows and a lever)
+- [ ] Reel symbols drawn for the slots (coal, water, passenger, gems, gold, money bag), 96×96
+- [ ] Ticket card (cream card stub with a railway crest; blank space for text) and a brass punch
+- [ ] Sounds: ticket punch "ka-chunk", reel whirr, reel stop clunk, small win jingle, jackpot bells
+
 ## 4. Story (next)
 - [ ] Character portraits, chest-up, 3 expressions each (neutral, happy, worried): the driver, the
       fireman, a station master, a mysterious client, a rival railway boss (256×256)

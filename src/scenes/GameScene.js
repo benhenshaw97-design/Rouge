@@ -447,7 +447,8 @@ export class GameScene extends Phaser.Scene {
   checkArrival() {
     // An event on the line comes first.
     const ev = this.route.event;
-    if (ev && !ev.visited) {
+    const poiFirst = this.route.poi && !this.route.poi.visited && ev && this.route.poi.at < ev.at;
+    if (ev && !ev.visited && !poiFirst) {
       const ahead = ev.at - this.state.distance;
       if (!ev.warned && ahead < 320) {
         ev.warned = true;

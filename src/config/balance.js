@@ -267,6 +267,11 @@ export const LIVERIES = {
 };
 export const LIVERY_REPAINT_COST = 10;
 
+/** Minigames (src/minigames). Slot odds and ticket tips are set in their own files. */
+export const MINIGAMES = {
+  slotStake: 5, // £ a pull on the one-armed bandit in towns
+};
+
 /** The station you start each run from (uses the town building art). */
 export const START_STATION = {
   name: 'Rouge Central',

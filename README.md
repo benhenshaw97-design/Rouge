@@ -93,6 +93,14 @@ ambience volumes. It's all remembered on the device. Stations are `RADIO_STATION
 coast, birds and insects in the jungle, frogs in the marsh). For now these are made on the fly
 (`src/systems/Ambience.js`); add real loops to `AMBIENCE_FILES` in `assets.js` to replace them.
 
+**Minigames** (in towns; `src/minigames/`):
+- *Punch the tickets*: after passengers board, their tickets slide past the conductor's punch;
+  tap as each printed circle passes under it. Clean punches earn tips (£3 perfect, £1 good).
+- *The one-armed bandit*: £5 a pull, three reels. Odds and paytable are at the top of
+  `SlotScene.js` (returns about 90% over time; a win roughly every fifth pull).
+A new minigame is a Phaser scene in `src/minigames/`, registered in `main.js`, opened from a
+stop menu option with `visit.openMinigame('<scene key>', data)`.
+
 **Liveries**: the Workshop's Paint shop sells paint schemes for the train. Once bought they're
 yours on every run (`LIVERIES` in `balance.js`, art from `scripts/make-liveries.py`).
 
@@ -164,6 +172,7 @@ src/
   poi/poiActions.js        What each POI lets you do (and the event / stranded panels)
   content/events.js        ★ Line events and their choices. Add new ones here.
   content/objectives.js    ★ Objective types and rewards
+  minigames/               Ticket punching and the slot machine (scenes over the UI)
   debug/                   The debug panel (DebugPanel.js) and what its controls do (debugActions.js)
   ui/                      HUD, junction picker, stop menu, status card, map screen, radio, 9-slice buttons
 scripts/slice-art.py       Cuts the sprites and builds the scrolling layers from art/sheets

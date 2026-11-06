@@ -333,11 +333,32 @@ export class UIScene extends Phaser.Scene {
         saveRun(this.main); // (whatever was bought or sold at the stop is kept)
       },
     };
+    // Stop menus can open minigames (ticket punching, the slot machine…) over everything.
+    visit.openMinigame = (key, data) => this.openMinigame(key, data);
     // (Signposts share the space; they step aside while the menu is open, e.g. when stranded
     // just short of a junction, and come back when it closes.)
     this.picker?.destroy(false);
     this.picker = null;
     this.panel = new PoiPanel(this, this.L.panel, this.panelArgs);
+  }
+
+  /** Opens a minigame scene (src/minigames) over the UI; the stop menu refreshes when it closes. */
+  openMinigame(key, data = {}) {
+    if (this.scene.isActive(key)) return;
+    this.scene.launch(key, {
+      state: this.main.state,
+      audio: this.main.audio,
+      ...data,
+      onClose: (result) => {
+        data.onClose?.(result);
+        saveRun(this.main);
+        if (this.panelArgs) {
+          this.panel?.destroy();
+          this.panel = new PoiPanel(this, this.L.panel, this.panelArgs);
+        }
+      },
+    });
+    this.scene.bringToTop(key);
   }
 
   closePanel() {

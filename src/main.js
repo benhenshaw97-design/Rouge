@@ -3,6 +3,8 @@ import { BootScene } from './scenes/BootScene.js';
 import { GameScene } from './scenes/GameScene.js';
 import { GameOverScene } from './scenes/GameOverScene.js';
 import { UIScene } from './scenes/UIScene.js';
+import { SlotScene } from './minigames/SlotScene.js';
+import { TicketScene } from './minigames/TicketScene.js';
 import { installResponsiveScale, measure } from './systems/Viewport.js';
 
 const parent = document.getElementById('game');
@@ -21,7 +23,7 @@ const game = new Phaser.Game({
   },
   input: { activePointers: 2 },
   // Scene order is draw order: the UI scene draws on top of the game.
-  scene: [BootScene, GameScene, UIScene, GameOverScene],
+  scene: [BootScene, GameScene, UIScene, TicketScene, SlotScene, GameOverScene],
 });
 
 installResponsiveScale(game, parent);

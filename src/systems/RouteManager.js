@@ -105,8 +105,12 @@ export class RouteManager {
 
   /** Metres until the train must stop, or null if no stop is planned yet. */
   stopIn(distance) {
-    if (this.event && !this.event.visited) return this.event.at - distance;
-    return this.poi && !this.poi.visited ? this.poi.at - distance : null;
+    // Whichever comes first: a line event or the stop.
+    const ev = this.event && !this.event.visited ? this.event.at - distance : null;
+    const poi = this.poi && !this.poi.visited ? this.poi.at - distance : null;
+    if (ev == null) return poi;
+    if (poi == null) return ev;
+    return Math.min(ev, poi);
   }
 
   /** A building for a POI type in an area (the area's own look if it has one). */

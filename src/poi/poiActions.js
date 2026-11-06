@@ -1,4 +1,5 @@
-import { BALANCE, LIVERIES, LIVERY_REPAINT_COST, POI_TYPES } from '../config/balance.js';
+import { BALANCE, LIVERIES, LIVERY_REPAINT_COST, MINIGAMES, POI_TYPES } from '../config/balance.js';
+const SLOT_STAKE = MINIGAMES.slotStake;
 import { liveries } from '../state/liveries.js';
 
 /**
@@ -201,6 +202,9 @@ const BUILDERS = {
         run: () => {
           state.boardPassengers(n, stopId, dest);
           visit[key] -= n;
+          // Their tickets want punching (see minigames/TicketScene.js).
+          visit.toPunch = (visit.toPunch ?? 0) + n;
+          (visit.ticketDests ??= []).push(...Array(n).fill(dest ? dest.name.replace(/^The /, '') : 'Any town'));
           return dest
             ? `${plural(n, 'passenger')} booked through to ${dest.name}. They pay extra, but only get off at a town there.`
             : `${plural(n, 'passenger')} climbed aboard. They pay on arrival at another town.`;
@@ -239,6 +243,29 @@ const BUILDERS = {
       pickUp('waitingPassengers', null, 'Any town'),
     ];
     if (visit.next) options.push(pickUp('throughPassengers', visit.next, `To ${visit.next.name} (×${BALANCE.passengers.throughFareMultiplier} fare)`));
+    if (visit.toPunch > 0) {
+      options.push({
+        label: `Punch their tickets (${visit.toPunch})`,
+        sublabel: 'A clean punch earns a tip',
+        sound: 'click',
+        run: () => {
+          const count = visit.toPunch;
+          visit.toPunch = 0;
+          visit.openMinigame?.('Tickets', { count, destinations: visit.ticketDests });
+          visit.ticketDests = [];
+          return 'Tickets, please!';
+        },
+      });
+    }
+    options.push({
+      label: `The one-armed bandit (£${SLOT_STAKE} a pull)`,
+      disabledReason: notEnough(state, SLOT_STAKE),
+      sound: 'click',
+      run: () => {
+        visit.openMinigame?.('Slots', {});
+        return 'The slot machine in the station bar rattles into life.';
+      },
+    });
     return options;
   },
 
