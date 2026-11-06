@@ -4,7 +4,7 @@ Source queue: ASSETS-TODO.md on train-game. Updated 2026-11-06.
 
 ## Resume here
 
-Next ungenerated section: **2. Route map screen**, beginning with parchment/painted map background, then stop badges, start-station badge and train marker, area emblems, and map-button icon. All 15 primary line-event entries in section 1 now have generated source art (17 selected PNGs total, including the three tree versions). Optional panel vignettes have not been produced. Do not regenerate these line-event designs unless a specific correction is requested.
+Next ungenerated section: **3. Objectives, rescue and breakdowns**: six objective icons (passengers, cargo, distance, visit, reach area, money), completion stamp/ribbon, and 4–6 frame steam-leak animation. Sound requests need a separate audio workflow. Sections 1 and 2 have generated source artwork; optional event-panel vignettes remain unmade. **26 selected PNGs total.** Do not regenerate existing designs unless a specific correction is requested.
 
 ## Batch 1: generated, not yet integrated
 
@@ -41,6 +41,24 @@ The earlier monkey file exec-09055af6-ef61-42c4-b696-c533893df929.png is superse
 
 Batch 2 integration checks: validate sandstorm repeat seam in motion before calling it seamless; normalize wisp cell alignment and test loop; scale people and engine consistently with existing sprites; test relief-engine body/underframe/wheel alignment. No game code changed.
 
+## Batch 3: route-map source artwork generated, not yet integrated
+
+Nine additional PNGs on 2026-11-06 cover every entry in section 2. These remain source artwork saved with the ChatGPT conversation, **not uploaded to this repository**.
+
+| Todo entry | Selected generated source | Contents |
+|---|---|---|
+| Map background | exec-3b973937-6faa-46a0-91e9-b1dbc3433335.png | 1672 by 941 parchment, blank centre, transparent outside edges |
+| Coal depot badge | exec-3fd04af0-1ec4-41f9-9439-bcfa17410d27.png | Circular brass badge |
+| Town badge | exec-50ec048f-2036-47ef-9db7-3ba2439efa0e.png | Circular station badge |
+| Mine badge | exec-1e081edc-a21d-49f4-9bf4-f034d28de487.png | Circular mine entrance badge |
+| Workshop badge | exec-652e3006-b158-45a7-9685-d2acbbd59c3c.png | Circular workshop/wrench badge |
+| Water tower badge | exec-4416cd84-3a03-4927-ba1f-e3f01f9897bf.png | Circular tank/spout badge |
+| Starting station and player marker | exec-75fe1a87-7d30-4887-a8e8-627746260607.png | Separate terminus badge and right-facing train marker |
+| Seven area emblems | exec-919c3236-a583-4c85-8e7b-d892b70f4abd.png | 4 by 2 layout, last cell empty; top meadow/desert/snow/jungle, bottom marsh/coast/Brasswick |
+| Map button | exec-29f68a23-96f4-4bf7-8598-b965a31bb3e2.png | Folded parchment map icon |
+
+Verification: genuine alpha transparency confirmed in all nine. Five stop badges were composited over parchment colour and visually inspected at 96 and 32 px; silhouettes remain distinguishable, details are clearer at 96. Badge sizes/rims were matched by image reference. Source PNGs are not runtime-sized; crop/normalize to 96 by 96 during integration, retain clear margins. Area emblems and paired markers still need slicing and runtime scale review. Parchment is a single background, not a tile. No game code changed.
+
 ## References actually inspected
 
 - art/sheets/master-sheet.png: train, tender, buildings and original palette/texture.
@@ -48,6 +66,9 @@ Batch 2 integration checks: validate sandstorm repeat seam in motion before call
 - art/sheets/marsh-props.png: marsh palette, willow/moss and decayed wood.
 - art/sheets/desert-props.png: desert ochre palette, palms/material style.
 - art/sheets/coast-props.png: wrecked timber, crates and coastal rock style.
+- art/sheets/snow-props.png: snow palette and icon motifs.
+- art/sheets/town-kit.png: Brasswick brick, brass machinery and clock architecture.
+- Batch 3 coal badge used as frame reference for the other round badges.
 
 ## Production constraints
 
