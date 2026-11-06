@@ -1,0 +1,16 @@
+{
+  "approved": [
+    {
+      "id": "stranded-family",
+      "source": "art/sheets/event-stranded-family-source.png",
+      "output": "assets/sprites/event-stranded-family.png",
+      "brief": "Victorian family of three, luggage and broken cart missing a wheel; side view; muted detailed pixel art; transparent background."
+    },
+    {
+      "id": "pedlar",
+      "source": "art/sheets/event-pedlar-source.png",
+      "output": "assets/sprites/event-pedlar.png",
+      "brief": "Victorian pedlar with coal sacks and water barrel on handcart; side profile; textured earthy pixel art; transparent background; no lighting halo."
+    }
+  ]
+}

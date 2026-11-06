@@ -7,6 +7,8 @@ Each entry: (sheet, row band (y0, y1) on the sheet, which piece in that row, cou
 left). Events not listed use a sprite the game already has (see `prop` in events.js).
 """
 from pathlib import Path
+import json
+import runpy
 
 from artlib import objects_in, sheet
 
@@ -37,13 +39,18 @@ EVENT_PROPS = {
 
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
+    manifest = json.loads((ROOT / 'art' / 'event-art.json').read_text())
+    approved = {entry['id'] for entry in manifest['approved']}
     for event, ((name, bands), band, index) in EVENT_PROPS.items():
+        if event in approved:
+            continue
         img = sheet(str(SHEETS / name))
         y0, y1 = bands[band]
         pieces = objects_in(img, (0, y0, img.width, y1), min_w=30, grow=3)
         p = pieces[index]
         p.save(OUT / f'event-{event}.png', optimize=True)
         print(event, p.size)
+    runpy.run_path(str(ROOT / 'scripts' / 'prepare-event-art.py'), run_name='__main__')
 
 
 if __name__ == '__main__':
