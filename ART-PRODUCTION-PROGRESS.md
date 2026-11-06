@@ -4,7 +4,33 @@ Source queue: ASSETS-TODO.md on train-game. Updated 2026-11-06.
 
 ## Resume here
 
-Next ungenerated section: **3. Objectives, rescue and breakdowns**: six objective icons (passengers, cargo, distance, visit, reach area, money), completion stamp/ribbon, and 4–6 frame steam-leak animation. Sound requests need a separate audio workflow. Sections 1 and 2 have generated source artwork; optional event-panel vignettes remain unmade. **26 selected PNGs total.** Do not regenerate existing designs unless a specific correction is requested.
+Next ungenerated artwork: **4. Story**, starting with the driver portrait (neutral, happy, worried), then fireman, station master, mysterious client and rival railway boss. Section 3's six objective icons, completion ribbon and four-frame steam leak, plus the missing section 2 Iron Badlands emblem, are uploaded on `codex/art-production-objectives-20261106`. Do not regenerate these. Section 3 sounds still need a separate audio workflow. Earlier sections 1 and 2 still have 24 generated PNGs awaiting upload; optional event-panel vignettes remain unmade. Earlier batches selected 26 sources; this run adds 9 selected sources and 13 prepared PNGs (22 committed PNG files).
+
+## Batch 4: uploaded and verified, awaiting in-game integration
+
+Repository: `benhenshaw97-design/Rouge`. Reviewed `train-game` at `c858e175e96cfbb3bb19d7b03e3f73d565318f50`, including the balance pass, liveries, route-map handoff and event-art integration commits. Compared the existing art-production branch, whose earlier family and pedlar assets were already merged. No game code or existing artwork was changed. All new files are on **`codex/art-production-objectives-20261106`**, not merged into Claude's branch.
+
+| Asset | Source in `art/sheets/` | Prepared output | Verified asset commit |
+|---|---|---|---|
+| Iron Badlands emblem | `map-emblem-badlands-source.png` | `assets/ui/emblem-badlands.png`, 96×96 | `e193559c7f47efd2ca0272d078c053eac6792b23` |
+| Passengers objective | `objective-passengers-source.png` | `assets/ui/objective-passengers.png`, 64×64 | `418810869c76c926d3470674a11e4187d2e19643` |
+| Cargo objective | `objective-cargo-source.png` | `assets/ui/objective-cargo.png`, 64×64 | `418810869c76c926d3470674a11e4187d2e19643` |
+| Distance objective | `objective-distance-source.png` | `assets/ui/objective-distance.png`, 64×64 | `418810869c76c926d3470674a11e4187d2e19643` |
+| Money objective | `objective-money-source.png` | `assets/ui/objective-money.png`, 64×64 | `cf9f2505aa270833469f1ac57af0d73199086dd6` |
+| Reach-area objective | `objective-reach-area-source.png` | `assets/ui/objective-reach-area.png`, 64×64 | `cf9f2505aa270833469f1ac57af0d73199086dd6` |
+| Visit objective | `objective-visit-source.png` | `assets/ui/objective-visit.png`, 64×64 | `f53327c3eed835a56a343b3b2d8dcc9547214d3c` |
+| Completion ribbon | `objective-complete-source.png` | `assets/ui/objective-complete.png`, 256×96 | `cf9f2505aa270833469f1ac57af0d73199086dd6` |
+| Steam leak | `steam-leak-source.png` | `assets/fx/steam-leak.png`, 512×128; four separate 128×128 `steam-leak-0.png` through `steam-leak-3.png` | `cf9f2505aa270833469f1ac57af0d73199086dd6` |
+
+Verification: fetched the uploaded branch and matched all 22 PNG blob hashes against local file bytes. Every PNG has genuine transparent pixels and visible artwork; the dissipating steam frame intentionally has no fully opaque pixels. Inspected six icons at 64×64 and 32×32 on a coloured background, the ribbon at 256×96, and all steam cells composited over dark green. Steam source uses a 2×2 layout; runtime sheet is left-to-right frames 0–3 with fixed 128×128 cells. Suggested starting timing: 120 ms/frame, one-shot puff; integration and motion timing still require game review. `npm run check:assets` passed. No `[x]` in-game completion claims were added.
+
+Prompt set, references, dimensions and per-file blob hashes: `art/objectives-production-20261106.json`. Generation used the built-in image generator. Sources preserve original alpha; prepared files are scaled/sliced copies.
+
+Upload/persistence failures and recovery:
+- Initial shell push failed exactly: `fatal: could not read Username for 'https://github.com': No such device or address`. Local-only commit `c29c023` was not marked uploaded. Recovered using the connected GitHub Git-data uploader; verified replacement remote asset commit `e193559c7f47efd2ca0272d078c053eac6792b23`.
+- First visit-icon attempt displayed artwork but produced no retrievable PNG or saved filename; it was not uploaded and is not counted. A single persistence-repair generation produced `exec-8be064b1-4b78-40c2-9308-576e94d5a4cc.png`, saved and verified in commit `f53327c3eed835a56a343b3b2d8dcc9547214d3c`. Use that committed source, not the unsaved display.
+
+Remaining: integrate/review this batch without re-generation; recover/upload the earlier 24 generated files without marking them uploaded prematurely; produce section 3 audio through an audio workflow; continue section 4 story portraits. The historical "next" in `art/PRODUCTION.md` predates batches 1–3; use this file and ASSETS-TODO.md as the authoritative queue.
 
 ## Batch 1: generated, not yet integrated
 
