@@ -2,6 +2,7 @@
 
 Kept up to date by Claude as art arrives. Status of each item:
 - `[x]` **in the game**: uploaded, checked and showing in the game
+- `[↑]` **uploaded, awaiting integration**: committed PNGs on the named art branch; not yet checked in game
 - `[~]` **made, not uploaded yet**: generated (see ART-PRODUCTION-PROGRESS.md) but not in the repo;
   upload the PNGs to `art/sheets/` (any branch, or with an `art/event-art.json` entry) and they'll go in
 - `[ ]` **still needed**
@@ -12,7 +13,10 @@ for the features still to come (story, train customisation, new stops, new areas
 **Last checked: 2026-11-06.** Added since: train liveries (from existing art). Earlier this day: the stranded family and the pedlar (from
 `codex/asset-production-batch-1`, shrunk from 2.5 MB to 0.1 MB, drawn at person height on the near bank).
 
-**Next to make:** section 3, the objective icons, completion stamp and steam-leak puff (ChatGPT is on it).
+**Next artwork to make:** section 4 character portraits, starting with the driver (neutral, happy, worried).
+Section 3's visual assets and the missing Iron Badlands emblem are uploaded on
+`codex/art-production-objectives-20261106`; see ART-PRODUCTION-PROGRESS.md for commit IDs.
+Section 3's sounds remain needed and require an audio workflow.
 **Next to upload:** 24 generated PNGs are still only in the ChatGPT chat: section 1's line events and
 section 2's route-map art. They're listed in ART-PRODUCTION-PROGRESS.md.
 
@@ -55,7 +59,7 @@ Optional: a square **vignette** (256×256) for each event's panel, replacing the
 - [~] Round map badges for each stop type (coal depot, town, mine, workshop, water tower), 96×96
 - [~] Start station badge and a little train marker for "you are here"
 - [~] An emblem per area (meadow, desert, snow, jungle, marsh, coast, Brasswick) for the map headings
-- [ ] Emblem for **the Iron Badlands** (added after the batch above; the empty 8th cell of the emblem sheet is free)
+- [↑] Emblem for **the Iron Badlands**: separate `assets/ui/emblem-badlands.png` (96×96), source in `art/sheets/map-emblem-badlands-source.png`; uploaded on art branch, in-game review pending
 - [~] Map button icon (now a hand-drawn folded map)
 
 The map is ready for these: once uploaded and sliced to the names below, it uses them automatically
@@ -64,9 +68,9 @@ The map is ready for these: once uploaded and sliced to the names below, it uses
 `assets/ui/emblem-<areaId>.png` (meadow, desert, badlands, snow, jungle, marsh, coast, town).
 
 ## 3. Objectives, rescue and breakdowns (in the game now)
-- [ ] Objective icons: passengers, cargo, distance, visit, reach area, money (64×64)
-- [ ] "Complete!" stamp or ribbon for finished objectives
-- [ ] Steam-leak puff for breakdowns (4–6 frames)
+- [↑] Objective icons: passengers, cargo, distance, visit, reach area, money (64×64): `assets/ui/objective-{passengers,cargo,distance,visit,reach-area,money}.png`; art branch, integration pending
+- [↑] "Complete!" ribbon: `assets/ui/objective-complete.png` (256×96); art branch, integration pending
+- [↑] Steam-leak puff: `assets/fx/steam-leak.png` (512×128, four 128×128 cells), plus separate `steam-leak-0.png` through `steam-leak-3.png`; art branch, animation integration pending
 - [ ] Sounds: objective-complete jingle, map open/close (paper rustle), event sting (short
       "something's up" phrase), relief-engine whistle in the distance, breakdown bang/hiss
 

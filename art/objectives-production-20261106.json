@@ -1,0 +1,297 @@
+{
+  "date": "2026-11-06",
+  "branch": "codex/art-production-objectives-20261106",
+  "base_commit": "c858e175e96cfbb3bb19d7b03e3f73d565318f50",
+  "generation_mode": "built-in image generator",
+  "references_inspected": [
+    "assets/sprites/locomotive.png",
+    "assets/pois/town.png",
+    "assets/ui/icon-cargo.png",
+    "art/sheets/badlands-factory-b.png"
+  ],
+  "prompt_set": {
+    "common": "Earthy detailed 16-bit Victorian railway pixel art, dark crisp outlines, clustered shading, muted warm wood and charcoal iron, restrained brass and cream; isolated silhouettes, genuine transparent PNG, no background or outer glow, readable at 64px and 32px. One icon per generation.",
+    "badlands": "Circular brass-rimmed Iron Badlands emblem, blast furnace, two unequal chimneys and large iron gear; rusty ochre, charcoal and amber; 96px.",
+    "passengers": "Two Victorian traveller busts, flat cap and bonnet, with small suitcase.",
+    "cargo": "Single strapped wood shipping crate, iron latch, brass corners and blank tied tag.",
+    "distance": "Brass mechanical railway odometer, compass pointer and short track motif, no numerals.",
+    "visit": "Warm brick Victorian station facade, slate roof, teal double doors with bold cream checkmark and little brass bell. Retry repairs missing saved PNG from first display.",
+    "reach-area": "Russet destination pennant over green hill, two slate-blue mountains and winding tan path.",
+    "money": "Brass coins with pound sign and dark brown clasped coin purse.",
+    "complete": "Wide Brunswick green cloth ribbon, folded fishtail ends, thin brass edging, cream COMPLETE! lettering and brass check; 256x96.",
+    "steam-leak": "Four equal cells in 2x2: compact jet, spreading curl, broader broken curls, dissipating wisps; same lower centre origin, pale ivory and cool grey-blue; real translucent alpha. Repack in read order to 512x128 sheet, 128px cells."
+  },
+  "verification": {
+    "uploaded_png_count": 22,
+    "all_git_blob_hashes_match": true,
+    "real_alpha_checked": true,
+    "visual_review": "All six icons inspected over dark background at 64px and 32px; completion ribbon at 256x96; four steam frames composited over dark green. In-game integration not performed.",
+    "steam_usage": "Four 128x128 cells left to right, order 0..3; suggested 120ms per frame for a one-shot emitted puff; in-game timing review pending."
+  },
+  "files": [
+    {
+      "path": "art/sheets/map-emblem-badlands-source.png",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "git_blob_sha": "63ac1e907bb5f1c5c77a65d464d97f2f415e1ad5",
+      "alpha_range": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "art/sheets/objective-cargo-source.png",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "git_blob_sha": "a53ca6704b4319e4fe18ea11a52a186cd4f4b913",
+      "alpha_range": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "art/sheets/objective-complete-source.png",
+      "dimensions": [
+        2172,
+        724
+      ],
+      "git_blob_sha": "dbc5bf803e57d318d25df0c9e4e532b781f36719",
+      "alpha_range": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "art/sheets/objective-distance-source.png",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "git_blob_sha": "a8d4c3b5cf7ad0f6339c8b2a45e984001e40a49e",
+      "alpha_range": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "art/sheets/objective-money-source.png",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "git_blob_sha": "2ca39d37b012663bc2e017ed56c79b81c6ddfa65",
+      "alpha_range": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "art/sheets/objective-passengers-source.png",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "git_blob_sha": "74daef32a2d7abb158182d43a23c663450bbccc2",
+      "alpha_range": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "art/sheets/objective-reach-area-source.png",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "git_blob_sha": "fc0260220a1fa6c6ea3a33a26b6a3cf88920f310",
+      "alpha_range": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "art/sheets/objective-visit-source.png",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "git_blob_sha": "1deba3760da4463d41b6f0488b8cce590ffb5a2a",
+      "alpha_range": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "art/sheets/steam-leak-source.png",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "git_blob_sha": "4804061768209b00dc2391cb21825b76e07672af",
+      "alpha_range": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/fx/steam-leak-0.png",
+      "dimensions": [
+        128,
+        128
+      ],
+      "git_blob_sha": "a16242dc9dd966e26cb5a9fe146170c88a7ed582",
+      "alpha_range": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/fx/steam-leak-1.png",
+      "dimensions": [
+        128,
+        128
+      ],
+      "git_blob_sha": "f0da97512cb9233f5c353b924b39f95097bb0a25",
+      "alpha_range": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/fx/steam-leak-2.png",
+      "dimensions": [
+        128,
+        128
+      ],
+      "git_blob_sha": "3ddeb406d06cc25b247184653a751182712f5b78",
+      "alpha_range": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/fx/steam-leak-3.png",
+      "dimensions": [
+        128,
+        128
+      ],
+      "git_blob_sha": "a2de49222b72043eb9c82a6ee4f7db81ba8b1845",
+      "alpha_range": [
+        0,
+        222
+      ]
+    },
+    {
+      "path": "assets/fx/steam-leak.png",
+      "dimensions": [
+        512,
+        128
+      ],
+      "git_blob_sha": "ba6ac516b4b95030213abaa0c2d4f2fe960dd757",
+      "alpha_range": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/ui/emblem-badlands.png",
+      "dimensions": [
+        96,
+        96
+      ],
+      "git_blob_sha": "ec58fc7fdb5cd80033994d8707f6e5eb2345e3f4",
+      "alpha_range": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/ui/objective-cargo.png",
+      "dimensions": [
+        64,
+        64
+      ],
+      "git_blob_sha": "4abad1c610e14d1f78b9cdcbe35fbd9f91758d17",
+      "alpha_range": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/ui/objective-complete.png",
+      "dimensions": [
+        256,
+        96
+      ],
+      "git_blob_sha": "28c39537c5bf1d5d9f44e9bdb9fec4d6238de333",
+      "alpha_range": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/ui/objective-distance.png",
+      "dimensions": [
+        64,
+        64
+      ],
+      "git_blob_sha": "aabe5b738e7b01981684f4150e7f77be165ca185",
+      "alpha_range": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/ui/objective-money.png",
+      "dimensions": [
+        64,
+        64
+      ],
+      "git_blob_sha": "ad46654bea7c35ca7f0378ceb765f117ccaa4ad6",
+      "alpha_range": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/ui/objective-passengers.png",
+      "dimensions": [
+        64,
+        64
+      ],
+      "git_blob_sha": "097f70f0c4ff45f21b0717c0e678800f785ec825",
+      "alpha_range": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/ui/objective-reach-area.png",
+      "dimensions": [
+        64,
+        64
+      ],
+      "git_blob_sha": "615177f3cd2915be59e0017ac495bb4ca222b0ed",
+      "alpha_range": [
+        0,
+        255
+      ]
+    },
+    {
+      "path": "assets/ui/objective-visit.png",
+      "dimensions": [
+        64,
+        64
+      ],
+      "git_blob_sha": "e6ca1c6f83ff63eec27b91788ec3e3bff1ad2440",
+      "alpha_range": [
+        0,
+        255
+      ]
+    }
+  ]
+}
