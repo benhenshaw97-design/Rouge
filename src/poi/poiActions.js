@@ -156,6 +156,19 @@ const BUILDERS = {
         run: () => buy(n),
       }));
 
+    // Short of money: the crew can work for some coal, so being broke is never a dead end.
+    if (state.money < space * price && space >= 1 && !visit.worked) {
+      options.push({
+        label: `Shovel for your keep (+${Math.min(def.workForFuel, space)} fuel, free)`,
+        sound: 'click',
+        run: () => {
+          visit.worked = true;
+          state.addFuel(def.workForFuel);
+          return 'The crew roll up their sleeves and load the depot’s wagons. The foreman pays in coal.';
+        },
+      });
+    }
+
     const affordable = Math.floor(state.money / price);
     const fill = Math.min(space, affordable);
     options.push({

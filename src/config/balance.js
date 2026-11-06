@@ -11,7 +11,7 @@ export const BALANCE = {
     fuel: 70,
     water: 100,
     heat: 10,
-    money: 50,
+    money: 100,
     condition: 100,
   },
 
@@ -28,21 +28,22 @@ export const BALANCE = {
 
   fuel: {
     tankCapacity: 100,
-    burnPerMetre: 0.0055, // fuel used per metre travelled
-    burnPerSecond: 0.05, // extra fuel used per second while moving under steam
+    burnPerMetre: 0.0048, // fuel used per metre travelled
+    burnPerSecond: 0.03, // extra fuel used per second while moving under steam
     cargoBurnPerUnit: 0.03, // each unit of cargo adds 3% to fuel burn
     lowWarningFraction: 0.25, // show the LOW FUEL warning at or below 25% of the tank
   },
 
   water: {
     capacity: 100,
-    usePerMetre: 0.0066, // the boiler uses water as you travel; empty = heat climbs fast
+    usePerMetre: 0.004, // the boiler uses water as you travel; empty = heat climbs fast
   },
 
   heat: {
     max: 100,
-    gainPerSecond: 0.9, // at full speed (scales with speed²)
+    gainPerSecond: 0.45, // at full speed (scales with speed²)
     coolPerSecond: 0.25, // passive cooling while the boiler has water
+    restCoolMultiplier: 6, // standing at a stop with the fire damped, it cools 6x faster
     dryBoilerMultiplier: 2.5, // heat gain multiplier when water is empty
     overheatSpeedFactor: 0.4, // when overheated, top speed is limited to 40%
     ventCoolingMultiplier: 3, // while overheated the safety valve vents, cooling 3x faster
@@ -86,7 +87,8 @@ export const BALANCE = {
   },
 
   // Stops are far apart (about 2–3.5 km, a couple of minutes at full steam) so it feels like a
-  // journey; fuel, water and wear per metre are low to match: a full tank lasts about 4 stops.
+  // journey; fuel, water and wear per metre are low to match: a full tank lasts about 5 stops,
+  // a full boiler about 8. Check changes with: node scripts/simulate-runs.mjs
   route: {
     /** Distance from a POI to the next junction [min, max]. */
     junctionDistance: [1500, 2400],
@@ -137,6 +139,7 @@ export const POI_TYPES = {
     names: ['Blackheap Sidings', 'Cinder Yard', 'Ashpit Lane', 'Collier’s Halt'],
     prices: { fuelPerUnit: 1 },
     bundles: [10, 25], // quick-buy amounts (a "fill the tank" option is always offered too)
+    workForFuel: 15, // short of money, the crew can shovel for their keep (once per visit)
   },
 
   town: {

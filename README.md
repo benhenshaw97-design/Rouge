@@ -169,6 +169,7 @@ src/
 scripts/slice-art.py       Cuts the sprites and builds the scrolling layers from art/sheets
 scripts/slice-areas.py     Same for the desert-onward areas (writes src/config/new-areas.json)
 scripts/slice-events.py    Cuts the props shown beside the line for events
+scripts/simulate-runs.mjs  Balance check: plays 500 runs with the game's rules and reports how they go
 scripts/compress-images.py Shrinks every PNG to a 256-colour palette (run after slicing)
 scripts/generate-placeholders.mjs   Makes placeholder files for anything without real art
 ```

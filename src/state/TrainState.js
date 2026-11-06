@@ -109,7 +109,8 @@ export class TrainState {
     const speedFrac = Math.min(1, speed / b.train.maxSpeed);
     const dry = this.water <= 0;
     const gain = underSteam ? h.gainPerSecond * speedFrac * speedFrac * (dry ? h.dryBoilerMultiplier : 1) : 0;
-    const cool = dry ? 0 : h.coolPerSecond * (this.overheated ? h.ventCoolingMultiplier : 1);
+    const resting = speed < 0.01 && !underSteam;
+    const cool = dry ? 0 : h.coolPerSecond * (this.overheated ? h.ventCoolingMultiplier : 1) * (resting ? h.restCoolMultiplier ?? 1 : 1);
     this.heat = clamp(this.heat + (gain - cool) * dt, 0, h.max);
 
     if (!this.overheated && this.heat >= h.max) {
