@@ -8,6 +8,8 @@ import { PoiPanel } from '../ui/PoiPanel.js';
 import { StatusCard } from '../ui/StatusCard.js';
 import { GodPanel } from '../ui/GodPanel.js';
 import { MapView } from '../ui/MapView.js';
+import { SpeechBox } from '../ui/SpeechBox.js';
+import { LINES } from '../content/dialogue.js';
 import { RadioPanel } from '../ui/RadioPanel.js';
 import { music } from '../systems/MusicPlayer.js';
 import { saveRun } from '../state/save.js';
@@ -62,6 +64,7 @@ export class UIScene extends Phaser.Scene {
 
     this.hud = new Hud(this, L.hud, this.main.state);
 
+    this.speech = new SpeechBox(this);
     this.warning = text(this, L.notice.x, L.notice.y, '', 18, '#ffffff', {
       fontStyle: 'bold',
       backgroundColor: '#b3261e',
@@ -176,12 +179,16 @@ export class UIScene extends Phaser.Scene {
     view.add(text(this, rect.x, y, 'OBJECTIVES', 15, COLORS.gold, { fontStyle: 'bold' }));
     y += 24;
     if (!list.length) view.add(text(this, rect.x, y, 'None right now.', 13, COLORS.textDim));
+    const icons = { deliver: 'objective-passengers', sell: 'objective-cargo', travel: 'objective-distance', visit: 'objective-visit', reach: 'objective-reach-area', earn: 'objective-money' };
     for (const o of list) {
+      const icon = icons[o.template];
+      const ix = icon && this.textures.exists(icon) ? 34 : 0;
+      if (ix) view.add(this.add.image(rect.x + 14, y + 14, icon).setDisplaySize(28, 28));
       const t = view.add(
-        text(this, rect.x, y, `${o.done ? '✓' : '•'} ${o.text}`, 13, o.done ? COLORS.good : COLORS.text, { wordWrap: { width: rect.w - 8 } }),
+        text(this, rect.x + ix, y, `${ix ? '' : o.done ? '✓ ' : '• '}${o.text}`, 13, o.done ? COLORS.good : COLORS.text, { wordWrap: { width: rect.w - 8 - ix } }),
       );
-      const progress = view.add(text(this, rect.x + 14, y + t.height + 2, o.progressText ?? '', 12, COLORS.textDim));
-      y += t.height + progress.height + 10;
+      const progress = view.add(text(this, rect.x + ix, y + t.height + 2, o.progressText ?? '', 12, COLORS.textDim));
+      y += Math.max(t.height + progress.height, ix ? 30 : 0) + 10;
       if (y > rect.y + rect.h - 20) break;
     }
   }
@@ -368,6 +375,46 @@ export class UIScene extends Phaser.Scene {
     if (this.junction && !this.picker && this.L) {
       this.picker = new JunctionPicker(this, this.L.picker, this.junction, (i) => this.main.selectBranch(i), true);
     }
+  }
+
+  /**
+   * A character says a line for a moment (content/dialogue.js, LINES[moment]); a random one,
+   * not the same as last time. Quiet for a little while after each, so it never chatters.
+   */
+  say(moment, { force = false } = {}) {
+    const lines = LINES[moment];
+    if (!lines?.length || !this.L) return;
+    const now = this.time.now;
+    if (!force && now < (this.quietUntil ?? 0)) return;
+    this.quietUntil = now + 9000;
+    const pool = lines.length > 1 ? lines.filter((l) => l !== this.lastLine) : lines;
+    const line = pool[Math.floor(Math.random() * pool.length)];
+    this.lastLine = line;
+    const L = this.L;
+    // Upright phones: across the top of the scene. Short landscape screens: above the buttons at
+    // the bottom (warnings sit under the gauges there). Otherwise under the gauges.
+    const at = L.portrait
+      ? { x: L.pad, y: L.world.y + 6, w: L.cssW - L.pad * 2 }
+      : L.compact
+        ? { x: L.hud.x, bottom: L.controls.y - 26, w: Math.min(430, L.side.x - L.hud.x - L.pad) }
+        : { x: L.hud.x, y: L.hud.y + L.hud.h + 10, w: Math.min(430, L.side.x - L.hud.x - L.pad) };
+    this.speech.say(line[0], line[1], line[2], at);
+  }
+
+  /** The "Complete!" ribbon with an objective's name, popping up at the top. */
+  showRibbon(label) {
+    if (!this.L || !this.textures.exists('objective-complete')) return;
+    const L = this.L;
+    // Over the middle of the scene, clear of the messages along the top.
+    const x = L.portrait ? L.cssW / 2 : Math.max(L.hud.x + L.hud.w + 130, (L.hud.x + L.hud.w + L.side.x) / 2);
+    const y = L.portrait ? L.world.y + L.world.h * 0.45 : L.cssH * 0.36;
+    const c = this.add.container(x, y).setDepth(45);
+    const rib = this.add.image(0, 0, 'objective-complete').setDisplaySize(220, 82);
+    const t = text(this, 0, 44, label, 13, COLORS.text, { fontStyle: 'bold', backgroundColor: '#1d1612cc', padding: { x: 8, y: 3 } }).setOrigin(0.5, 0);
+    c.add([rib, t]);
+    c.setScale(0.3).setAlpha(0);
+    this.tweens.add({ targets: c, scale: 1, alpha: 1, duration: 320, ease: 'Back.easeOut' });
+    this.tweens.add({ targets: c, alpha: 0, y: y - 16, delay: 2600, duration: 450, onComplete: () => c.destroy() });
   }
 
   toast(message, color = COLORS.text) {

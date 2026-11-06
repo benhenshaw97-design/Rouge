@@ -10,13 +10,13 @@ Kept up to date by Claude as art arrives. Status of each item:
 Sections 1–3 are for features already in the game that currently borrow other art; 4 onwards are
 for the features still to come (story, train customisation, new stops, new areas).
 
-**Last checked: 2026-11-06.** Added since: train liveries (from existing art). Earlier this day: the stranded family and the pedlar (from
-`codex/asset-production-batch-1`, shrunk from 2.5 MB to 0.1 MB, drawn at person height on the near bank).
+**Last checked: 2026-11-06 (evening).** Integrated this round, from `codex/art-production-portraits-20261106`
+(which includes the objectives branch): 15 character portraits, 6 objective icons, the Complete! ribbon,
+the steam-leak animation and the Iron Badlands emblem. Portraits compressed 1.3 MB → 0.3 MB; the unused
+combined `*-expressions.png` sheets and `steam-leak.png` strip were left out (the game uses the single files).
 
-**Next artwork to make:** section 4 character portraits, starting with the driver (neutral, happy, worried).
-Section 3's visual assets and the missing Iron Badlands emblem are uploaded on
-`codex/art-production-objectives-20261106`; see ART-PRODUCTION-PROGRESS.md for commit IDs.
-Section 3's sounds remain needed and require an audio workflow.
+**Next artwork to make:** the dialogue box frame and name tag (section 4), then chapter title cards.
+Section 3's sounds need an audio workflow.
 **Next to upload:** 24 generated PNGs are still only in the ChatGPT chat: section 1's line events and
 section 2's route-map art. They're listed in ART-PRODUCTION-PROGRESS.md.
 
@@ -59,7 +59,7 @@ Optional: a square **vignette** (256×256) for each event's panel, replacing the
 - [~] Round map badges for each stop type (coal depot, town, mine, workshop, water tower), 96×96
 - [~] Start station badge and a little train marker for "you are here"
 - [~] An emblem per area (meadow, desert, snow, jungle, marsh, coast, Brasswick) for the map headings
-- [↑] Emblem for **the Iron Badlands**: separate `assets/ui/emblem-badlands.png` (96×96), source in `art/sheets/map-emblem-badlands-source.png`; uploaded on art branch, in-game review pending
+- [x] Emblem for **the Iron Badlands**: shown on the route map beside the area name
 - [~] Map button icon (now a hand-drawn folded map)
 
 The map is ready for these: once uploaded and sliced to the names below, it uses them automatically
@@ -68,9 +68,9 @@ The map is ready for these: once uploaded and sliced to the names below, it uses
 `assets/ui/emblem-<areaId>.png` (meadow, desert, badlands, snow, jungle, marsh, coast, town).
 
 ## 3. Objectives, rescue and breakdowns (in the game now)
-- [↑] Objective icons: passengers, cargo, distance, visit, reach area, money (64×64): `assets/ui/objective-{passengers,cargo,distance,visit,reach-area,money}.png`; art branch, integration pending
-- [↑] "Complete!" ribbon: `assets/ui/objective-complete.png` (256×96); art branch, integration pending
-- [↑] Steam-leak puff: `assets/fx/steam-leak.png` (512×128, four 128×128 cells), plus separate `steam-leak-0.png` through `steam-leak-3.png`; art branch, animation integration pending
+- [x] Objective icons: passengers, cargo, distance, visit, reach area, money: shown beside each objective on the map
+- [x] "Complete!" ribbon: pops up with the objective's name and reward when one is finished
+- [x] Steam-leak puff: animates from the engine while it's broken down
 - [ ] Sounds: objective-complete jingle, map open/close (paper rustle), event sting (short
       "something's up" phrase), relief-engine whistle in the distance, breakdown bang/hiss
 
@@ -81,8 +81,9 @@ The map is ready for these: once uploaded and sliced to the names below, it uses
 - [ ] Sounds: ticket punch "ka-chunk", reel whirr, reel stop clunk, small win jingle, jackpot bells
 
 ## 4. Story (next)
-- [ ] Character portraits, chest-up, 3 expressions each (neutral, happy, worried): the driver, the
-      fireman, a station master, a mysterious client, a rival railway boss (256×256)
+- [x] Character portraits, chest-up, 3 expressions each: in the game as **crew chatter**: Old Bill (driver),
+      Sam (fireman) and Mrs Pennywhistle (station mistress) comment on the run; Sir Reginald Crowe (rival)
+      and the stranger in red turn up at stops now and then. Lines are in `src/content/dialogue.js`.
 - [ ] Dialogue box frame (9-slice, like the existing buttons) and a name tag
 - [ ] Chapter title cards (one painted scene per chapter, 1280×720)
 - [ ] A few story props for stops: wanted poster, sealed letter, strange crate

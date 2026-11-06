@@ -1,5 +1,6 @@
 import { BALANCE, LIVERIES, POI_TYPES } from '../config/balance.js';
 import { liveries } from '../state/liveries.js';
+import { LINES } from '../content/dialogue.js';
 import { DEBUG, setGod } from '../config/debug.js';
 import { AREAS } from '../config/display.js';
 import * as A from './debugActions.js';
@@ -99,6 +100,18 @@ const SECTIONS = [
           g.train.setLivery(v);
           return `Painted ${LIVERIES[v].name}`;
         },
+      },
+    ],
+  },
+  {
+    title: 'Crew chatter',
+    controls: [
+      {
+        type: 'select',
+        label: 'Say a line',
+        options: () => Object.keys(LINES).map((k) => [k, k]),
+        button: 'Say',
+        run: (g, v) => A.sayLine(g, v),
       },
     ],
   },

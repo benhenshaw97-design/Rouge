@@ -149,6 +149,12 @@ export function eventHere(g, id) {
 
 export const eventOptions = () => EVENTS.map((e) => [e.id, `${e.title}${e.areas ? ` (${e.areas.join(', ')})` : ''}`]);
 
+/** A cast member says a line for a moment (content/dialogue.js). */
+export function sayLine(g, moment) {
+  g.ui.say(moment, { force: true });
+  return null;
+}
+
 export function completeObjectives(g) {
   const done = g.objectives.completeAll();
   return `Completed ${done.length} objectives`;

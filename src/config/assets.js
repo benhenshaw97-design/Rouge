@@ -128,6 +128,25 @@ export const IMAGES = {
   'poi-water-tower-a': 'pois/water-tower-a.png',
   'poi-water-tower-b': 'pois/water-tower-b.png',
 
+  // Objectives (ChatGPT art batch, 2026-11-06): one icon per objective type, and the ribbon
+  'objective-passengers': 'ui/objective-passengers.png',
+  'objective-cargo': 'ui/objective-cargo.png',
+  'objective-distance': 'ui/objective-distance.png',
+  'objective-visit': 'ui/objective-visit.png',
+  'objective-reach-area': 'ui/objective-reach-area.png',
+  'objective-money': 'ui/objective-money.png',
+  'objective-complete': 'ui/objective-complete.png',
+  // Route map emblems (map uses emblem-<area id> when present)
+  'emblem-badlands': 'ui/emblem-badlands.png',
+  // Steam leak (breakdowns), four frames
+  ...Object.fromEntries([0, 1, 2, 3].map((i) => [`steam-leak-${i}`, `fx/steam-leak-${i}.png`])),
+  // Character portraits for crew chatter and story: portrait-<who>-<mood>
+  ...Object.fromEntries(
+    ['driver', 'fireman', 'station-master', 'mysterious-client', 'rival-boss'].flatMap((who) =>
+      ['neutral', 'happy', 'worried'].map((mood) => [`portrait-${who}-${mood}`, `portraits/${who}-${mood}.png`]),
+    ),
+  ),
+
   // UI icons
   'icon-fuel': 'ui/icon-fuel.png',
   'icon-water': 'ui/icon-water.png',
@@ -240,4 +259,4 @@ export const AUDIO_VOLUME = {
  * Art only needed once the line reaches other areas. It isn't waited for at start-up: it loads in
  * the background while you play the meadows (see systems/BackgroundLoader.js).
  */
-export const LATER_IMAGES = Object.keys(IMAGES).filter((k) => /^(desert|badlands|snow|jungle|marsh|coast|town)-/.test(k));
+export const LATER_IMAGES = Object.keys(IMAGES).filter((k) => /^(desert|badlands|snow|jungle|marsh|coast|town|portrait)-/.test(k));

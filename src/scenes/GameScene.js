@@ -12,6 +12,7 @@ import { Weather } from '../systems/Weather.js';
 import { Ambience } from '../systems/Ambience.js';
 import { Objectives } from '../systems/Objectives.js';
 import { applySave, clearSave, saveRun } from '../state/save.js';
+import { VISITOR_CHANCE } from '../content/dialogue.js';
 import { areaLoaded, loadLaterImages } from '../systems/BackgroundLoader.js';
 import { RouteManager } from '../systems/RouteManager.js';
 import { TrainMotion } from '../systems/TrainMotion.js';
@@ -130,7 +131,10 @@ export class GameScene extends Phaser.Scene {
 
     this.audio.startMusic();
     this.cameras.main.fadeIn(500, 21, 17, 13);
-    if (!resume) this.time.delayedCall(START_STATION.departDelayMs, () => this.depart());
+    if (!resume) {
+      this.time.delayedCall(START_STATION.departDelayMs, () => this.depart());
+      this.time.delayedCall(600, () => this.ui.say('runStart'));
+    }
   }
 
   /**
@@ -274,6 +278,7 @@ export class GameScene extends Phaser.Scene {
         if (this.signpostsShown) this.ui.showJunction(j);
       }
       this.ui.toast(`Entering ${this.area.name}`);
+      this.time.delayedCall(2500, () => this.ui.say('newArea'));
       this.weather.setArea(this.area);
       this.ambience.setArea(this.area);
     }
@@ -475,6 +480,13 @@ export class GameScene extends Phaser.Scene {
       visit.onLivery = (id) => this.train.setLivery(id);
       this.ui.openPanel({ state: this.state, visit });
       saveRun(this);
+      // Now and then, someone's waiting on the platform.
+      for (const [who, chance] of Object.entries(VISITOR_CHANCE)) {
+        if (Math.random() < chance) {
+          this.time.delayedCall(700, () => this.ui.say(who, { force: true }));
+          break;
+        }
+      }
     }
   }
 
@@ -484,7 +496,9 @@ export class GameScene extends Phaser.Scene {
     this.nextObjectiveCheck = time + 300;
     for (const o of this.objectives.update()) {
       this.audio.play('coins');
-      this.ui.toast(`Objective complete: ${o.text}  (+£${o.reward})`, COLORS.good);
+      if (this.textures.exists('objective-complete')) this.ui.showRibbon(`${o.text}   +£${o.reward}`);
+      else this.ui.toast(`Objective complete: ${o.text}  (+£${o.reward})`, COLORS.good);
+      this.ui.say('objective');
     }
   }
 
@@ -511,6 +525,24 @@ export class GameScene extends Phaser.Scene {
     this.state.brokenDown = true;
     this.audio.play('warning');
     this.ui.toast('Something’s gone bang! Pulling up…', COLORS.bad);
+    this.ui.say('breakdown', { force: true });
+    this.startSteamLeak();
+  }
+
+  /** Steam hissing from the engine while it's broken down (steam-leak-0..3). */
+  startSteamLeak() {
+    if (!this.textures.exists('steam-leak-0')) return;
+    if (!this.anims.exists('steam-leak')) {
+      this.anims.create({ key: 'steam-leak', frames: [0, 1, 2, 3].map((i) => ({ key: `steam-leak-${i}` })), frameRate: 7, repeat: -1 });
+    }
+    const loco = this.train.cars[this.train.cars.length - 1];
+    this.steamLeak?.destroy();
+    this.steamLeak = this.add
+      .sprite(loco.x + loco.cfg.width * 0.5, loco.top + loco.cfg.height * 0.42, 'steam-leak-0')
+      .setOrigin(0.5, 0.9)
+      .setScale(1.7)
+      .setDepth(DEPTH.smoke)
+      .play('steam-leak');
   }
 
   updateBreakdown(dt, metres) {
@@ -532,6 +564,8 @@ export class GameScene extends Phaser.Scene {
     state.repair(c.breakdownPatch);
     motion.resetThrottle();
     this.ui.toast('Patched up. A Workshop would do a proper job.', COLORS.good);
+    this.steamLeak?.destroy();
+    this.steamLeak = null;
   }
 
   // --- Running out of fuel -------------------------------------------------------------------
@@ -542,6 +576,7 @@ export class GameScene extends Phaser.Scene {
       // Not the end: the stranded panel offers a relief engine (or ending the run).
       this.phase = 'stopped';
       this.ui.openPanel({ state: this.state, visit: strandedVisit() });
+      this.ui.say('stranded', { force: true });
     }
   }
 
@@ -575,6 +610,7 @@ export class GameScene extends Phaser.Scene {
   onStateEvent(event) {
     switch (event) {
       case 'lowFuel':
+        this.ui.say('lowFuel');
         this.audio.play('warning');
         this.ui.toast('Fuel running low: find a Coal Depot!', COLORS.bad);
         break;
@@ -583,6 +619,7 @@ export class GameScene extends Phaser.Scene {
         this.ui.toast('The fire’s gone out… coasting', COLORS.bad);
         break;
       case 'overheated':
+        this.ui.say('overheated');
         this.audio.play('brake');
         this.ui.toast('Boiler overheated! Easing off', COLORS.bad);
         break;

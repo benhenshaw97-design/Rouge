@@ -101,6 +101,10 @@ coast, birds and insects in the jungle, frogs in the marsh). For now these are m
 A new minigame is a Phaser scene in `src/minigames/`, registered in `main.js`, opened from a
 stop menu option with `visit.openMinigame('<scene key>', data)`.
 
+**Crew chatter**: the driver, fireman and station mistress speak up at key moments (setting off,
+new areas, overheating, breakdowns, objectives), with their portraits; a rival railway boss and a
+mysterious stranger sometimes turn up at stops. Lines are in `src/content/dialogue.js`.
+
 **Liveries**: the Workshop's Paint shop sells paint schemes for the train. Once bought they're
 yours on every run (`LIVERIES` in `balance.js`, art from `scripts/make-liveries.py`).
 
