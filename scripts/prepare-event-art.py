@@ -8,6 +8,7 @@ from pathlib import Path
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
+MAX_W, MAX_H = 660, 350  # 2x the largest drawn event prop
 
 
 def prepare():
@@ -27,6 +28,11 @@ def prepare():
             raise ValueError(f'{source}: solid artwork touches the canvas edge; review clipping')
         pad = 8
         crop = image.crop((max(0, x0-pad), max(0, y0-pad), min(image.width, x1+pad), min(image.height, y1+pad)))
+        # Shrink to twice the largest size the game draws event props at (330 x 175), so it
+        # stays sharp on high-density screens without shipping megabyte files to phones.
+        k = min(1, MAX_W / crop.width, MAX_H / crop.height)
+        if k < 1:
+            crop = crop.resize((round(crop.width * k), round(crop.height * k)), Image.LANCZOS)
         output = ROOT / entry['output']
         output.parent.mkdir(parents=True, exist_ok=True)
         crop.save(output, optimize=True)

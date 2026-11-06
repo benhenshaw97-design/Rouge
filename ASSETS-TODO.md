@@ -1,8 +1,19 @@
 # Asset to-do list
 
-Tick items off as you upload them (GitHub: Add file → Upload files, into `art/sheets/`).
+Kept up to date by Claude as art arrives. Status of each item:
+- `[x]` **in the game**: uploaded, checked and showing in the game
+- `[~]` **made, not uploaded yet**: generated (see ART-PRODUCTION-PROGRESS.md) but not in the repo;
+  upload the PNGs to `art/sheets/` (any branch, or with an `art/event-art.json` entry) and they'll go in
+- `[ ]` **still needed**
+
 Sections 1–3 are for features already in the game that currently borrow other art; 4 onwards are
 for the features still to come (story, train customisation, new stops, new areas).
+
+**Last checked: 2026-11-06.** Integrated this round: the stranded family and the pedlar (from
+`codex/asset-production-batch-1`, shrunk from 2.5 MB to 0.1 MB, drawn at person height on the near bank).
+
+**Next to make:** section 2, the route map art (ChatGPT's progress note says the same).
+**Next to upload:** the 15 section 1 PNGs already generated. They're listed in ART-PRODUCTION-PROGRESS.md.
 
 ## How to make art that drops straight in
 - **Real transparency.** PNG with a transparent background: no checkerboard or white painted in
@@ -16,26 +27,27 @@ for the features still to come (story, train customisation, new stops, new areas
 - **Icons:** square, transparent, readable at 32 px (draw at 64–128 px).
 - **Sounds:** short WAV or MP3, trimmed with no silence at the start.
 
-## 1. Line events (in the game now; most show a stand-in prop cut from the prop sheets)
-The train stops for these, but there's nothing to see by the line yet, so each wants a prop
-or small scene drawn beside the track, about train height or less. Also optional: a square
-**vignette** (256×256) for each event's panel, replacing the plain icon.
+## 1. Line events (in the game now; each shows a stand-in prop until its own art arrives)
+A prop beside the track where the train halts. Props with people go on the near bank at about
+125 px high in game (a person is about half the engine's height); tall objects stand behind the
+wagon (up to 330 × 175); low ones (logs, pools) lie on the bank (up to 230 × 62).
+Optional: a square **vignette** (256×256) for each event's panel, replacing the plain icon.
 - [x] Stranded family with luggage and a cart missing a wheel (any area)
-- [ ] Fallen tree across the rails: meadow, jungle and marsh versions
-- [ ] Abandoned coal wagon in a short siding (half full of coal)
+- [~] Fallen tree across the rails: meadow, jungle and marsh versions
+- [~] Abandoned coal wagon in a short siding (half full of coal)
 - [x] Pedlar's cart with coal sacks and a water barrel, plus the pedlar
-- [ ] Snowdrift over the rails (snow)
-- [ ] Steaming hot spring (snow and jungle)
-- [ ] Sandstorm: a wall of red sand, as a strip that can scroll across the screen (desert)
-- [ ] Oasis pool with palms (desert)
-- [ ] Monkeys (3–4 poses) climbing on a wagon (jungle)
-- [ ] Marsh lights / will-o'-the-wisps (small glowing sprites, 3–4 frames)
-- [ ] Toll bridge barrier and a toll-keeper in a very official hat (coast, town, meadow)
-- [ ] Mail sack lying by the track
-- [ ] Shipwreck on the rocks with crates (coast)
-- [ ] Coal-thief urchins (2–3 children) (town)
-- [ ] **Relief engine**: a small tank engine, side view, in the same style as the train (it
-      comes to the rescue when you run out of fuel)
+- [~] Snowdrift over the rails (snow)
+- [~] Steaming hot spring (snow and jungle). The steam is already animated in game, so the pool alone is enough.
+- [~] Sandstorm: a wall of red sand, as a strip that can scroll across the screen (desert)
+- [~] Oasis pool with palms (desert)
+- [~] Monkeys (3–4 poses) climbing on a wagon (jungle)
+- [~] Marsh lights / will-o'-the-wisps (small glowing sprites, 3–4 frames)
+- [~] Toll bridge barrier and a toll-keeper in a very official hat (coast, town, meadow)
+- [~] Mail sack lying by the track
+- [~] Shipwreck on the rocks with crates (coast)
+- [~] Coal-thief urchins (2–3 children) (town)
+- [~] **Relief engine**: a small tank engine, side view, in the same style as the train (it
+      comes to the rescue when you run out of fuel). Will need code to drive it in.
 
 ## 2. Route map screen (in the game now, drawn with the HUD icons)
 - [ ] Parchment or painted map background (tileable, or about 1600×900)
@@ -81,7 +93,7 @@ Each needs a building in every area's style (or one general version to start) pl
 ## 7. More areas, and improving the current ones
 A new area needs: far mountains, mid hills, a scatter of trees and props, a village strip, a ground bank
 under the rails, 1–2 foreground rows, the five stop buildings plus a platform, and a signpost.
-- [x] Industrial badlands (The Iron Badlands)
+- [x] Industrial badlands (The Iron Badlands), from the painted scene `badlands-scene.png`
 
 Ideas: **autumn forest** (autumn foreground rows are already uploaded), **canyon badlands**,
 **volcanic ash fields**, **savannah**, **industrial mill town**, **haunted moor**, **cherry-blossom hills**.
@@ -124,3 +136,11 @@ bank, and seven areas (meadow, desert, snow, jungle, marsh, coast, Brasswick) wi
 
 ## Production workflow
 See `art/PRODUCTION.md` for style references, approved sources and the repeatable import command.
+
+## What's in the repo but not used, and why
+- `codex/asset-production-batch-1` and `train-game`: merged (event art, progress notes).
+- `feature/area-registry`, `chore/area-asset-check`: **not merged**. They were built on an old copy
+  of the game: the registry would remove six of the eight areas, and `check:assets` already
+  exists. Ask Claude to port an idea from them rather than merging them.
+- `chore/master-asset-inventory`: **not merged**. It lists uploads that have since been sorted
+  into `art/sheets/` with descriptive names, so it's out of date.

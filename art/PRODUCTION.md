@@ -8,8 +8,16 @@ No scenery behind isolated props. Real alpha, no painted checkerboard, floor sha
 Leave generous outer margins and at least 20 pixels between separate sheet pieces.
 
 The locomotive displays at approximately 250 by 130 pixels. Event props currently fit within
-330 by 175 pixels; flat obstacles fit within 230 by 62. Check readability at these sizes, not just
-at generation resolution. Runtime already scales these images; no scene-code changes needed.
+330 by 175 pixels; flat obstacles fit within 230 by 62; props with people in them (pedlar,
+stranded family, urchins, toll-keeper) stand on the near bank at about 125 px tall, so a person
+is roughly half the engine's height. Check readability at these sizes, not just at generation
+resolution. `prepare-event-art.py` shrinks runtime files to at most 660 × 350 (2x the largest
+drawn size) and `compress-images.py` palettes them: always run both before committing, as raw
+generator output is 1–2 MB per prop.
+
+**Uploading is the step that makes art count.** Images that exist only in the ChatGPT
+conversation can't be used. Put each approved source PNG in `art/sheets/`, add its manifest entry,
+and push; Claude checks new branches, integrates what fits and updates ASSETS-TODO.md.
 
 ## Repeatable process
 1. Select an unchecked item from ASSETS-TODO.md. Check existing sheets and stand-ins first.

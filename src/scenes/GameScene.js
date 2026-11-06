@@ -29,6 +29,11 @@ import { WorldLayer } from '../systems/WorldLayer.js';
  */
 /** Line-event props that lie flat on the ground (drawn on the near bank, not behind the train). */
 const FLAT_EVENT_PROPS = new Set(['fallen-tree', 'hot-spring', 'oasis', 'mail-sack']);
+/**
+ * Props with people in them, drawn at a person's height on the near bank (a person is about half
+ * the engine's height): { height: of the whole prop in design px, maxW }.
+ */
+const PEOPLE_EVENT_PROPS = { 'stranded-family': { height: 115, maxW: 420 }, pedlar: { height: 125, maxW: 260 } };
 
 export class GameScene extends Phaser.Scene {
   constructor() {
@@ -364,8 +369,12 @@ export class GameScene extends Phaser.Scene {
     const cars = TRAIN_LAYOUT.cars;
     const widthOf = (k) => cars.find((c) => c.key === k)?.width ?? 0;
     const flat = FLAT_EVENT_PROPS.has(ev.def.id);
-    const img = this.add.image(0, flat ? RAIL_Y + 78 : RAIL_Y + 14, key).setOrigin(0.5, 1);
-    if (flat) {
+    const people = this.textures.get(key).getSourceImage().width > 400 ? PEOPLE_EVENT_PROPS[ev.def.id] : null;
+    const img = this.add.image(0, flat || people ? RAIL_Y + (people ? 96 : 82) : RAIL_Y + 14, key).setOrigin(0.5, 1);
+    if (people) {
+      img.setScale(Math.min(people.height / img.height, people.maxW / img.width)).setDepth(DEPTH.rods + 0.5);
+      this.world.add(ev.at, img, { offsetX: -widthOf('locomotive') * 0.5 });
+    } else if (flat) {
       img.setScale(Math.min(1.3, 62 / img.height, 230 / img.width)).setDepth(DEPTH.rods + 0.5);
       this.world.add(ev.at, img, { offsetX: -widthOf('locomotive') * 0.55 });
     } else {
