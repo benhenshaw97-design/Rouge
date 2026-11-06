@@ -20,10 +20,10 @@ for the features still to come (story, train customisation, new stops, new areas
 The train stops for these, but there's nothing to see by the line yet, so each wants a prop
 or small scene drawn beside the track, about train height or less. Also optional: a square
 **vignette** (256×256) for each event's panel, replacing the plain icon.
-- [ ] Stranded family with luggage and a cart missing a wheel (any area)
+- [x] Stranded family with luggage and a cart missing a wheel (any area)
 - [ ] Fallen tree across the rails: meadow, jungle and marsh versions
 - [ ] Abandoned coal wagon in a short siding (half full of coal)
-- [ ] Pedlar's cart with coal sacks and a water barrel, plus the pedlar
+- [x] Pedlar's cart with coal sacks and a water barrel, plus the pedlar
 - [ ] Snowdrift over the rails (snow)
 - [ ] Steaming hot spring (snow and jungle)
 - [ ] Sandstorm: a wall of red sand, as a strip that can scroll across the screen (desert)
@@ -121,3 +121,6 @@ No need to redo these. They're kept in `art/sheets/`:
 Sound effects, music, HUD icons, sky, ground, grass bank, foreground, train with underframes,
 carriage, cargo wagon and loads, rails and points, the tunnel mountain, tunnel mouth and rock
 bank, and seven areas (meadow, desert, snow, jungle, marsh, coast, Brasswick) with their stops.
+
+## Production workflow
+See `art/PRODUCTION.md` for style references, approved sources and the repeatable import command.
