@@ -251,6 +251,19 @@ export const STOP_NAMES = {
   },
 };
 
+/**
+ * Paint schemes for the train, sold at Workshops (see state/liveries.js). Once bought, a livery
+ * is kept for good (across runs); switching to one you already own costs `repaint`.
+ */
+export const LIVERIES = {
+  red: { name: 'Rouge red', price: 0 },
+  green: { name: 'Brunswick green', price: 120 },
+  blue: { name: 'Midnight blue', price: 150 },
+  royal: { name: 'Royal plum', price: 200 },
+  gold: { name: 'Golden arrow', price: 300 },
+};
+export const LIVERY_REPAINT_COST = 10;
+
 /** The station you start each run from (uses the town building art). */
 export const START_STATION = {
   name: 'Rouge Central',

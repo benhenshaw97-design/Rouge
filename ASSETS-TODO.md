@@ -9,11 +9,12 @@ Kept up to date by Claude as art arrives. Status of each item:
 Sections 1–3 are for features already in the game that currently borrow other art; 4 onwards are
 for the features still to come (story, train customisation, new stops, new areas).
 
-**Last checked: 2026-11-06.** Integrated this round: the stranded family and the pedlar (from
+**Last checked: 2026-11-06.** Added since: train liveries (from existing art). Earlier this day: the stranded family and the pedlar (from
 `codex/asset-production-batch-1`, shrunk from 2.5 MB to 0.1 MB, drawn at person height on the near bank).
 
-**Next to make:** section 2, the route map art (ChatGPT's progress note says the same).
-**Next to upload:** the 15 section 1 PNGs already generated. They're listed in ART-PRODUCTION-PROGRESS.md.
+**Next to make:** section 3, the objective icons, completion stamp and steam-leak puff (ChatGPT is on it).
+**Next to upload:** 24 generated PNGs are still only in the ChatGPT chat: section 1's line events and
+section 2's route-map art. They're listed in ART-PRODUCTION-PROGRESS.md.
 
 ## How to make art that drops straight in
 - **Real transparency.** PNG with a transparent background: no checkerboard or white painted in
@@ -50,11 +51,17 @@ Optional: a square **vignette** (256×256) for each event's panel, replacing the
       comes to the rescue when you run out of fuel). Will need code to drive it in.
 
 ## 2. Route map screen (in the game now, drawn with the HUD icons)
-- [ ] Parchment or painted map background (tileable, or about 1600×900)
-- [ ] Round map badges for each stop type (coal depot, town, mine, workshop, water tower), 96×96
-- [ ] Start station badge and a little train marker for "you are here"
-- [ ] An emblem per area (meadow, desert, snow, jungle, marsh, coast, Brasswick) for the map headings
-- [ ] Map button icon (now a hand-drawn folded map)
+- [~] Parchment or painted map background (tileable, or about 1600×900)
+- [~] Round map badges for each stop type (coal depot, town, mine, workshop, water tower), 96×96
+- [~] Start station badge and a little train marker for "you are here"
+- [~] An emblem per area (meadow, desert, snow, jungle, marsh, coast, Brasswick) for the map headings
+- [ ] Emblem for **the Iron Badlands** (added after the batch above; the empty 8th cell of the emblem sheet is free)
+- [~] Map button icon (now a hand-drawn folded map)
+
+The map is ready for these: once uploaded and sliced to the names below, it uses them automatically
+(otherwise it keeps the HUD icons). `assets/ui/map-parchment.png`, `assets/ui/badge-<stopType>.png`
+(coalDepot, town, mine, workshop, waterTower, start), `assets/ui/map-train.png`,
+`assets/ui/emblem-<areaId>.png` (meadow, desert, badlands, snow, jungle, marsh, coast, town).
 
 ## 3. Objectives, rescue and breakdowns (in the game now)
 - [ ] Objective icons: passengers, cargo, distance, visit, reach area, money (64×64)
@@ -72,7 +79,10 @@ Optional: a square **vignette** (256×256) for each event's panel, replacing the
 
 ## 5. Train customisation (next)
 Same setup as the current train: body over its underframe, wheels separate.
-- [ ] Liveries: the **green and blue locomotives are already uploaded**; tenders and carriages to match each
+- [x] Liveries: **in the game** as recolours of the current train (red, Brunswick green, midnight blue,
+      royal plum, golden arrow), bought at a Workshop's Paint shop and kept across runs
+      (`scripts/make-liveries.py`). Hand-painted versions would still look better than recolours; if
+      made, keep the same part layout as `assets/sprites/locomotive.png` etc. so the wheels still fit.
 - [ ] More cars: second passenger carriage, sleeper car, dining car, mail van, tanker wagon,
       livestock wagon, flatbed (uploaded) with loads, guard's van for the back of the train
 - [ ] Cosmetic parts for the loco: 3 chimney styles, 2 headlamps, cowcatcher, brass nameplate

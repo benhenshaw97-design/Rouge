@@ -1,4 +1,5 @@
-import { BALANCE, POI_TYPES } from '../config/balance.js';
+import { BALANCE, LIVERIES, POI_TYPES } from '../config/balance.js';
+import { liveries } from '../state/liveries.js';
 import { DEBUG, setGod } from '../config/debug.js';
 import { AREAS } from '../config/display.js';
 import * as A from './debugActions.js';
@@ -82,6 +83,22 @@ const SECTIONS = [
           ['+6 to next area', (g) => A.boardPassengers(g, true)],
           ['Clear load', A.clearLoad],
         ],
+      },
+    ],
+  },
+  {
+    title: 'Look',
+    controls: [
+      {
+        type: 'select',
+        label: 'Livery',
+        options: () => Object.entries(LIVERIES).map(([id, l]) => [id, l.name]),
+        button: 'Paint',
+        run: (g, v) => {
+          liveries.buy(v);
+          g.train.setLivery(v);
+          return `Painted ${LIVERIES[v].name}`;
+        },
       },
     ],
   },

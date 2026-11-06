@@ -102,7 +102,7 @@ export class PoiPanel {
           height: size.btn,
           fontSize: size.font,
           label: opt.label,
-          sublabel: opt.disabledReason ?? undefined,
+          sublabel: opt.disabledReason ?? opt.sublabel ?? undefined,
           rightLabel: right,
           rightColor,
           skin: 'gold',

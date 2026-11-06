@@ -93,6 +93,9 @@ ambience volumes. It's all remembered on the device. Stations are `RADIO_STATION
 coast, birds and insects in the jungle, frogs in the marsh). For now these are made on the fly
 (`src/systems/Ambience.js`); add real loops to `AMBIENCE_FILES` in `assets.js` to replace them.
 
+**Liveries**: the Workshop's Paint shop sells paint schemes for the train. Once bought they're
+yours on every run (`LIVERIES` in `balance.js`, art from `scripts/make-liveries.py`).
+
 **Saving**: the run is saved whenever you're at a stop (on arrival and after anything you buy or
 sell there). Continue on the title screen takes you back to that stop. Ending a run deletes the save.
 `src/state/save.js` says what's kept.

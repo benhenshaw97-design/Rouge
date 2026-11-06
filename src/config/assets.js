@@ -81,6 +81,12 @@ export const IMAGES = {
   'cargo-tarp': 'sprites/cargo-tarp.png',
 
   wheel: 'sprites/wheel.png',
+  // Liveries (scripts/make-liveries.py): each train part recoloured.
+  ...Object.fromEntries(
+    ['locomotive', 'tender', 'wagon', 'carriage', 'wheel'].flatMap((part) =>
+      ['green', 'blue', 'royal', 'gold'].map((l) => [`${part}-${l}`, `sprites/${part}-${l}.png`]),
+    ),
+  ),
   'coupling-rod': 'sprites/coupling-rod.png',
   smoke: 'sprites/smoke.png',
 

@@ -54,6 +54,10 @@ export class MapView {
     const m = 10;
     const panel = { x: m, y: m, w: w - m * 2, h: h - m * 2 };
     this.add(frame(scene, 'button-brown', panel.x + panel.w / 2, panel.y + panel.h / 2, panel.w, panel.h).setAlpha(0.97));
+    // Painted parchment inside the frame, when that art is loaded (see ASSETS-TODO.md, section 2).
+    if (scene.textures.exists('map-parchment')) {
+      this.add(scene.add.image(panel.x + panel.w / 2, panel.y + panel.h / 2, 'map-parchment').setDisplaySize(panel.w - 16, panel.h - 16).setAlpha(0.95));
+    }
 
     // Header
     const pad = 14;
@@ -116,6 +120,10 @@ export class MapView {
       // Area name, shrunk (or shortened to its last word) to fit the band, never cut off.
       const room = x1 - x0 - 8;
       const label = this.add(text(scene, (x0 + x1) / 2, area.y + 3, a.name.replace(/^The /, ''), 12, COLORS.text, { fontStyle: 'bold' }).setOrigin(0.5, 0));
+      // The area's emblem beside its name, if loaded.
+      if (scene.textures.exists(`emblem-${a.id}`) && x1 - x0 > 90) {
+        this.add(scene.add.image(label.x - label.width / 2 - 12, area.y + 10, `emblem-${a.id}`).setDisplaySize(18, 18));
+      }
       if (label.width > room) label.setText(a.name.split(' ').pop());
       if (label.width > room) label.setScale(Math.max(0.55, room / label.width));
       if (label.displayWidth > room) label.setVisible(false);
@@ -153,7 +161,15 @@ export class MapView {
         const ring = isHere ? 0xffd77a : choice >= 0 ? (choice === choosing.selected ? 0xa8f0a0 : 0xf6ead2) : onPath.has(n.id) ? COLORS.brass : 0x5c4326;
         const dimmed = !isHere && choice < 0 && !onPath.has(n.id) && c > map.current.col;
         const circle = this.add(scene.add.circle(x, y, rad, 0xe8d6b0, 1).setStrokeStyle(isHere || choice >= 0 ? 3 : 2, ring, 1));
-        const icon = this.add(scene.add.image(x, y, def?.icon ?? 'icon-distance').setDisplaySize(rad * 1.25, rad * 1.25));
+        // A painted badge for the stop type if loaded (it has its own rim), else the HUD icon.
+        const badge = n.col === 0 ? 'badge-start' : `badge-${n.type}`;
+        const hasBadge = scene.textures.exists(badge);
+        const icon = this.add(
+          hasBadge
+            ? scene.add.image(x, y, badge).setDisplaySize(rad * 2.3, rad * 2.3)
+            : scene.add.image(x, y, def?.icon ?? 'icon-distance').setDisplaySize(rad * 1.25, rad * 1.25),
+        );
+        if (hasBadge) circle.setFillStyle(0, 0);
         if (dimmed) {
           circle.setAlpha(0.6);
           icon.setAlpha(0.55);

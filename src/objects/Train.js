@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { DEPTH, PX_PER_METRE, RAIL_Y, TRAIN_FRONT_X, TRAIN_LAYOUT } from '../config/display.js';
+import { liveryKey } from '../state/liveries.js';
 
 /**
  * The train's visuals. Each car is one image (body over underframe) with wheels centred on the
@@ -23,12 +24,12 @@ export class Train {
     let x = TRAIN_FRONT_X - this.length;
     for (const cfg of L.cars) {
       const top = RAIL_Y - cfg.railY;
-      const body = scene.add.image(x, top, cfg.key).setOrigin(0, 0).setDisplaySize(cfg.width, cfg.height).setDepth(DEPTH.train);
+      const body = scene.add.image(x, top, liveryKey(cfg.key)).setOrigin(0, 0).setDisplaySize(cfg.width, cfg.height).setDepth(DEPTH.train);
       const car = { cfg, body, x, top, wheels: [] };
 
       for (const w of cfg.wheels) {
         const sprite = scene.add
-          .image(x + w.x, top + w.y, 'wheel')
+          .image(x + w.x, top + w.y, liveryKey('wheel'))
           .setDisplaySize(w.r * 2, w.r * 2)
           .setDepth(DEPTH.wheels);
         const wheel = { sprite, r: w.r, x: x + w.x, y: top + w.y };
@@ -107,6 +108,14 @@ export class Train {
     this.smokeDrift = -speed * PX_PER_METRE * 0.85;
     this.smoke.frequency = Phaser.Math.Linear(380, 60, speedFrac);
     this.smoke.emitting = !state.isOutOfFuel; // a dead fire makes no smoke
+  }
+
+  /** Repaints the train in a livery (see state/liveries.js). */
+  setLivery(livery) {
+    for (const car of this.cars) {
+      car.body.setTexture(liveryKey(car.cfg.key, livery)).setDisplaySize(car.cfg.width, car.cfg.height);
+      for (const w of car.wheels) w.sprite.setTexture(liveryKey('wheel', livery)).setDisplaySize(w.r * 2, w.r * 2);
+    }
   }
 
   updateHeap(car, bob, state) {

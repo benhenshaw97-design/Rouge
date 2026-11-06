@@ -77,7 +77,11 @@ export class GameScene extends Phaser.Scene {
         this.world.update(this.state.distance);
         this.phase = 'stopped';
         // (Next frame, once the UI scene has laid itself out.)
-        this.time.delayedCall(30, () => this.ui.openPanel({ state: this.state, visit: createVisit(this.route.poi, { leg: this.leg, next: this.nextAreaInfo() }) }));
+        this.time.delayedCall(30, () => {
+          const visit = createVisit(this.route.poi, { leg: this.leg, next: this.nextAreaInfo() });
+          visit.onLivery = (id) => this.train.setLivery(id);
+          this.ui.openPanel({ state: this.state, visit });
+        });
       };
       if (areaLoaded(this, this.area)) {
         arrive();
@@ -466,7 +470,9 @@ export class GameScene extends Phaser.Scene {
       const byType = this.state.stats.stopsByType;
       byType[poi.type] = (byType[poi.type] ?? 0) + 1;
       const where = { leg: this.leg, next: this.nextAreaInfo() };
-      this.ui.openPanel({ state: this.state, visit: createVisit(poi, where) });
+      const visit = createVisit(poi, where);
+      visit.onLivery = (id) => this.train.setLivery(id);
+      this.ui.openPanel({ state: this.state, visit });
       saveRun(this);
     }
   }

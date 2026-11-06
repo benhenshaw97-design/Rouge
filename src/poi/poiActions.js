@@ -1,4 +1,5 @@
-import { BALANCE, POI_TYPES } from '../config/balance.js';
+import { BALANCE, LIVERIES, LIVERY_REPAINT_COST, POI_TYPES } from '../config/balance.js';
+import { liveries } from '../state/liveries.js';
 
 /**
  * What each POI lets you do. Prices and amounts come from POI_TYPES / BALANCE.
@@ -89,6 +90,37 @@ export function strandedVisit() {
 const money = (n) => `£${Math.round(n)}`;
 const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
 const notEnough = (state, cost) => (state.canAfford(cost) ? null : 'Not enough money');
+
+function paintShop(state, visit) {
+  const options = [];
+  for (const [id, l] of Object.entries(LIVERIES)) {
+    if (id === liveries.current) continue;
+    const owned = liveries.owns(id);
+    const cost = owned ? LIVERY_REPAINT_COST : l.price;
+    options.push({
+      label: owned ? `${l.name} (yours)` : `${l.name} (new)`,
+      cost,
+      disabledReason: notEnough(state, cost),
+      sound: 'coins',
+      run: () => {
+        state.spend(cost);
+        if (owned) liveries.wear(id);
+        else liveries.buy(id);
+        visit.onLivery?.(id);
+        return `The fitters give her a fresh coat of ${l.name.toLowerCase()}.`;
+      },
+    });
+  }
+  options.push({
+    label: '◂  Back to the workshop',
+    sound: 'click',
+    run: () => {
+      visit.page = null;
+      return visit.def.description;
+    },
+  });
+  return options;
+}
 
 const BUILDERS = {
   event(state, visit) {
@@ -228,6 +260,7 @@ const BUILDERS = {
   },
 
   workshop(state, visit, def) {
+    if (visit.page === 'paint') return paintShop(state, visit);
     const price = def.prices.repairPerPoint;
     const missing = Math.ceil(BALANCE.condition.max - state.condition);
     const affordable = Math.floor(state.money / price);
@@ -263,6 +296,17 @@ const BUILDERS = {
         },
       });
     }
+    // Paint schemes (kept for good once bought; see state/liveries.js), on their own page so
+    // the menu fits small screens.
+    options.push({
+      label: 'Paint shop  ▸',
+      sublabel: `On her now: ${LIVERIES[liveries.current].name}`,
+      sound: 'click',
+      run: () => {
+        visit.page = 'paint';
+        return 'Pick a colour. A new one is yours to keep, on every run.';
+      },
+    });
     return options;
   },
 

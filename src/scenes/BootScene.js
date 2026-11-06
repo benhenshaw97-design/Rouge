@@ -9,6 +9,7 @@ import { frame, text } from '../ui/kit.js';
 import { Button } from '../ui/Button.js';
 import { RadioPanel } from '../ui/RadioPanel.js';
 import { describeSave, readSave } from '../state/save.js';
+import { liveryKey } from '../state/liveries.js';
 import { readBest } from '../state/best.js';
 
 /**
@@ -125,9 +126,9 @@ export class BootScene extends Phaser.Scene {
           this.add.image(x + car.heap.x, top + car.heap.bottom, car.heap.key).setOrigin(0, 1).setDisplaySize(car.heap.w, car.heap.h),
         );
       }
-      cars.push(this.add.image(x, top, car.key).setOrigin(0, 0).setDisplaySize(car.width, car.height));
+      cars.push(this.add.image(x, top, liveryKey(car.key)).setOrigin(0, 0).setDisplaySize(car.width, car.height));
       for (const wl of car.wheels) {
-        const wheel = this.add.image(x + wl.x, top + wl.y, 'wheel').setDisplaySize(wl.r * 2, wl.r * 2);
+        const wheel = this.add.image(x + wl.x, top + wl.y, liveryKey('wheel')).setDisplaySize(wl.r * 2, wl.r * 2);
         cars.push(wheel);
         this.wheels.push({ wheel, r: wl.r });
       }
